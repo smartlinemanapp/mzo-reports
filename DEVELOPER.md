@@ -28,7 +28,10 @@ Unauthenticated HTML requests redirect to `/login.html`. Use a real portal user 
 | Path | Role |
 |------|------|
 | `server.js` | Auth cookie, `/api/*`, static hosting |
-| `login.html` / `index.html` | Login + home hub |
+| `login.html` / `index.html` | Login + phone home hub |
+| `app.html` | Desktop workstation shell: sidebar, ⌘K search, report pages in keep-alive iframes. See **Workstation shell** |
+| `mzo_theme.css` / `mzo_theme.js` | Design system: tokens, UI kit (`ui-*`), legacy-page overlay, theme controller. See **Design system** |
+| `mzo_ui.js` | `window.UI` helpers for kit pages (CSV, formatting, offices, tables, charts, drawer) |
 | `admin_users.html` | Admin panel for portal users, sources, activity, visitors, Power Map, and corrections. Open a section with `?tab=users|sources|activity|visitors|powermap|corrections`. Each user row shows last use within 15 days (`GET /api/admin/logs?days=15`). The user form has **Sheet links** Yes/No for the home-bar table button. Structure editing stays on `admin.html`. |
 | `auth.js` | Client session check + logout |
 | `mzo_scope.js` | Login office scope (`window.MzoScope`) |
@@ -114,7 +117,7 @@ Bump the **cache key** (`CACHE_FOO_v2`) if the stored row shape changes. Large d
 
 ## Service worker
 
-`CACHE_NAME` in `sw.js` is currently `mzo-reports-cache-v200` (`version.json` **2.16**). **Increment both** whenever HTML/CSS/JS that users already cached must update. `version.json` `message` is the full-screen “App updated” notice: the highlighted note and a Reload button. It shows only in the top window, so a report inside the home frame does not open a second notice. `mzo_app_update.js` fetches that file network-first and reloads desktop and the installed PWA. Do not add an install-app modal. The app-update banner is separate from dump `REPORT_AS_ON`. Do not intercept `*.supabase.co` in `sw.js` (same as Google Sheet CSVs). Network-first already includes `/index.html`, `/sheet_links.html`, `/sheet_open.html`, `/admin_users.html`, `/stock/upload.html`, `/mzo_data_hub.js`, `/mzo_present.js`, and `/version.json`. A network-first page is saved on a successful load (query string ignored). Offline navigation uses that saved page. `offline.html` is only for a page that was never saved. `/api/` stays a JSON 503 and is not cached.
+`CACHE_NAME` in `sw.js` is currently `mzo-reports-cache-v259` (`version.json` **2.67**). **Increment both** whenever HTML/CSS/JS that users already cached must update. `version.json` `message` is the full-screen “App updated” notice: the highlighted note and a Reload button. It shows only in the top window, so a report inside the home frame does not open a second notice. `mzo_app_update.js` fetches that file network-first and reloads desktop and the installed PWA. Do not add an install-app modal. The app-update banner is separate from dump `REPORT_AS_ON`. Do not intercept `*.supabase.co` in `sw.js` (same as Google Sheet CSVs). Network-first already includes `/index.html`, `/sheet_links.html`, `/sheet_open.html`, `/admin_users.html`, `/stock/upload.html`, `/mzo_data_hub.js`, `/mzo_present.js`, and `/version.json`. A network-first page is saved on a successful load (query string ignored). Offline navigation uses that saved page. `offline.html` is only for a page that was never saved. `/api/` stays a JSON 503 and is not cached.
 
 **Presentation zoom:** the service worker inserts `/mzo_present.js` into HTML responses (right after `<head>`). `index.html` already includes that script, so the worker must not insert a second copy. Skip login, offline, `/power_map/`, `/sld/`, and `/accident/map.html`. Cache the original HTML, and inject only on the response sent to the page. If the page already has a full-window scroller (the home hub `.page`, nearly the whole viewport and not a side panel or dialog), zoom the content inside it so `html` does not grow a second scrollbar. Other reports, including NSC, zoom the page itself. A report open in the home iframe zooms inside that frame only.
 
@@ -163,39 +166,69 @@ There is no webpack/vite build. Local run is `npm run dev`. Production is **only
 
 ---
 
-## UI Themes & Durga Puja Broadsheet Theme
+## Design system (Graphite)
 
-The portal supports a 3-state theme toggle: **Puja** (default: `body.puja-theme`) ⇄ **Dark** (`body.dark-theme`) ⇄ **Light** (`body.light-theme`).
+One look across the workstation and every report: neutral greys, one **fill** colour for primary actions and selected pills, one teal **accent** for focus, links and the active marker, the operating-system font (no web fonts), hairline borders, almost no shadows. Light and dark are equal citizens.
 
-- **Puja Broadsheet Theme (`puja-newspaper.css`):**
-  - Vintage newsprint background texture, authentic Bengali cultural paper-cut collage art for Maa Durga (`.puja-devi-cutting`) and Kashful plumes (`.puja-kashful-cutting`) on desktop & mobile mastheads and report category card badges (`.card-kashful-accent`).
-  - Subtle, non-cluttered ambient Dhunuchi smoke aura animation (`pujaSmokeAura`).
-  - Card expansion stability: expanded report sub-options retain authentic broadsheet card background and borders without dark navy clipping.
-- **Desktop Festive Frame Background:**
-  - High-performance WebP background (`icons/desktop-bg.webp`, ~45.7 KB) enabled on desktop viewports via `@media (min-width: 768px)` with `background-size: cover; background-attachment: fixed;`.
-  - Mobile viewports retain the clean broadsheet paper grain to avoid portrait distortion.
-- **Search Dropdown Suppression:**
-  - Universal `[hidden]` and `.search-results-dropdown[hidden]`, `:empty` rules enforce `display: none !important; border: none !important;` so no empty bordered capsule appears below the search input when idle.
+- **Tokens** live in `mzo_theme.css` (`--mzo-canvas`, `--mzo-bg`, `--mzo-surface`, `--mzo-surface-2`, `--mzo-border(-strong)`, `--mzo-text`, `--mzo-text-2`, `--mzo-muted`, `--mzo-faint`, `--mzo-fill` / `--mzo-on-fill`, `--mzo-accent`, `--mzo-ok|warn|bad|info(-soft)`, `--mzo-chart(-soft)`). `app.html` inlines the same values; keep the two blocks in sync.
+- **Theme:** `mzo_theme.js` paints `html[data-mzo-theme="light|dark"]` before first paint from `localStorage` (`theme`, `mzo_theme`, `collectionDashboardTheme`). The shell also stores `mzo_theme_pref` (`light` / `dark` / `system`) and writes the resolved value to those keys, so pages only ever see `light` or `dark`. Inside the shell, `mzo_theme.js` adds `html.mzo-in-shell` (page theme toggles and the floating home button are hidden).
+- **Fonts:** `mzo_theme.css` aliases Inter / Outfit / Roboto / Poppins to local system faces (`@font-face … local()`), so Chart.js canvases and older CSS that name those families render in the system UI font without downloading anything. Do not add Google Fonts links.
+- **No:** emojis in UI text, gradients, glows, glass blur, coloured left-accent cards, icon tiles, explanatory paragraphs, Font Awesome / Bootstrap / Chart.js on new pages.
+
+**UI kit (rebuilt pages).** A page opts in with `<html class="ui">` and loads `/mzo_theme.js`, `/mzo_theme.css`, `/mzo_ui.js` (+ `mzo_data_hub.js`, `mzo_scope.js` when it reads data). Structure every report the same way:
+
+1. `.ui-page` → `.ui-head` (`h1` title, one muted meta line such as “As on 28 Oct 2026 · 821 applications”, a few `.ui-btn` actions on the right).
+2. `.ui-filters`: search (`.ui-search`), office selects with ids `regionFilter` / `divisionFilter` / `cccFilter` (so `UI.lockScope()` can pin them), a few more selects, a ghost **Clear**.
+3. `.ui-stats` (one strip, 3–6 `.ui-stat` buttons; `--n` sets columns). A stat toggles a filter; the other stats keep counting the broader filter set.
+4. `.ui-grid` of `.ui-panel`s: an office breakdown (`UI.table`, Region / Division / CCC `.ui-tabs`, rows drill down) and distributions (`UI.hist`) or a trend (`UI.line`, inline SVG).
+5. A list panel: `UI.table` with sort, `limit` paging, CSV export (`UI.exportCsv`) and a row drawer (`UI.drawer`).
+
+`UI.load(key, render)` paints from IndexedDB at once and re-renders when the hub has a newer body. `UI.office(code, name)` maps a CCC code/name to canonical `{ region, division, ccc }` via `MzoScope`. When a kit page is opened outside the shell, `mzo_ui.js` loads `/auth.js` (login gate); inside the shell the shell checks the session. Reference pages: `pending_load_extension.html` (pipeline), `loss.html` (trend + comparison), `nsc.html` and `disconnection.html` (follow-ups in the drawer).
+
+**Legacy pages** (not yet rebuilt) still load `mzo_theme.css` last. Its overlay (scoped to `html:not(.ui)`) re-points the variables those pages already use (`--primary`, `--card-bg`, `--text-muted`, Bootstrap `--bs-*`, `mzo_ui_core.css` names) and normalises headers, cards, buttons, tabs, forms, tables, badges and modals. Page CSS colours were mapped onto tokens with the original colour kept as the `var()` fallback.
+
+`index.html` (phone hub) still carries its own Puja / dark / light theme and `puja-newspaper.css`; that is separate from the design system above.
+
+---
+
+## Workstation shell (`app.html`)
+
+- One registry (`NAV` in `app.html`) drives the sidebar, ⌘K / Ctrl K / `/` search, and `#hash` routes (`#nsc`, `#loss`, … — keys kept from the old shell). Administration shows only for `role: admin`; **Sheet links** only with `sheets-autho` list/edit/y/all.
+- Pages open in iframes that stay alive (5 on desktop, 2 on phones / low-memory devices), so switching back is instant. Hovering a link prefetches its HTML. A thin top progress bar shows while a page loads; the page paints underneath.
+- Pages can call `parent.openPage(url, title)` to jump to another report (the briefing does). If a page navigates itself to another report the shell follows it; if it lands on `/login.html` the shell signs out to the login page; if it lands on the phone hub the shell goes to **Briefing** instead.
+- Sidebar collapses to a rail (⌘B / Ctrl B, remembered in `mzo_ws_rail`); on phones it is a drawer. Account menu: theme (Light / Dark / System), mobile view, sign out (`POST /api/logout`). Recent reports: `mzo_ws_recent`.
+- The service worker does not inject `mzo_present.js` into `app.html`; each report keeps its own zoom control.
+
+---
+
+## Assistant (Ask)
+
+`assistant.html` (shell item **Ask**, and **Ask: …** in ⌘K) answers questions and opens reports already filtered. Model: Claude Haiku (`claude-haiku-5-5`, effort `low`) through `POST /api/assistant` in `server.js` using `@anthropic-ai/sdk`.
+
+- **Key:** set `ANTHROPIC_API_KEY` on the Vercel project (locally: env var or `anthropicApiKey` in `data/supabase_config.json`). Without it the route returns `503 not_configured` and the page says so. Never put the key in HTML.
+- **Who runs what:** the route only holds the key, fixes the model / system prompt / tools, validates the conversation (≤ 60 messages, ≤ 200 KB, user/assistant only) and rate-limits per user. The **browser** runs the tools: `query_report` counts NSC, load extension, solar and loss from the DataHub cache after `MzoScope.filterRows`, so answers respect the login scope and only aggregates (no names / phones) are sent to the model; `open_report` turns a report + filters + view into a link button; `get_briefing` reads `/api/executive/briefing`.
+- **Catalogue:** `lib/assistant_catalog.js` (shared by server and browser) lists every report, its URL filters (`region`, `division`, `ccc`, `q`) and named views (e.g. `nsc.over_30_days` → `kpi=delay30`). When a page gains a deep-link parameter, add it there. To make another report answerable, add an adapter in `assistant.html` and set `data: true`.
+- The conversation (including the model's thinking blocks, passed back unchanged) lives in `sessionStorage` (`mzo_assistant_v1`); **New chat** clears it.
 
 ---
 
 ## Adding a report page
 
-1. Create `feature.html` (or `feature/index.html`). Register it on the home hub in `index.html` with `data-dataset="CACHE_…"` when it uses DataHub.
-2. Include `mzo_data_hub.js` and `mzo_scope.js?v=N` (bump `N` when `mzo_scope.js` changes).
-3. Add the **Google** (or other origin) URL to `DATASETS` in `mzo_data_hub.js`. Load with `waitForDataset` then `get` — never a raw sheet `fetch` if a hub key exists, and never an `/api/.../dataset` body proxy.
-4. After load: `raw = MzoScope.filterRows(raw)` then populate filters; if selects are locked, fill from scoped unique values / `getScope()`, then `lockFilters()`.
+1. Build it on the UI kit (see **Design system**): `<html class="ui">`, kit structure, `UI.*` helpers. Register it in the shell `NAV` in `app.html` (and on the phone hub in `index.html` with `data-dataset="CACHE_…"` when it uses DataHub).
+2. Include `/mzo_data_hub.js` and `/mzo_scope.js?v=N` (bump `N` when `mzo_scope.js` changes).
+3. Add the **Google** (or other origin) URL to `DATASETS` in `mzo_data_hub.js`. Load with `UI.load` (or `waitForDataset` then `_peek`) — never a raw sheet `fetch` if a hub key exists, and never an `/api/.../dataset` body proxy.
+4. After load: `rows = MzoScope.filterRows(rows)`, fill the office selects from the scoped rows, then `UI.lockScope()`.
 5. Add the path to `sw.js` `isNetworkFirstPath` and bump `CACHE_NAME`.
 6. If the folder is new, add it to `vercel.json` `builds`.
-7. **Mobile:** do not stick a stacked filter block. Keep a **single ~42–48px** sticky bar; put search/filters behind a toggle overlay (`meter_utilization.html` is the pattern). Date strips should stay one scrolling row, not a column of cards.
-8. Verify on a **phone width** (and ~900px tablet). Login-gated pages cannot be checked with anonymous `curl` of the HTML.
+7. **Mobile:** the kit stacks to two stat columns and wraps filters; keep headers to one title line and one meta line.
+8. Verify light, dark, inside `app.html`, and at phone width (~390px). Login-gated pages cannot be checked with anonymous `curl` of the HTML.
 
 ---
 
 ## UI conventions
 
-- Prefer existing page look (Outfit/Inter, cards, KPI grids). Do not introduce a new CSS framework on one page.
-- Sticky chrome must stay thin on mobile; overlays must not grow the sticky box (`position: absolute` / `fixed`, not in-flow). Pending NSC (`nsc.html`) keeps the 42px header and opens search and filters from the sliders button on a phone. Desktop still shows that filter block in the page. Meter Utilization (`meter_utilization.html`) uses that same bar, the same compact colored KPI cards, a single scrolling date row, and the same tight table padding. REM OSD > ₹5000 (`remosd5000.html`) and REM Defaulters (`rem/defaulters.html`) use the Disconnection Tracker chrome: navy header, light page, left-accent KPI cards, and a phone filter overlay.
+- New and rebuilt pages use the UI kit (see **Design system**). Do not introduce a new CSS framework on one page.
+- Sticky chrome must stay thin on mobile; overlays must not grow the sticky box (`position: absolute` / `fixed`, not in-flow). Pending NSC (`nsc.html`) keeps the 42px header and opens search and filters from the sliders button on a phone. Desktop still shows that filter block in the page. Meter Utilization (`meter_utilization.html`) uses that same bar, the same compact colored KPI cards, a single scrolling date row, and the same tight table padding. Rebuilt kit pages replace this with the kit header, one filter row and one stat strip.
 - Clicking a status KPI (e.g. Disconnection Tracker Fully paid / Disconnected) must filter **charts and table only**. Other KPI totals stay on the broader filter set (office, class, search, breadcrumb) and must not shrink each other. Each status card shows the count with its percent of the total on the same line (`5,182 · 26%`), and the amount on the line below (paid for fully and partly paid, outstanding for disconnected and no action). **Follow-ups** is consumers with a follow-up in the last 7 days, shown the same way (`1 · <0.1%`). It opens the Follow-ups tab and does not filter the other KPIs. The Follow-ups tab is a table in the same style as the consumer table. A row shows the consumer only and opens a follow-up modal with that consumer’s notes, latest first. Each note shows the author and the date in small secondary text. Only an admin (`mzo_user_profile.role` is `admin`) sees the delete control on Disconnection Tracker and Pending NSC follow-ups.
 - `home-button.js` injects a floating Home control — do not duplicate a second home bar in the header. The home hub’s back arrow floats at the bottom-left of a report, over the page. The report frame fills the screen; the shell does not reserve a solid band under it. On load, the frame adds about 88px of padding at the bottom of the page so the last line can scroll clear of the button.
 - **Presentation zoom** (`mzo_present.js`): desktop only (width ≥ 900px), fixed bottom-right. Steps are 100 / 125 / 150 / 175, stored in `localStorage` key `mzo_present_zoom`. `+` / `-` step the size and `0` resets, when focus is not in a field. Do not add a second zoom control on report pages. Zoom stays inside the page’s existing scroller so the window does not gain a second vertical scrollbar. Power Map, SLD, and the accident map keep their own pan/zoom. Phones stay at 100% and the control stays hidden.

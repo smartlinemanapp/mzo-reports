@@ -1,79 +1,537 @@
-/* MZO unified theme tokens + normalisation layer.
- * Loaded last on every page. Elements with inline background/color are left alone
- * so heat-maps, status chips and coloured KPI tiles keep their meaning.
- * Coloured banner headers (.dashboard-header etc.) keep their own text colour.
- */
-html[data-mzo-theme="dark"] {
-  color-scheme: dark;
-  --mzo-bg: #0b1120;
-  --mzo-surface: #111c33;
-  --mzo-surface-2: #16223d;
-  --mzo-input: #090e1a;
-  --mzo-border: rgba(148, 163, 184, 0.18);
-  --mzo-text: #f1f5f9;
-  --mzo-muted: #94a3b8;
-  --mzo-row-alt: rgba(255, 255, 255, 0.025);
-  --mzo-row-hover: rgba(255, 255, 255, 0.05);
-}
-html[data-mzo-theme="light"] {
+/* ==========================================================================
+   MZO design system v2 — "Graphite"
+   --------------------------------------------------------------------------
+   Neutral greys, one ink colour for primary actions, one teal accent for
+   focus / active / links. System font (no web-font download). Hairline
+   borders, almost no shadows.
+
+   This file is loaded LAST on every report page (after the page's own
+   <style>). It does three things:
+     1. Defines the --mzo-* tokens for light and dark.
+     2. Re-points the CSS variables pages already use (--primary,
+        --card-bg, --text-muted, …) at those tokens, so each page's own
+        rules pick up the new palette.
+     3. Normalises the shared building blocks (headers, cards, buttons,
+        tabs, forms, tables, badges, modals) so pages look like one app.
+
+   Elements with an inline background / colour are left alone so heat-maps,
+   status chips and coloured KPI values keep their meaning.
+
+   The workstation shell (app.html) inlines the same token values — keep
+   the two token blocks in sync.
+   ========================================================================== */
+
+/* ---------- 0. Font aliases -------------------------------------------- */
+/* Pages and their Chart.js canvases ask for Inter / Outfit / Roboto / Poppins.
+   Map those names to the operating system's UI face so no web font is
+   downloaded and canvas text matches the page. Declared after the Google
+   @font-face rules, so these win. */
+@font-face { font-family: "Inter"; font-weight: 300; font-style: normal; font-display: swap; src: local("Segoe UI Light"), local("Roboto Light"), local("HelveticaNeue-Light"), local("Helvetica Neue Light"), local("Arial"); }
+@font-face { font-family: "Inter"; font-weight: 400; font-style: normal; font-display: swap; src: local("Segoe UI"), local("Roboto"), local("HelveticaNeue"), local("Helvetica Neue"), local("Arial"); }
+@font-face { font-family: "Inter"; font-weight: 500; font-style: normal; font-display: swap; src: local("Segoe UI Semibold"), local("Roboto Medium"), local("HelveticaNeue-Medium"), local("Helvetica Neue Medium"), local("Arial"); }
+@font-face { font-family: "Inter"; font-weight: 600; font-style: normal; font-display: swap; src: local("Segoe UI Semibold"), local("Roboto Medium"), local("HelveticaNeue-Medium"), local("Helvetica Neue Medium"), local("Arial Bold"); }
+@font-face { font-family: "Inter"; font-weight: 700; font-style: normal; font-display: swap; src: local("Segoe UI Bold"), local("Roboto Bold"), local("HelveticaNeue-Bold"), local("Helvetica Neue Bold"), local("Arial Bold"); }
+@font-face { font-family: "Inter"; font-weight: 800; font-style: normal; font-display: swap; src: local("Segoe UI Black"), local("Roboto Black"), local("HelveticaNeue-Bold"), local("Helvetica Neue Bold"), local("Arial Bold"); }
+@font-face { font-family: "Outfit"; font-weight: 300; font-style: normal; font-display: swap; src: local("Segoe UI Light"), local("Roboto Light"), local("HelveticaNeue-Light"), local("Helvetica Neue Light"), local("Arial"); }
+@font-face { font-family: "Outfit"; font-weight: 400; font-style: normal; font-display: swap; src: local("Segoe UI"), local("Roboto"), local("HelveticaNeue"), local("Helvetica Neue"), local("Arial"); }
+@font-face { font-family: "Outfit"; font-weight: 500; font-style: normal; font-display: swap; src: local("Segoe UI Semibold"), local("Roboto Medium"), local("HelveticaNeue-Medium"), local("Helvetica Neue Medium"), local("Arial"); }
+@font-face { font-family: "Outfit"; font-weight: 600; font-style: normal; font-display: swap; src: local("Segoe UI Semibold"), local("Roboto Medium"), local("HelveticaNeue-Medium"), local("Helvetica Neue Medium"), local("Arial Bold"); }
+@font-face { font-family: "Outfit"; font-weight: 700; font-style: normal; font-display: swap; src: local("Segoe UI Bold"), local("Roboto Bold"), local("HelveticaNeue-Bold"), local("Helvetica Neue Bold"), local("Arial Bold"); }
+@font-face { font-family: "Outfit"; font-weight: 800; font-style: normal; font-display: swap; src: local("Segoe UI Black"), local("Roboto Black"), local("HelveticaNeue-Bold"), local("Helvetica Neue Bold"), local("Arial Bold"); }
+@font-face { font-family: "Roboto"; font-weight: 300; font-style: normal; font-display: swap; src: local("Segoe UI Light"), local("Roboto Light"), local("HelveticaNeue-Light"), local("Helvetica Neue Light"), local("Arial"); }
+@font-face { font-family: "Roboto"; font-weight: 400; font-style: normal; font-display: swap; src: local("Segoe UI"), local("Roboto"), local("HelveticaNeue"), local("Helvetica Neue"), local("Arial"); }
+@font-face { font-family: "Roboto"; font-weight: 500; font-style: normal; font-display: swap; src: local("Segoe UI Semibold"), local("Roboto Medium"), local("HelveticaNeue-Medium"), local("Helvetica Neue Medium"), local("Arial"); }
+@font-face { font-family: "Roboto"; font-weight: 600; font-style: normal; font-display: swap; src: local("Segoe UI Semibold"), local("Roboto Medium"), local("HelveticaNeue-Medium"), local("Helvetica Neue Medium"), local("Arial Bold"); }
+@font-face { font-family: "Roboto"; font-weight: 700; font-style: normal; font-display: swap; src: local("Segoe UI Bold"), local("Roboto Bold"), local("HelveticaNeue-Bold"), local("Helvetica Neue Bold"), local("Arial Bold"); }
+@font-face { font-family: "Roboto"; font-weight: 800; font-style: normal; font-display: swap; src: local("Segoe UI Black"), local("Roboto Black"), local("HelveticaNeue-Bold"), local("Helvetica Neue Bold"), local("Arial Bold"); }
+@font-face { font-family: "Poppins"; font-weight: 300; font-style: normal; font-display: swap; src: local("Segoe UI Light"), local("Roboto Light"), local("HelveticaNeue-Light"), local("Helvetica Neue Light"), local("Arial"); }
+@font-face { font-family: "Poppins"; font-weight: 400; font-style: normal; font-display: swap; src: local("Segoe UI"), local("Roboto"), local("HelveticaNeue"), local("Helvetica Neue"), local("Arial"); }
+@font-face { font-family: "Poppins"; font-weight: 500; font-style: normal; font-display: swap; src: local("Segoe UI Semibold"), local("Roboto Medium"), local("HelveticaNeue-Medium"), local("Helvetica Neue Medium"), local("Arial"); }
+@font-face { font-family: "Poppins"; font-weight: 600; font-style: normal; font-display: swap; src: local("Segoe UI Semibold"), local("Roboto Medium"), local("HelveticaNeue-Medium"), local("Helvetica Neue Medium"), local("Arial Bold"); }
+@font-face { font-family: "Poppins"; font-weight: 700; font-style: normal; font-display: swap; src: local("Segoe UI Bold"), local("Roboto Bold"), local("HelveticaNeue-Bold"), local("Helvetica Neue Bold"), local("Arial Bold"); }
+@font-face { font-family: "Poppins"; font-weight: 800; font-style: normal; font-display: swap; src: local("Segoe UI Black"), local("Roboto Black"), local("HelveticaNeue-Bold"), local("Helvetica Neue Bold"), local("Arial Bold"); }
+@font-face { font-family: "Plus Jakarta Sans"; font-weight: 300; font-style: normal; font-display: swap; src: local("Segoe UI Light"), local("Roboto Light"), local("HelveticaNeue-Light"), local("Helvetica Neue Light"), local("Arial"); }
+@font-face { font-family: "Plus Jakarta Sans"; font-weight: 400; font-style: normal; font-display: swap; src: local("Segoe UI"), local("Roboto"), local("HelveticaNeue"), local("Helvetica Neue"), local("Arial"); }
+@font-face { font-family: "Plus Jakarta Sans"; font-weight: 500; font-style: normal; font-display: swap; src: local("Segoe UI Semibold"), local("Roboto Medium"), local("HelveticaNeue-Medium"), local("Helvetica Neue Medium"), local("Arial"); }
+@font-face { font-family: "Plus Jakarta Sans"; font-weight: 600; font-style: normal; font-display: swap; src: local("Segoe UI Semibold"), local("Roboto Medium"), local("HelveticaNeue-Medium"), local("Helvetica Neue Medium"), local("Arial Bold"); }
+@font-face { font-family: "Plus Jakarta Sans"; font-weight: 700; font-style: normal; font-display: swap; src: local("Segoe UI Bold"), local("Roboto Bold"), local("HelveticaNeue-Bold"), local("Helvetica Neue Bold"), local("Arial Bold"); }
+@font-face { font-family: "Plus Jakarta Sans"; font-weight: 800; font-style: normal; font-display: swap; src: local("Segoe UI Black"), local("Roboto Black"), local("HelveticaNeue-Bold"), local("Helvetica Neue Bold"), local("Arial Bold"); }
+
+/* ---------- 1. Tokens ---------------------------------------------------- */
+
+html[data-mzo-theme="light"],
+html[data-mzo-theme="light"] body {
   color-scheme: light;
-  --mzo-bg: #f8fafc;
-  --mzo-surface: #ffffff;
-  --mzo-surface-2: #f1f5f9;
+  --mzo-font: -apple-system, BlinkMacSystemFont, "Segoe UI Variable Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Noto Sans Bengali", sans-serif;
+  --mzo-mono: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace;
+
+  --mzo-canvas: #f1f1f0;      /* shell chrome */
+  --mzo-bg: #fafafa;          /* page */
+  --mzo-surface: #ffffff;     /* cards, tables, inputs */
+  --mzo-surface-2: #f5f5f4;   /* table head, subtle fills */
+  --mzo-hover: #efefee;
   --mzo-input: #ffffff;
-  --mzo-border: rgba(203, 213, 225, 0.95);
-  --mzo-text: #0f172a;
-  --mzo-muted: #64748b;
-  --mzo-row-alt: rgba(15, 23, 42, 0.025);
-  --mzo-row-hover: rgba(15, 23, 42, 0.045);
+  --mzo-border: #e7e7e5;
+  --mzo-border-strong: #d6d6d3;
+  --mzo-text: #18181b;
+  --mzo-text-2: #3f3f46;
+  --mzo-muted: #71717a;
+  --mzo-faint: #a1a1aa;
+
+  --mzo-ink: #18181b;         /* strong text / underline marks */
+  --mzo-fill: #18181b;        /* solid primary: buttons, active pills (white text on top) */
+  --mzo-fill-hover: #3f3f46;
+  --mzo-on-fill: #ffffff;
+
+  --mzo-accent: #0f766e;      /* focus, links, active markers */
+  --mzo-accent-soft: rgba(15, 118, 110, 0.09);
+  --mzo-ring: 0 0 0 3px rgba(15, 118, 110, 0.18);
+
+  --mzo-ok: #15803d;   --mzo-ok-soft: rgba(21, 128, 61, 0.09);
+  --mzo-warn: #b45309; --mzo-warn-soft: rgba(180, 83, 9, 0.10);
+  --mzo-bad: #b91c1c;  --mzo-bad-soft: rgba(185, 28, 28, 0.08);
+  --mzo-info: #1d4ed8; --mzo-info-soft: rgba(29, 78, 216, 0.08);
+
+  --mzo-chart: #71717a;
+  --mzo-chart-soft: #efefee;
+  --mzo-row-alt: #fbfbfa;
+  --mzo-row-hover: #f4f4f3;
+  --mzo-shadow-pop: 0 1px 2px rgba(0, 0, 0, 0.04), 0 12px 32px -8px rgba(0, 0, 0, 0.14);
+  --mzo-scrim: rgba(24, 24, 27, 0.32);
+  --mzo-radius: 8px;
+  --mzo-radius-sm: 6px;
 }
 
-/* Page canvas + base text */
+html[data-mzo-theme="dark"],
+html[data-mzo-theme="dark"] body {
+  color-scheme: dark;
+  --mzo-font: -apple-system, BlinkMacSystemFont, "Segoe UI Variable Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Noto Sans Bengali", sans-serif;
+  --mzo-mono: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace;
+
+  --mzo-canvas: #09090a;
+  --mzo-bg: #0f0f10;
+  --mzo-surface: #161617;
+  --mzo-surface-2: #1c1c1e;
+  --mzo-hover: #232325;
+  --mzo-input: #121213;
+  --mzo-border: #27272a;
+  --mzo-border-strong: #34343a;
+  --mzo-text: #ececee;
+  --mzo-text-2: #c8c8cd;
+  --mzo-muted: #8e8e96;
+  --mzo-faint: #5f5f66;
+
+  --mzo-ink: #ececee;
+  --mzo-fill: #3f3f46;
+  --mzo-fill-hover: #52525b;
+  --mzo-on-fill: #ffffff;
+
+  --mzo-accent: #2dd4bf;
+  --mzo-accent-soft: rgba(45, 212, 191, 0.12);
+  --mzo-ring: 0 0 0 3px rgba(45, 212, 191, 0.22);
+
+  --mzo-ok: #4ade80;   --mzo-ok-soft: rgba(74, 222, 128, 0.12);
+  --mzo-warn: #fbbf24; --mzo-warn-soft: rgba(251, 191, 36, 0.12);
+  --mzo-bad: #f87171;  --mzo-bad-soft: rgba(248, 113, 113, 0.12);
+  --mzo-info: #60a5fa; --mzo-info-soft: rgba(96, 165, 250, 0.12);
+
+  --mzo-chart: #8e8e96;
+  --mzo-chart-soft: #232326;
+  --mzo-row-alt: #18181a;
+  --mzo-row-hover: #1f1f21;
+  --mzo-shadow-pop: 0 1px 2px rgba(0, 0, 0, 0.5), 0 16px 40px -8px rgba(0, 0, 0, 0.6);
+  --mzo-scrim: rgba(0, 0, 0, 0.55);
+  --mzo-radius: 8px;
+  --mzo-radius-sm: 6px;
+}
+
+/* ---------- 2. Re-point the variables pages already use ------------------ */
+
+html[data-mzo-theme],
+html[data-mzo-theme] body,
+html[data-mzo-theme] body.dark-theme,
+html[data-mzo-theme] body.light-theme {
+  /* brand / primary → ink */
+  --primary: var(--mzo-text);
+  --primary-color: var(--mzo-text);
+  --primary-dark: var(--mzo-text);
+  --primary-hover: var(--mzo-fill-hover);
+  --primary-light: var(--mzo-surface-2);
+  --text-on-primary: var(--mzo-on-fill);
+  --mzo-brand: var(--mzo-fill);
+  --accent: var(--mzo-accent);
+  --accent-color: var(--mzo-accent);
+  --accent-blue: var(--mzo-accent);
+  --accent-hover: var(--mzo-accent);
+  --secondary: var(--mzo-muted);
+  --secondary-color: var(--mzo-muted);
+
+  /* text */
+  --text: var(--mzo-text);
+  --text-main: var(--mzo-text);
+  --text-primary: var(--mzo-text);
+  --text-secondary: var(--mzo-muted);
+  --text-muted: var(--mzo-muted);
+
+  /* surfaces */
+  --bg: var(--mzo-bg);
+  --bg-color: var(--mzo-bg);
+  --bg-light: var(--mzo-bg);
+  --light-bg: var(--mzo-bg);
+  --surface: var(--mzo-surface);
+  --card-bg: var(--mzo-surface);
+  --bg-card: var(--mzo-surface);
+  --glass-bg: var(--mzo-surface);
+  --input-bg: var(--mzo-input);
+  --hover-bg: var(--mzo-hover);
+  --table-header-bg: var(--mzo-surface-2);
+  --header-bg: var(--mzo-surface);
+  --header-text: var(--mzo-text);
+
+  /* lines */
+  --border-color: var(--mzo-border);
+  --border-light: var(--mzo-border);
+  --card-border: var(--mzo-border);
+  --glass-border: var(--mzo-border);
+  --line: var(--mzo-border);
+
+  /* status */
+  --success: var(--mzo-ok);
+  --success-color: var(--mzo-ok);
+  --warning: var(--mzo-warn);
+  --warning-color: var(--mzo-warn);
+  --danger: var(--mzo-bad);
+  --danger-color: var(--mzo-bad);
+  --error: var(--mzo-bad);
+  --info: var(--mzo-info);
+  --info-color: var(--mzo-info);
+
+  /* depth + shape */
+  --shadow: none;
+  --shadow-sm: none;
+  --shadow-md: none;
+  --shadow-lg: var(--mzo-shadow-pop);
+  --shadow-light: none;
+  --elevation-1: none;
+  --elevation-2: none;
+  --elevation-4: var(--mzo-shadow-pop);
+  --radius: var(--mzo-radius);
+
+  /* css/mzo_ui_core.css names */
+  --mzo-primary: var(--mzo-text);
+  --mzo-primary-hover: var(--mzo-fill-hover);
+  --mzo-primary-light: var(--mzo-surface-2);
+  --mzo-primary-glow: transparent;
+  --mzo-card-bg: var(--mzo-surface);
+  --mzo-card-border: var(--mzo-border);
+  --mzo-line: var(--mzo-border);
+  --mzo-text-primary: var(--mzo-text);
+  --mzo-text-secondary: var(--mzo-muted);
+  --mzo-text-muted: var(--mzo-muted);
+  --mzo-success: var(--mzo-ok);
+  --mzo-warning: var(--mzo-warn);
+  --mzo-danger: var(--mzo-bad);
+  --mzo-success-light: var(--mzo-ok-soft);
+  --mzo-warning-light: var(--mzo-warn-soft);
+  --mzo-danger-light: var(--mzo-bad-soft);
+  --mzo-info-light: var(--mzo-info-soft);
+  --mzo-font-sans: var(--mzo-font);
+  --mzo-shadow-xs: none;
+  --mzo-shadow-sm: none;
+  --mzo-shadow-md: none;
+  --mzo-shadow-hover: none;
+  --mzo-shadow-lg: var(--mzo-shadow-pop);
+
+  /* Bootstrap 5 */
+  --bs-body-bg: var(--mzo-bg);
+  --bs-body-color: var(--mzo-text);
+  --bs-body-font-family: var(--mzo-font);
+  --bs-border-color: var(--mzo-border);
+  --bs-secondary-color: var(--mzo-muted);
+  --bs-tertiary-bg: var(--mzo-surface-2);
+  --bs-primary: var(--mzo-fill);
+  --bs-primary-rgb: 24, 24, 27;
+  --bs-link-color: var(--mzo-accent);
+  --bs-link-hover-color: var(--mzo-accent);
+  --bs-link-color-rgb: 15, 118, 110;
+  --bs-border-radius: var(--mzo-radius-sm);
+  --bs-border-radius-lg: var(--mzo-radius);
+  --bs-box-shadow: none;
+  --bs-box-shadow-sm: none;
+}
+html[data-mzo-theme="dark"],
+html[data-mzo-theme="dark"] body {
+  --bs-primary-rgb: 63, 63, 70;
+  --bs-link-color-rgb: 45, 212, 191;
+}
+
+/* ---------- 3. Base ------------------------------------------------------ */
+
+html[data-mzo-theme] {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-text-size-adjust: 100%;
+}
 html[data-mzo-theme] body {
   background-color: var(--mzo-bg) !important;
   background-image: none !important;
   color: var(--mzo-text) !important;
+  font-family: var(--mzo-font) !important;
 }
+/* One typeface everywhere. Icon fonts (<i>, .fa*, .bi, material) are excluded. */
+html[data-mzo-theme] body :where(h1, h2, h3, h4, h5, h6, p, span, div, a, li, dt, dd, label, legend, button, input, select, textarea, option, td, th, caption, small, strong, b, em, section, article, header, footer, nav, main, aside, summary, figcaption, text, tspan):not(.fa):not(.fas):not(.far):not(.fab):not(.fa-solid):not(.fa-regular):not(.fa-brands):not([class*="fa-"]):not(.bi):not([class^="bi-"]):not([class*=" bi-"]):not(.material-icons):not(.material-symbols-outlined):not(.material-symbols-rounded):not(.leaflet-container *) {
+  font-family: var(--mzo-font) !important;
+}
+html[data-mzo-theme] :is(code, pre, kbd, samp) { font-family: var(--mzo-mono) !important; }
+html[data-mzo-theme] :is(table, .table, [class*="kpi"], [class*="stat-value"], [class*="metric"], .count, .number, .num, .amount) {
+  font-variant-numeric: tabular-nums;
+}
+html[data-mzo-theme] :is(h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6) { letter-spacing: -0.01em; }
+html[data-mzo-theme] ::selection { background: var(--mzo-accent-soft); color: inherit; }
+html[data-mzo-theme] :focus-visible { outline: 2px solid var(--mzo-accent); outline-offset: 2px; }
+html[data-mzo-theme] hr { border-color: var(--mzo-border); opacity: 1; }
 
-/* Text */
-html[data-mzo-theme] :is(h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6, label, p, li, dt, dd, legend, .form-label):not([style*="color"]):not([class*="bg-"] *):not(.btn *):not(.badge):not(.alert *):not(header *):not(.navbar *):not(.dashboard-header *):not(.page-banner *):not(.hero *):not(.page-header-banner *) {
+/* Body text that pages coloured for the old palette */
+html[data-mzo-theme]:not(.ui) :is(h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6, label, p, li, dt, dd, legend, .form-label):not([style*="color"]):not([class*="text-"]):not([class*="bg-"] *):not(.btn *):not(.badge):not(.alert *) {
   color: var(--mzo-text);
 }
-html[data-mzo-theme] :is(.text-muted, .text-secondary, .form-text, small.text-muted, .text-body-secondary):not([style*="color"]) {
+html[data-mzo-theme]:not(.ui) :is(.text-muted, .text-secondary, .form-text, .text-body-secondary, .subtitle, .sub-title, .page-subtitle):not([style*="color"]) {
   color: var(--mzo-muted) !important;
 }
-html[data-mzo-theme] :is(.text-dark, .text-body, .text-black):not([style*="color"]):not([class*="bg-"] *) {
+html[data-mzo-theme]:not(.ui) :is(.text-dark, .text-body, .text-black):not([style*="color"]):not([class*="bg-"] *) { color: var(--mzo-text) !important; }
+html[data-mzo-theme="light"]:not(.ui) .text-white:not([class*="bg-"]):not([class*="bg-"] *):not(.btn *):not(.badge):not([style*="color"]):not(.btn):not([class*="btn-"] *) {
   color: var(--mzo-text) !important;
 }
-html[data-mzo-theme="light"] .text-white:not([class*="bg-"] *):not(.btn *):not(.badge):not([style*="color"]):not(header *):not(.navbar *) {
-  color: var(--mzo-text) !important;
+html[data-mzo-theme="light"]:not(.ui) :is(.text-light, .text-white-50):not([class*="bg-"] *):not(.btn *):not(.badge):not([style*="color"]) { color: var(--mzo-muted) !important; }
+html[data-mzo-theme]:not(.ui) .text-primary:not([style*="color"]) { color: var(--mzo-accent) !important; }
+html[data-mzo-theme]:not(.ui) .text-success:not([style*="color"]) { color: var(--mzo-ok) !important; }
+html[data-mzo-theme]:not(.ui) .text-danger:not([style*="color"]) { color: var(--mzo-bad) !important; }
+html[data-mzo-theme]:not(.ui) .text-warning:not([style*="color"]) { color: var(--mzo-warn) !important; }
+html[data-mzo-theme]:not(.ui) .text-info:not([style*="color"]) { color: var(--mzo-info) !important; }
+
+/* Links */
+html[data-mzo-theme]:not(.ui) a:not([class]):not([style*="color"]) { color: var(--mzo-accent); text-underline-offset: 2px; }
+
+/* No glass, no glow */
+html[data-mzo-theme]:not(.ui) :is(.glass, .glass-card, .glass-panel, [class*="glass"]) {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
 }
 
-/* Surfaces: cards, modals, menus, panels */
-html[data-mzo-theme] :is(.card, .modal-content, .dropdown-menu, .list-group-item, .accordion-item, .offcanvas, .popover, .panel, .toast, .glass-card, .glass):not([style*="background"]):not(.colored-kpi) {
+/* ---------- 4. Page headers / banners → quiet surface -------------------- */
+
+/* Coloured banners → bordered surface */
+html[data-mzo-theme]:not(.ui) :is(.dashboard-header, .header, header.header, .header-card, .header-compact, .page-header-banner, .page-banner, .hero, .top-bar, .topbar, .app-header):not([style*="background"]) {
+  background: var(--mzo-surface) !important;
+  color: var(--mzo-text) !important;
+  border: 1px solid var(--mzo-border) !important;
+  box-shadow: none !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+/* Title rows (no box of their own) → just lose any colour */
+html[data-mzo-theme]:not(.ui) :is(.header-content, .briefing-nav, .page-header, .page-title-row, .report-header, .main-header):not([style*="background"]) {
+  background: transparent !important;
+  color: var(--mzo-text) !important;
+  box-shadow: none !important;
+}
+html[data-mzo-theme]:not(.ui) body > :is(header, nav.navbar):not([style*="background"]) {
+  background: var(--mzo-surface) !important;
+  color: var(--mzo-text) !important;
+  border-bottom: 1px solid var(--mzo-border) !important;
+  box-shadow: none !important;
+}
+html[data-mzo-theme]:not(.ui) :is(.dashboard-header, .header, header.header, .header-card, .header-compact, .header-content, .briefing-nav, .page-header, .page-header-banner, .page-banner, .hero, .top-bar, .topbar, .app-header, .report-header, .main-header, body > header) :is(h1, h2, h3, h4, h5, h6, p, span, small, div, a, label, strong, b, i, li):not([style*="color"]):not(.badge):not([class*="badge"]):not([class*="status"]):not(.btn):not(.btn *):not([class*="bg-"]):not([class*="bg-"] *) {
+  color: inherit;
+}
+html[data-mzo-theme]:not(.ui) :is(.dashboard-header, .header, header.header, .header-card, .header-compact, .header-content, .briefing-nav, .page-header, .hero, .top-bar, .topbar, body > header) :is(small, .subtitle, .sub-title, [class*="subtitle"], [class*="date"], [class*="meta"], .text-muted, .opacity-75):not([style*="color"]):not(.badge) {
+  color: var(--mzo-muted) !important;
+}
+/* Icon tiles in headers lose their gradient fill */
+html[data-mzo-theme]:not(.ui) :is(.header-icon-wrap, .header-icon, .brand-icon, .page-icon, .title-icon):not([style*="background"]) {
+  background: var(--mzo-surface-2) !important;
+  color: var(--mzo-text) !important;
+  box-shadow: none !important;
+}
+
+/* ---------- 5. Cards, panels, KPI tiles --------------------------------- */
+
+html[data-mzo-theme]:not(.ui) :is(.card, .kpi-card, .stat-card, .metric-card, .summary-card, .panel, .glass-card, .chart-card, .chart-container, .chart-box, .table-container, .table-card, .filters-container, .filter-card, .filter-section, .section-card, .info-card, .kpi-box, .dashboard-card, .report-card, .content-card, .list-group-item, .accordion-item, .offcanvas, .popover, .toast, .dropdown-menu):not([style*="background"]):not(.colored-kpi):not([class*="bg-"]) {
+  background-color: var(--mzo-surface) !important;
+  background-image: none !important;
+  color: var(--mzo-text);
+  border-top-color: var(--mzo-border) !important;
+  border-right-color: var(--mzo-border) !important;
+  border-bottom-color: var(--mzo-border) !important;
+  box-shadow: none !important;
+}
+html[data-mzo-theme]:not(.ui) :is(.card, .kpi-card, .stat-card, .metric-card, .summary-card, .chart-card, .table-card, .section-card, .info-card, .kpi-box, .dashboard-card, .report-card, .content-card):not([style*="border-radius"]) {
+  border-radius: var(--mzo-radius) !important;
+}
+html[data-mzo-theme]:not(.ui) :is(.kpi-card, .stat-card, .metric-card, .kpi-box):hover { transform: none !important; }
+html[data-mzo-theme]:not(.ui) :is(.card-header, .card-footer, .accordion-button):not([style*="background"]):not([class*="bg-"]) {
   background-color: var(--mzo-surface) !important;
   background-image: none !important;
   color: var(--mzo-text) !important;
   border-color: var(--mzo-border) !important;
 }
-html[data-mzo-theme] :is(.card-header, .card-footer, .modal-header, .modal-footer, .accordion-button, .list-group-item-action:hover):not([style*="background"]) {
-  background-color: var(--mzo-surface-2) !important;
-  color: var(--mzo-text) !important;
-  border-color: var(--mzo-border) !important;
-}
-html[data-mzo-theme] :is(.bg-white, .bg-light, .bg-body, .bg-body-tertiary):not([style*="background"]) {
+html[data-mzo-theme]:not(.ui) .dropdown-menu { box-shadow: var(--mzo-shadow-pop) !important; border: 1px solid var(--mzo-border) !important; }
+html[data-mzo-theme]:not(.ui) .dropdown-item { color: var(--mzo-text); }
+html[data-mzo-theme]:not(.ui) .dropdown-item:hover, html[data-mzo-theme]:not(.ui) .dropdown-item:focus { background: var(--mzo-hover); color: var(--mzo-text); }
+html[data-mzo-theme]:not(.ui) :is(.bg-white, .bg-light, .bg-body, .bg-body-tertiary, .bg-slate-50, .bg-gray-50, .bg-slate-100, .bg-gray-100):not([style*="background"]):not(.badge) {
   background-color: var(--mzo-surface) !important;
-  color: var(--mzo-text);
 }
-html[data-mzo-theme] :is(.border, .border-top, .border-bottom, .border-start, .border-end) {
+html[data-mzo-theme]:not(.ui) :is(.border, .border-top, .border-bottom, .border-start, .border-end, .border-slate-100, .border-slate-200, .border-gray-100, .border-gray-200) {
   border-color: var(--mzo-border) !important;
 }
-html[data-mzo-theme] hr { border-color: var(--mzo-border); opacity: 1; }
-html[data-mzo-theme] .btn-close { filter: none; }
-html[data-mzo-theme="dark"] .btn-close { filter: invert(1) grayscale(1) brightness(1.6); }
 
-/* Tables */
-html[data-mzo-theme] :is(table, .table) {
+/* ---------- 6. Buttons --------------------------------------------------- */
+
+html[data-mzo-theme]:not(.ui) .btn {
+  border-radius: var(--mzo-radius-sm);
+  font-weight: 500;
+  box-shadow: none !important;
+  transition: background-color .12s ease, border-color .12s ease, color .12s ease;
+}
+html[data-mzo-theme]:not(.ui) :is(.btn-primary, .btn-dark, .btn-success, .btn-info, .bg-indigo-600, .bg-blue-600, .bg-indigo-500, .bg-blue-500, .bg-indigo-700, .bg-blue-700):not([style*="background"]) {
+  --bs-btn-bg: var(--mzo-fill);
+  --bs-btn-border-color: var(--mzo-fill);
+  --bs-btn-hover-bg: var(--mzo-fill-hover);
+  --bs-btn-hover-border-color: var(--mzo-fill-hover);
+  --bs-btn-active-bg: var(--mzo-fill-hover);
+  background-color: var(--mzo-fill) !important;
+  background-image: none !important;
+  border-color: var(--mzo-fill) !important;
+  color: var(--mzo-on-fill) !important;
+}
+html[data-mzo-theme]:not(.ui) :is(.btn-primary, .btn-dark, .btn-success, .btn-info):not([style*="background"]):hover {
+  background-color: var(--mzo-fill-hover) !important;
+  border-color: var(--mzo-fill-hover) !important;
+}
+html[data-mzo-theme]:not(.ui) :is(.btn-primary, .btn-dark, .btn-success, .btn-info):not([style*="color"]) :is(i, span) { color: inherit !important; }
+html[data-mzo-theme]:not(.ui) :is(.btn-secondary, .btn-light, .btn-outline-primary, .btn-outline-secondary, .btn-outline-dark, .btn-outline-light, .btn-outline-info, .btn-outline-success, .btn-default):not([style*="background"]) {
+  --bs-btn-bg: var(--mzo-surface);
+  --bs-btn-color: var(--mzo-text);
+  --bs-btn-border-color: var(--mzo-border-strong);
+  --bs-btn-hover-bg: var(--mzo-hover);
+  --bs-btn-hover-color: var(--mzo-text);
+  --bs-btn-hover-border-color: var(--mzo-border-strong);
+  --bs-btn-active-bg: var(--mzo-hover);
+  --bs-btn-active-color: var(--mzo-text);
+  background-color: var(--mzo-surface) !important;
+  background-image: none !important;
+  border: 1px solid var(--mzo-border-strong) !important;
+  color: var(--mzo-text) !important;
+}
+html[data-mzo-theme]:not(.ui) :is(.btn-secondary, .btn-light, .btn-outline-primary, .btn-outline-secondary, .btn-outline-dark, .btn-outline-light, .btn-outline-info, .btn-outline-success, .btn-default):not([style*="background"]):hover {
+  background-color: var(--mzo-hover) !important;
+}
+html[data-mzo-theme]:not(.ui) :is(.btn-outline-primary, .btn-outline-secondary, .btn-outline-dark, .btn-outline-light, .btn-outline-info, .btn-outline-success):is(.active, :active) {
+  background-color: var(--mzo-fill) !important;
+  border-color: var(--mzo-fill) !important;
+  color: var(--mzo-on-fill) !important;
+}
+html[data-mzo-theme]:not(.ui) .btn-danger:not([style*="background"]) {
+  background-color: var(--mzo-bad) !important;
+  border-color: var(--mzo-bad) !important;
+  color: #fff !important;
+}
+html[data-mzo-theme]:not(.ui) .btn-outline-danger:not([style*="background"]) {
+  background-color: var(--mzo-surface) !important;
+  border-color: var(--mzo-border-strong) !important;
+  color: var(--mzo-bad) !important;
+}
+html[data-mzo-theme]:not(.ui) .btn-outline-danger:hover { background-color: var(--mzo-bad-soft) !important; }
+html[data-mzo-theme]:not(.ui) .btn-warning:not([style*="background"]) {
+  background-color: var(--mzo-warn-soft) !important;
+  border-color: transparent !important;
+  color: var(--mzo-warn) !important;
+}
+html[data-mzo-theme]:not(.ui) .btn-link { color: var(--mzo-accent); text-decoration: none; }
+html[data-mzo-theme]:not(.ui) :is(.btn-view-link, .btn-view, .view-btn-link, .row-action, .action-link):not([style*="background"]) {
+  background: var(--mzo-surface) !important;
+  border: 1px solid var(--mzo-border-strong) !important;
+  color: var(--mzo-text) !important;
+  box-shadow: none !important;
+}
+html[data-mzo-theme]:not(.ui) :is(.btn-view-link, .btn-view, .view-btn-link, .row-action, .action-link):not([style*="background"]):hover { background: var(--mzo-hover) !important; }
+html[data-mzo-theme]:not(.ui) .btn-close { opacity: .55; }
+html[data-mzo-theme="dark"]:not(.ui) .btn-close { filter: invert(1) grayscale(1) brightness(1.8); }
+
+/* Buttons that lived on a coloured header */
+html[data-mzo-theme]:not(.ui) :is(.dashboard-header, .header, header.header, .header-card, .header-compact, .header-content, .briefing-nav, .page-header, .top-bar, .topbar, body > header) :is(button, a.btn, .btn, [role="button"]):not([style*="background"]):not(.btn-primary):not(.btn-success):not(.btn-dark):not(.btn-danger):not([class*="bg-"]):not(.active) {
+  background-color: var(--mzo-surface) !important;
+  background-image: none !important;
+  border: 1px solid var(--mzo-border-strong) !important;
+  color: var(--mzo-text) !important;
+  box-shadow: none !important;
+}
+html[data-mzo-theme]:not(.ui) :is(.dashboard-header, .header, header.header, .header-card, .header-compact, .header-content, .briefing-nav, .page-header, .top-bar, .topbar, body > header) :is(button, a.btn, .btn, [role="button"]):not([style*="background"]):not(.btn-primary):not(.btn-success):not(.btn-dark):not(.btn-danger):not([class*="bg-"]):hover {
+  background-color: var(--mzo-hover) !important;
+}
+
+/* ---------- 7. Tabs, pills, segmented controls --------------------------- */
+
+html[data-mzo-theme]:not(.ui) .nav-tabs { border-color: var(--mzo-border); }
+html[data-mzo-theme]:not(.ui) .nav-tabs .nav-link {
+  color: var(--mzo-muted);
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: transparent !important;
+  border-radius: 0;
+}
+html[data-mzo-theme]:not(.ui) .nav-tabs .nav-link:hover { color: var(--mzo-text); }
+html[data-mzo-theme]:not(.ui) .nav-tabs .nav-link.active {
+  color: var(--mzo-text) !important;
+  background: transparent !important;
+  border-bottom-color: var(--mzo-text) !important;
+  font-weight: 600;
+}
+html[data-mzo-theme]:not(.ui) :is(.nav-pills .nav-link, .tab-btn, .tab-button, .tab-pill, .pill-btn, .seg-btn, .segment-btn, .chip, .filter-chip, .view-btn, .period-btn, .toggle-btn):not([style*="background"]):not(.active):not([aria-selected="true"]) {
+  background-color: transparent !important;
+  background-image: none !important;
+  color: var(--mzo-muted) !important;
+  box-shadow: none !important;
+}
+html[data-mzo-theme]:not(.ui) :is(.nav-pills .nav-link, .tab-btn, .tab-button, .tab-pill, .pill-btn, .seg-btn, .segment-btn, .chip, .filter-chip, .view-btn, .period-btn, .toggle-btn):not([style*="background"]):not(.active):not([aria-selected="true"]):hover {
+  background-color: var(--mzo-hover) !important;
+  color: var(--mzo-text) !important;
+}
+html[data-mzo-theme]:not(.ui) :is(.nav-pills .nav-link.active, .tab-btn.active, .tab-button.active, .tab-pill.active, .pill-btn.active, .seg-btn.active, .segment-btn.active, .chip.active, .filter-chip.active, .view-btn.active, .period-btn.active, .toggle-btn.active, [role="tab"][aria-selected="true"]):not([style*="background"]) {
+  background-color: var(--mzo-fill) !important;
+  background-image: none !important;
+  border-color: var(--mzo-fill) !important;
+  color: var(--mzo-on-fill) !important;
+  box-shadow: none !important;
+}
+html[data-mzo-theme]:not(.ui) :is(.nav-pills .nav-link.active, .tab-btn.active, .tab-button.active, .tab-pill.active, .pill-btn.active, .chip.active, .filter-chip.active, [role="tab"][aria-selected="true"]) :is(i, span, small):not([style*="color"]) { color: inherit !important; }
+html[data-mzo-theme]:not(.ui) .page-link { background-color: var(--mzo-surface); color: var(--mzo-text); border-color: var(--mzo-border); }
+html[data-mzo-theme]:not(.ui) .page-item.active .page-link { background-color: var(--mzo-fill); border-color: var(--mzo-fill); color: var(--mzo-on-fill); }
+
+/* ---------- 8. Forms ----------------------------------------------------- */
+
+html[data-mzo-theme]:not(.ui) :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="button"]):not([type="submit"]):not([type="file"]):not([type="reset"]), select, textarea, .form-control, .form-select, .input-group-text, .search-input):not([style*="background"]) {
+  background-color: var(--mzo-input) !important;
+  color: var(--mzo-text) !important;
+  border-color: var(--mzo-border-strong) !important;
+  box-shadow: none !important;
+}
+html[data-mzo-theme]:not(.ui) :is(input, select, textarea, .form-control, .form-select):focus {
+  border-color: var(--mzo-accent) !important;
+  box-shadow: var(--mzo-ring) !important;
+  outline: none !important;
+}
+html[data-mzo-theme]:not(.ui) .form-select:not([style*="background-image"]) {
+  --bs-form-select-bg-img: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%238e8e96' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.6' d='m4 6 4 4 4-4'/%3e%3c/svg%3e");
+}
+html[data-mzo-theme]:not(.ui) :is(input, textarea)::placeholder { color: var(--mzo-faint) !important; opacity: 1; }
+html[data-mzo-theme]:not(.ui) select option { background-color: var(--mzo-surface); color: var(--mzo-text); }
+html[data-mzo-theme]:not(.ui) :is(input[type="checkbox"], input[type="radio"], input[type="range"], progress) { accent-color: var(--mzo-accent); }
+html[data-mzo-theme]:not(.ui) .form-check-input:checked { background-color: var(--mzo-fill); border-color: var(--mzo-fill); }
+
+/* ---------- 9. Tables ---------------------------------------------------- */
+
+html[data-mzo-theme]:not(.ui) :is(table, .table) {
   --bs-table-bg: transparent;
   --bs-table-color: var(--mzo-text);
   --bs-table-border-color: var(--mzo-border);
@@ -84,48 +542,385 @@ html[data-mzo-theme] :is(table, .table) {
   color: var(--mzo-text);
   border-color: var(--mzo-border);
 }
-html[data-mzo-theme] :is(.table-responsive, .table-container, .table-wrapper, .table-wrap, .dataTables_wrapper) {
-  border-color: var(--mzo-border);
-}
-html[data-mzo-theme] table :is(th, td):not([style*="border-color"]) { border-color: var(--mzo-border); }
-html[data-mzo-theme] table :is(td, th):not([style*="color"]):not([class*="bg-"]):not([class*="text-"]) { color: var(--mzo-text); }
-html[data-mzo-theme] table thead :is(th, td):not([style*="background"]):not([class*="bg-"]) {
+html[data-mzo-theme]:not(.ui) :is(.table-responsive, .table-container, .table-wrapper, .table-wrap, .dataTables_wrapper) { border-color: var(--mzo-border); }
+html[data-mzo-theme]:not(.ui) table :is(th, td):not([style*="border-color"]) { border-color: var(--mzo-border) !important; }
+html[data-mzo-theme]:not(.ui) table :is(td, th):not([style*="color"]):not([class*="bg-"]):not([class*="text-"]) { color: var(--mzo-text); }
+html[data-mzo-theme]:not(.ui) table thead :is(th, td):not([style*="background"]):not([class*="bg-"]),
+html[data-mzo-theme]:not(.ui) :is(.table-dark, .table-primary, .thead-dark, .thead-light) :is(th, td):not([style*="background"]) {
   background-color: var(--mzo-surface-2) !important;
-  color: var(--mzo-text) !important;
+  background-image: none !important;
+  color: var(--mzo-text-2) !important;
+  font-weight: 600;
 }
-html[data-mzo-theme] table tbody tr:not([style*="background"]):not([class*="table-"]):not([class*="bg-"]) > :is(td, th):not([style*="background"]):not([class*="table-"]):not([class*="bg-"]) {
+html[data-mzo-theme]:not(.ui) table thead :is(th, td):not([style*="background"]) :is(i, span, a):not([style*="color"]) { color: inherit !important; }
+html[data-mzo-theme]:not(.ui) table tbody tr:not([style*="background"]):not([class*="table-"]):not([class*="bg-"]) > :is(td, th):not([style*="background"]):not([class*="table-"]):not([class*="bg-"]) {
   background-color: var(--mzo-surface);
 }
-html[data-mzo-theme] table tbody tr:not([style*="background"]):not([class*="bg-"]):nth-child(even) > :is(td, th):not([style*="background"]):not([class*="table-"]):not([class*="bg-"]) {
-  background-color: color-mix(in srgb, var(--mzo-surface) 96%, var(--mzo-text) 4%);
+html[data-mzo-theme]:not(.ui) table tbody tr:not([style*="background"]):not([class*="bg-"]):nth-child(even) > :is(td, th):not([style*="background"]):not([class*="table-"]):not([class*="bg-"]) {
+  background-color: var(--mzo-row-alt);
 }
-html[data-mzo-theme] table tbody tr:hover > :is(td, th):not([style*="background"]):not([class*="table-"]):not([class*="bg-"]) {
-  background-color: color-mix(in srgb, var(--mzo-surface) 90%, var(--mzo-text) 10%);
+html[data-mzo-theme]:not(.ui) table tbody tr:hover > :is(td, th):not([style*="background"]):not([class*="table-"]):not([class*="bg-"]) {
+  background-color: var(--mzo-row-hover);
+}
+html[data-mzo-theme]:not(.ui) :is(table tfoot, tr.total-row, tr.total, tr.grand-total, tr.table-total) :is(td, th):not([style*="background"]) {
+  background-color: var(--mzo-surface-2) !important;
+  color: var(--mzo-text) !important;
+  font-weight: 600;
 }
 
-/* Form controls */
-html[data-mzo-theme] :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="button"]):not([type="submit"]):not([type="file"]), select, textarea, .form-control, .form-select, .input-group-text):not([style*="background"]) {
-  background-color: var(--mzo-input) !important;
+/* ---------- 10. Badges --------------------------------------------------- */
+
+html[data-mzo-theme]:not(.ui) .badge { font-weight: 600; border-radius: 999px; letter-spacing: 0; }
+html[data-mzo-theme]:not(.ui) .badge:is(.bg-primary, .bg-secondary, .bg-info, .bg-light, .bg-dark, .text-bg-primary, .text-bg-secondary, .text-bg-light, .text-bg-dark, .text-bg-info):not([style*="background"]) {
+  background-color: var(--mzo-surface-2) !important;
+  color: var(--mzo-text-2) !important;
+  box-shadow: inset 0 0 0 1px var(--mzo-border);
+}
+html[data-mzo-theme]:not(.ui) .badge:is(.bg-success, .text-bg-success):not([style*="background"]) { background-color: var(--mzo-ok-soft) !important; color: var(--mzo-ok) !important; }
+html[data-mzo-theme]:not(.ui) .badge:is(.bg-danger, .text-bg-danger):not([style*="background"]) { background-color: var(--mzo-bad-soft) !important; color: var(--mzo-bad) !important; }
+html[data-mzo-theme]:not(.ui) .badge:is(.bg-warning, .text-bg-warning):not([style*="background"]) { background-color: var(--mzo-warn-soft) !important; color: var(--mzo-warn) !important; }
+
+/* ---------- 11. Alerts, toasts ------------------------------------------ */
+
+html[data-mzo-theme]:not(.ui) .alert { border-radius: var(--mzo-radius); border: 1px solid var(--mzo-border); box-shadow: none; }
+html[data-mzo-theme]:not(.ui) .alert:is(.alert-info, .alert-primary, .alert-secondary, .alert-light) { background: var(--mzo-surface-2); color: var(--mzo-text); }
+html[data-mzo-theme]:not(.ui) .alert-success { background: var(--mzo-ok-soft); color: var(--mzo-text); border-color: transparent; }
+html[data-mzo-theme]:not(.ui) .alert-warning { background: var(--mzo-warn-soft); color: var(--mzo-text); border-color: transparent; }
+html[data-mzo-theme]:not(.ui) .alert-danger { background: var(--mzo-bad-soft); color: var(--mzo-text); border-color: transparent; }
+
+html[data-mzo-theme]:not(.ui) :is(.toast, .mzo-toast, .toast-notification, .notification-toast, .snackbar):not([style*="background"]) {
+  background: var(--mzo-fill) !important;
+  color: var(--mzo-on-fill) !important;
+  border: 0 !important;
+  border-radius: var(--mzo-radius) !important;
+  box-shadow: var(--mzo-shadow-pop) !important;
+}
+
+/* ---------- 12. Modals, overlays, loaders -------------------------------- */
+
+html[data-mzo-theme]:not(.ui) :is(.modal-content, .modal-box, .modal-card, .modal-dialog-box, .modal-panel):not([style*="background"]) {
+  background-color: var(--mzo-surface) !important;
+  background-image: none !important;
+  color: var(--mzo-text) !important;
+  border: 1px solid var(--mzo-border) !important;
+  border-radius: 10px !important;
+  box-shadow: var(--mzo-shadow-pop) !important;
+}
+html[data-mzo-theme]:not(.ui) :is(.modal-header, .modal-footer):not([style*="background"]) {
+  background: var(--mzo-surface) !important;
   color: var(--mzo-text) !important;
   border-color: var(--mzo-border) !important;
 }
-html[data-mzo-theme] :is(input, textarea)::placeholder { color: var(--mzo-muted) !important; opacity: 0.8; }
-html[data-mzo-theme] select option { background-color: var(--mzo-surface); color: var(--mzo-text); }
-
-/* Tabs / pagination */
-html[data-mzo-theme] .nav-tabs { border-color: var(--mzo-border); }
-html[data-mzo-theme] .nav-tabs .nav-link:not(.active) { color: var(--mzo-muted); }
-html[data-mzo-theme] .nav-tabs .nav-link.active {
-  background-color: var(--mzo-surface) !important;
-  color: var(--mzo-text) !important;
-  border-color: var(--mzo-border) var(--mzo-border) var(--mzo-surface) !important;
+html[data-mzo-theme]:not(.ui) .modal-header :is(h1, h2, h3, h4, h5, h6, .modal-title, span, small, i, div):not([style*="color"]):not(.badge):not(.btn-close) { color: inherit !important; }
+html[data-mzo-theme]:not(.ui) .modal-header .btn-close { filter: none; }
+html[data-mzo-theme="dark"]:not(.ui) .modal-header .btn-close { filter: invert(1) grayscale(1) brightness(1.8); }
+html[data-mzo-theme]:not(.ui) .modal-backdrop.show { opacity: 1; background-color: var(--mzo-scrim); }
+html[data-mzo-theme]:not(.ui) :is(.modal-overlay, .modal-backdrop-custom, .overlay-backdrop):not([style*="background"]) {
+  background-color: var(--mzo-scrim) !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
 }
-html[data-mzo-theme] .page-link {
-  background-color: var(--mzo-surface);
-  color: var(--mzo-text);
-  border-color: var(--mzo-border);
+html[data-mzo-theme]:not(.ui) :is(.loading-overlay, .loader-overlay, #loadingOverlay, #loaderOverlay, .page-loader):not([style*="background"]) {
+  background: color-mix(in srgb, var(--mzo-bg) 88%, transparent) !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+  color: var(--mzo-muted) !important;
+}
+html[data-mzo-theme]:not(.ui) :is(.spinner, .loader, .loading-spinner):not([style*="border"]) {
+  border-color: var(--mzo-border) !important;
+  border-top-color: var(--mzo-ink) !important;
+}
+html[data-mzo-theme]:not(.ui) .spinner-border { color: var(--mzo-ink); }
+html[data-mzo-theme]:not(.ui) :is(.border-indigo-600, .border-indigo-500, .border-blue-600, .border-blue-500) { border-color: var(--mzo-fill) !important; }
+
+/* Tailwind accent text */
+html[data-mzo-theme]:not(.ui) :is(.text-indigo-600, .text-indigo-700, .text-blue-600, .text-blue-700, .text-indigo-500, .text-blue-500):not([style*="color"]) { color: var(--mzo-accent) !important; }
+html[data-mzo-theme]:not(.ui) :is(.text-slate-900, .text-gray-900, .text-slate-800, .text-gray-800):not([style*="color"]) { color: var(--mzo-text) !important; }
+html[data-mzo-theme]:not(.ui) :is(.text-slate-500, .text-gray-500, .text-slate-600, .text-gray-600, .text-slate-400, .text-gray-400):not([style*="color"]) { color: var(--mzo-muted) !important; }
+
+/* ---------- 13. Scrollbars ---------------------------------------------- */
+
+html[data-mzo-theme]:not(.ui) * { scrollbar-width: thin; scrollbar-color: var(--mzo-border-strong) transparent; }
+html[data-mzo-theme]:not(.ui) ::-webkit-scrollbar { width: 10px; height: 10px; }
+html[data-mzo-theme]:not(.ui) ::-webkit-scrollbar-thumb { background: var(--mzo-border-strong); border-radius: 10px; border: 3px solid transparent; background-clip: padding-box; }
+html[data-mzo-theme]:not(.ui) ::-webkit-scrollbar-thumb:hover { background-color: var(--mzo-faint); }
+html[data-mzo-theme]:not(.ui) ::-webkit-scrollbar-track { background: transparent; }
+
+
+/* Legacy pages: no coloured accent bars on cards, calmer radii */
+html[data-mzo-theme]:not(.ui) :is(.card, .kpi-card, .stat-card, .metric-card, .summary-card, .info-card, .kpi-box, .dashboard-card, .report-card, .content-card, .chart-card, .table-card, [class*="kpi-card"], [class*="stat-card"], [class*="summary-card"], [class*="metric-card"]) {
+  border-left: 1px solid var(--mzo-border) !important;
+  border-top: 1px solid var(--mzo-border) !important;
+  border-image: none !important;
+}
+html[data-mzo-theme]:not(.ui) :is([class*="kpi-card"], [class*="stat-card"], [class*="metric-card"], .kpi-card, .stat-card)::before { display: none !important; }
+html[data-mzo-theme]:not(.ui) :is(.section-title, .section-header, h2, h3, h4)[style*="border-left"],
+html[data-mzo-theme]:not(.ui) :is(.section-title, .section-heading, .page-title, .dashboard-title, .title-accent) { border-left: 0 !important; padding-left: 0; }
+html[data-mzo-theme]:not(.ui) :is(.dashboard-header, .header, .header-card, .panel, .card, .modal-content, .table-container, .filters-container, .filter-section, .chart-container) { border-radius: var(--mzo-radius) !important; }
+
+/* ---------- 14. Inside the workstation shell ---------------------------- */
+/* mzo_theme.js adds html.mzo-in-shell when the page runs inside app.html.  */
+
+html.mzo-in-shell :is(.home-float-btn, #themeToggle, #themeToggleBtn, #btnThemeToggle, .btn-theme-toggle, .theme-toggle, .theme-switch, #theme-toggle) {
+  display: none !important;
 }
 
-/* Native scrollbars follow the theme */
-html[data-mzo-theme] ::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.35); border-radius: 4px; }
-html[data-mzo-theme] ::-webkit-scrollbar-track { background: transparent; }
+@media (prefers-reduced-motion: reduce) {
+  html[data-mzo-theme] *, html[data-mzo-theme] *::before, html[data-mzo-theme] *::after {
+    animation-duration: .001ms !important;
+    transition-duration: .001ms !important;
+  }
+}
+
+/* ==========================================================================
+   15. UI kit — pages rebuilt on the design system (<html class="ui">)
+   --------------------------------------------------------------------------
+   Page      .ui-page > .ui-head (h1 + p meta, .ui-actions)
+   Controls  .ui-btn (.primary .ghost .icon) · .ui-select > select · .ui-search > input
+   Filters   .ui-filters (one wrapping row)
+   Numbers   .ui-stats > .ui-stat (.k label, .v value, .s sub) — one strip, no cards
+   Panels    .ui-panel > .ui-panel-h (h2, .ui-tabs) + body · .ui-grid (2 columns)
+   Data      .ui-table (th[data-sort], td.num, tr.click) · .ui-bar · .ui-hist
+   Misc      .ui-badge (.bad .warn .ok) · .ui-dot · .ui-empty · .ui-skel · .ui-toast
+   ========================================================================== */
+
+html.ui { background: var(--mzo-bg); }
+html.ui body { margin: 0; font: 13px/1.5 var(--mzo-font); color: var(--mzo-text); background: var(--mzo-bg); }
+:where(html.ui) *, :where(html.ui) *::before, :where(html.ui) *::after { box-sizing: border-box; }
+:where(html.ui) button { font: inherit; color: inherit; }
+html.ui [hidden] { display: none !important; }
+.ui-i { width: 15px; height: 15px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
+.ui-page { max-width: 1440px; margin: 0 auto; padding: 24px 28px 72px; }
+.ui-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px 24px; flex-wrap: wrap; margin-bottom: 20px; }
+.ui-head h1 { margin: 0; font-size: 20px; line-height: 1.3; font-weight: 600; letter-spacing: -0.015em; }
+.ui-head p { margin: 3px 0 0; font-size: 13px; color: var(--mzo-muted); }
+.ui-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+/* Buttons */
+.ui-btn {
+  height: 32px; padding: 0 12px;
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  border-radius: 7px; border: 1px solid var(--mzo-border-strong);
+  background: var(--mzo-surface); color: var(--mzo-text);
+  font: 500 13px/1 var(--mzo-font); white-space: nowrap; cursor: pointer;
+  transition: background-color .12s, border-color .12s, color .12s;
+}
+a.ui-btn { text-decoration: none; }
+.ui-btn:hover { background: var(--mzo-hover); }
+.ui-btn:disabled { opacity: .5; cursor: default; }
+.ui-btn.primary { background: var(--mzo-fill); border-color: var(--mzo-fill); color: var(--mzo-on-fill); }
+.ui-btn.primary:hover { background: var(--mzo-fill-hover); border-color: var(--mzo-fill-hover); }
+.ui-btn.ghost { background: transparent; border-color: transparent; color: var(--mzo-muted); }
+.ui-btn.ghost:hover { background: var(--mzo-hover); color: var(--mzo-text); }
+.ui-btn.icon { width: 32px; padding: 0; }
+.ui-btn.sm { height: 28px; padding: 0 10px; font-size: 12.5px; }
+.ui-btn.icon.sm { width: 28px; padding: 0; }
+.ui-btn.spin .ui-i { animation: ui-spin .7s linear infinite; }
+@keyframes ui-spin { to { transform: rotate(360deg); } }
+
+/* Filters */
+.ui-filters { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 16px; }
+.ui-select select, .ui-input {
+  height: 32px; border-radius: 7px;
+  border: 1px solid var(--mzo-border-strong);
+  background-color: var(--mzo-surface); color: var(--mzo-text);
+  font: 13px var(--mzo-font);
+  outline: none;
+  transition: border-color .12s, box-shadow .12s;
+}
+.ui-select select {
+  -webkit-appearance: none; appearance: none;
+  padding: 0 28px 0 10px; max-width: 220px; cursor: pointer;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%238e8e96' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.6' d='m4 6 4 4 4-4'/%3e%3c/svg%3e");
+  background-repeat: no-repeat; background-position: right 8px center; background-size: 14px;
+}
+.ui-select select.on { background-color: var(--mzo-surface-2); border-color: var(--mzo-text-2); font-weight: 500; }
+.ui-select select:disabled { opacity: 1; color: var(--mzo-text-2); background-color: var(--mzo-surface-2); cursor: default; }
+.ui-select select:focus, .ui-input:focus { border-color: var(--mzo-accent); box-shadow: var(--mzo-ring); }
+.ui-search { position: relative; flex: 1 1 220px; max-width: 320px; }
+.ui-search .ui-i { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--mzo-faint); pointer-events: none; }
+.ui-search .ui-input { width: 100%; padding: 0 10px 0 32px; }
+.ui-input::placeholder, .ui-textarea::placeholder { color: var(--mzo-faint); }
+.ui-textarea {
+  display: block; width: 100%; min-height: 76px; padding: 8px 10px; resize: vertical;
+  border-radius: 7px; border: 1px solid var(--mzo-border-strong);
+  background: var(--mzo-surface); color: var(--mzo-text); font: 13px/1.5 var(--mzo-font); outline: none;
+}
+.ui-textarea:focus { border-color: var(--mzo-accent); box-shadow: var(--mzo-ring); }
+.ui-drawer-x { padding: 0 20px 20px; }
+.ui-filters .ui-spacer { flex: 1; }
+
+/* Segmented control */
+.ui-seg { display: inline-flex; padding: 2px; border-radius: 8px; background: var(--mzo-surface-2); box-shadow: inset 0 0 0 1px var(--mzo-border); }
+.ui-seg button { height: 26px; padding: 0 10px; border: 0; border-radius: 6px; background: none; color: var(--mzo-muted); font-weight: 500; font-size: 12.5px; cursor: pointer; white-space: nowrap; }
+.ui-seg button:hover { color: var(--mzo-text); }
+.ui-seg button[aria-pressed="true"] { background: var(--mzo-surface); color: var(--mzo-text); box-shadow: 0 0 0 1px var(--mzo-border-strong), 0 1px 1px rgba(0,0,0,.04); }
+
+/* Stat strip */
+.ui-stats {
+  display: grid; grid-template-columns: repeat(var(--n, 4), minmax(0, 1fr));
+  background: var(--mzo-surface); border: 1px solid var(--mzo-border); border-radius: 10px;
+  overflow: hidden; margin-bottom: 16px;
+}
+.ui-stat {
+  position: relative; display: block; text-align: left; min-width: 0;
+  padding: 14px 16px 15px; border: 0; background: none;
+  box-shadow: 1px 0 0 var(--mzo-border), 0 1px 0 var(--mzo-border);
+}
+.ui-stat .k { display: flex; align-items: center; gap: 7px; font-size: 12.5px; color: var(--mzo-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ui-stat .v { margin-top: 6px; font-size: 24px; line-height: 1.15; font-weight: 600; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.ui-stat .s { margin-top: 3px; font-size: 12px; color: var(--mzo-muted); font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+button.ui-stat { cursor: pointer; transition: background-color .12s; }
+button.ui-stat:hover { background: var(--mzo-row-hover); }
+.ui-stat[aria-pressed="true"] { background: var(--mzo-surface-2); }
+.ui-stat[aria-pressed="true"]::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 2px; background: var(--mzo-text); }
+.ui-stat.dim .v { color: var(--mzo-faint); }
+
+/* Panels */
+.ui-panel { background: var(--mzo-surface); border: 1px solid var(--mzo-border); border-radius: 10px; overflow: hidden; min-width: 0; }
+.ui-panel + .ui-panel, .ui-grid + .ui-panel, .ui-panel + .ui-grid { margin-top: 16px; }
+.ui-panel-h { display: flex; align-items: center; justify-content: space-between; gap: 8px 16px; flex-wrap: wrap; min-height: 50px; padding: 9px 12px 9px 16px; border-bottom: 1px solid var(--mzo-border); }
+.ui-panel-h h2 { margin: 0; font-size: 14px; line-height: 1.3; font-weight: 600; }
+.ui-panel-h h2 small { margin-left: 6px; font-size: 12.5px; font-weight: 400; color: var(--mzo-muted); }
+.ui-panel-b { padding: 16px; }
+.ui-panel-f { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 16px; border-top: 1px solid var(--mzo-border); font-size: 12.5px; color: var(--mzo-muted); }
+.ui-grid { display: grid; grid-template-columns: minmax(0, 1.65fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+.ui-grid > .ui-panel + .ui-panel { margin-top: 0; }
+
+/* Tabs (compact, in panel headers) */
+.ui-tabs { display: flex; gap: 2px; flex-wrap: wrap; }
+.ui-tab { height: 28px; padding: 0 10px; border: 0; border-radius: 6px; background: none; color: var(--mzo-muted); font: 500 12.5px var(--mzo-font); cursor: pointer; white-space: nowrap; }
+.ui-tab:hover { color: var(--mzo-text); background: var(--mzo-hover); }
+.ui-tab[aria-selected="true"] { color: var(--mzo-text); background: var(--mzo-surface-2); box-shadow: inset 0 0 0 1px var(--mzo-border); }
+
+/* Tables */
+.ui-table-wrap { overflow: auto; max-height: var(--max-h, none); }
+.ui-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 13px; font-variant-numeric: tabular-nums; }
+.ui-table th {
+  position: sticky; top: 0; z-index: 1;
+  padding: 9px 12px; text-align: left; white-space: nowrap;
+  font-size: 12px; font-weight: 500; color: var(--mzo-muted);
+  background: var(--mzo-surface); border-bottom: 1px solid var(--mzo-border);
+  user-select: none;
+}
+.ui-table th:first-child, .ui-table td:first-child { padding-left: 16px; }
+.ui-table th:last-child, .ui-table td:last-child { padding-right: 16px; }
+.ui-table th[data-sort] { cursor: pointer; }
+.ui-table th[data-sort]:hover { color: var(--mzo-text); }
+.ui-table th[aria-sort] { color: var(--mzo-text); }
+.ui-table th[aria-sort="ascending"]::after { content: " ↑"; }
+.ui-table th[aria-sort="descending"]::after { content: " ↓"; }
+.ui-table td { padding: 9px 12px; border-bottom: 1px solid var(--mzo-border); vertical-align: middle; }
+.ui-table tbody tr:last-child td { border-bottom: 0; }
+.ui-table .num { text-align: right; white-space: nowrap; }
+.ui-table .muted, .ui-muted { color: var(--mzo-muted); }
+.ui-table .wrap { white-space: normal; }
+.ui-table .nowrap { white-space: nowrap; }
+.ui-table td.strong, .ui-strong { font-weight: 500; }
+.ui-table tbody tr.click { cursor: pointer; }
+.ui-table tbody tr:hover td { background: var(--mzo-row-hover); }
+.ui-table tbody tr.sel td { background: var(--mzo-surface-2); }
+.ui-table tfoot td { font-weight: 600; background: var(--mzo-surface-2); border-top: 1px solid var(--mzo-border); border-bottom: 0; }
+.ui-table .sub { display: block; font-size: 12px; color: var(--mzo-muted); font-weight: 400; }
+.ui-table .chev { width: 28px; color: var(--mzo-faint); }
+
+/* Share bar (in table cells) and histogram */
+.ui-bar { display: flex; align-items: center; gap: 8px; min-width: 90px; }
+.ui-bar i { position: relative; flex: 1; height: 6px; border-radius: 3px; background: var(--mzo-chart-soft); overflow: hidden; }
+.ui-bar i b { position: absolute; inset: 0 auto 0 0; border-radius: 3px; background: var(--mzo-chart); }
+.ui-bar span { width: 42px; text-align: right; color: var(--mzo-muted); font-size: 12px; }
+.ui-hist { display: grid; gap: 4px; }
+.ui-hist .row { display: grid; grid-template-columns: var(--ui-hist-label, 110px) minmax(0, 1fr) 56px; align-items: center; gap: 12px; height: 28px; padding: 0 4px; margin: 0 -4px; font-size: 12.5px; border-radius: 6px; }
+.ui-hist .row > span:first-child { color: var(--mzo-text-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ui-hist .row > span:last-child { text-align: right; font-variant-numeric: tabular-nums; font-weight: 500; }
+.ui-hist i { position: relative; height: 8px; border-radius: 4px; background: var(--mzo-chart-soft); overflow: hidden; }
+.ui-hist i b { position: absolute; inset: 0 auto 0 0; border-radius: 4px; background: var(--mzo-chart); transition: width .25s ease; }
+.ui-hist .row.click { cursor: pointer; border-radius: 6px; }
+.ui-hist .row.click:hover { background: var(--mzo-row-hover); }
+.ui-hist .row.click:hover > span:first-child { color: var(--mzo-text); }
+.ui-hist .row.on i b { background: var(--mzo-text); }
+
+/* Line chart (UI.line) */
+.ui-chart-wrap { position: relative; }
+.ui-chart { display: block; max-width: 100%; overflow: visible; }
+.ui-chart text { font: 11px var(--mzo-font); fill: var(--mzo-muted); font-variant-numeric: tabular-nums; }
+.ui-chart .gl { stroke: var(--mzo-border); stroke-width: 1; }
+.ui-chart .ln { fill: none; stroke: var(--mzo-chart); stroke-width: 1.6; stroke-linejoin: round; stroke-linecap: round; }
+.ui-chart .ln.strong { stroke: var(--mzo-text); stroke-width: 2.2; }
+.ui-chart .pt { fill: var(--mzo-surface); stroke: var(--mzo-text); stroke-width: 1.6; }
+.ui-chart .hit { fill: transparent; }
+.ui-chart .guide { stroke: var(--mzo-border-strong); stroke-dasharray: 3 3; }
+.ui-tip { position: absolute; top: 4px; min-width: 150px; padding: 8px 10px; border-radius: 8px; background: var(--mzo-surface); box-shadow: 0 0 0 1px var(--mzo-border), var(--mzo-shadow-pop); font-size: 12px; pointer-events: none; z-index: 2; }
+.ui-tip b { display: block; margin-bottom: 4px; font-weight: 600; }
+.ui-tip div { display: flex; justify-content: space-between; gap: 16px; color: var(--mzo-muted); font-variant-numeric: tabular-nums; }
+.ui-tip div span:last-child { color: var(--mzo-text); font-weight: 500; }
+.ui-legend { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 10px; font-size: 12px; color: var(--mzo-muted); }
+.ui-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.ui-legend i { display: inline-block; width: 14px; height: 2px; border-radius: 1px; background: var(--mzo-chart); }
+.ui-legend i.strong { background: var(--mzo-text); height: 2.5px; }
+.ui-delta { font-size: 12px; font-weight: 500; font-variant-numeric: tabular-nums; }
+.ui-delta.bad { color: var(--mzo-bad); }
+.ui-delta.ok { color: var(--mzo-ok); }
+.ui-delta.flat { color: var(--mzo-muted); }
+
+/* Badges, dots */
+.ui-badge { display: inline-flex; align-items: center; gap: 5px; height: 20px; padding: 0 7px; border-radius: 6px; font-size: 11.5px; font-weight: 500; white-space: nowrap; background: var(--mzo-surface-2); color: var(--mzo-text-2); box-shadow: inset 0 0 0 1px var(--mzo-border); }
+.ui-badge.bad { background: var(--mzo-bad-soft); color: var(--mzo-bad); box-shadow: none; }
+.ui-badge.warn { background: var(--mzo-warn-soft); color: var(--mzo-warn); box-shadow: none; }
+.ui-badge.ok { background: var(--mzo-ok-soft); color: var(--mzo-ok); box-shadow: none; }
+.ui-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--mzo-faint); flex: none; }
+.ui-dot.bad { background: var(--mzo-bad); }
+.ui-dot.warn { background: var(--mzo-warn); }
+.ui-dot.ok { background: var(--mzo-ok); }
+
+/* States */
+.ui-empty { padding: 40px 16px; text-align: center; color: var(--mzo-muted); font-size: 13px; }
+.ui-skel { display: block; height: 12px; border-radius: 4px; background: linear-gradient(90deg, var(--mzo-surface-2) 25%, var(--mzo-hover) 50%, var(--mzo-surface-2) 75%); background-size: 200% 100%; animation: ui-shim 1.3s ease-in-out infinite; }
+.ui-stat .ui-skel { height: 24px; width: 64%; margin-top: 8px; }
+@keyframes ui-shim { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+.ui-note { font-size: 12.5px; color: var(--mzo-muted); }
+.ui-toast {
+  position: fixed; left: 50%; bottom: 24px; z-index: 1000;
+  transform: translate(-50%, 8px); opacity: 0; pointer-events: none;
+  padding: 9px 14px; border-radius: 8px;
+  background: var(--mzo-fill); color: var(--mzo-on-fill);
+  font-size: 13px; font-weight: 500; box-shadow: var(--mzo-shadow-pop);
+  transition: opacity .18s, transform .18s;
+}
+.ui-toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+/* Drawer (row details) */
+.ui-drawer { position: fixed; inset: 0; z-index: 900; display: flex; justify-content: flex-end; background: var(--mzo-scrim); }
+.ui-drawer[hidden] { display: none; }
+.ui-drawer > section { width: min(460px, 100%); height: 100%; overflow: auto; background: var(--mzo-surface); border-left: 1px solid var(--mzo-border); box-shadow: var(--mzo-shadow-pop); animation: ui-slide .18s ease; }
+@keyframes ui-slide { from { transform: translateX(16px); opacity: .6; } }
+.ui-drawer header { position: sticky; top: 0; display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 16px 16px 14px 20px; background: var(--mzo-surface); border-bottom: 1px solid var(--mzo-border); }
+.ui-drawer header > div:first-child { flex: 1; min-width: 0; }
+.ui-drawer-act { display: flex; gap: 6px; }
+.ui-drawer-act:empty { display: none; }
+.ui-drawer header h3 { margin: 0; font-size: 15px; font-weight: 600; }
+.ui-drawer header p { margin: 2px 0 0; color: var(--mzo-muted); font-size: 12.5px; }
+.ui-dl { display: grid; grid-template-columns: 140px minmax(0, 1fr); gap: 0; margin: 0; padding: 6px 20px 20px; font-size: 13px; }
+.ui-dl dt, .ui-dl dd { margin: 0; padding: 9px 0; border-bottom: 1px solid var(--mzo-border); }
+.ui-dl dt { color: var(--mzo-muted); }
+.ui-dl dd { font-variant-numeric: tabular-nums; word-break: break-word; }
+
+@media (max-width: 1100px) {
+  .ui-grid { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 760px) {
+  .ui-page { padding: 16px 14px 56px; }
+  .ui-head { margin-bottom: 14px; }
+  .ui-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ui-stats > .ui-stat:last-child:nth-child(odd) { grid-column: 1 / -1; }
+  .ui-stat .v { font-size: 20px; }
+  .ui-search { max-width: none; flex-basis: 100%; }
+  .ui-select select { max-width: 160px; }
+  .ui-hist .row { grid-template-columns: 90px minmax(0, 1fr) 52px; }
+  .ui-table .hide-sm { display: none; }
+}
+@media print {
+  .ui-actions, .ui-filters, .ui-btn { display: none !important; }
+  .ui-page { padding: 0; }
+}

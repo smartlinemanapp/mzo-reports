@@ -1,1919 +1,1127 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-mzo-theme="light">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>MZO Distribution Operations Workstation — WBSEDCL</title>
-  <meta name="theme-color" content="#0b1120" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>MZO Reports</title>
+  <meta name="theme-color" content="#f1f1f0" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="MZO Workstation" />
-  
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
-
+  <meta name="apple-mobile-web-app-title" content="MZO Reports" />
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="icon" href="/icons/icon-192-v2.png" />
+  <script>
+    /* Paint the right theme before first render (no flash). */
+    (function () {
+      var d = document.documentElement, pref = 'system', t;
+      try {
+        pref = localStorage.getItem('mzo_theme_pref') || '';
+        if (!pref) { t = localStorage.getItem('theme') || localStorage.getItem('mzo_theme'); pref = (t === 'light' || t === 'dark') ? t : 'system'; }
+      } catch (e) {}
+      t = pref === 'system' ? (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : pref;
+      d.setAttribute('data-mzo-theme', t);
+      d.setAttribute('data-theme-pref', pref);
+      try { if (localStorage.getItem('mzo_ws_rail') === '1') d.classList.add('rail'); } catch (e) {}
+      window.__MZO_SHELL__ = true;
+    })();
+  </script>
   <style>
+    /* ---------- Tokens (keep in sync with mzo_theme.css) ---------- */
     :root {
-      --primary: #4f46e5;
-      --primary-hover: #4338ca;
-      --primary-glow: rgba(79, 70, 229, 0.25);
-      --success: #10b981;
-      --danger: #ef4444;
-      --warning: #f59e0b;
-      --info: #0ea5e9;
-
-      --sidebar-width: 270px;
-      --sidebar-collapsed-width: 72px;
-      --header-height: 56px;
-      --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-      --font-display: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font: -apple-system, BlinkMacSystemFont, "Segoe UI Variable Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+      --mono: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace;
+      --sb-w: 252px;
+      --rail-w: 56px;
+      --bar-h: 44px;
+      --r: 8px;
+      --r-sm: 6px;
+      --ease: cubic-bezier(.2, .7, .2, 1);
+    }
+    [data-mzo-theme="light"] {
+      color-scheme: light;
+      --canvas: #f1f1f0; --bg: #fafafa; --surface: #fff; --surface-2: #f5f5f4; --hover: #e9e9e7; --hover-soft: #efefee;
+      --border: #e7e7e5; --border-strong: #d6d6d3;
+      --text: #18181b; --text-2: #3f3f46; --muted: #71717a; --faint: #a1a1aa;
+      --ink: #18181b; --on-ink: #fff;
+      --accent: #0f766e; --accent-soft: rgba(15, 118, 110, .09); --ring: 0 0 0 3px rgba(15, 118, 110, .18);
+      --shadow-pop: 0 1px 2px rgba(0,0,0,.04), 0 12px 32px -8px rgba(0,0,0,.16);
+      --shadow-panel: 0 0 0 1px var(--border), 0 1px 2px rgba(0,0,0,.03);
+      --scrim: rgba(24, 24, 27, .32);
+    }
+    [data-mzo-theme="dark"] {
+      color-scheme: dark;
+      --canvas: #09090a; --bg: #0f0f10; --surface: #161617; --surface-2: #1c1c1e; --hover: #232325; --hover-soft: #1d1d1f;
+      --border: #27272a; --border-strong: #34343a;
+      --text: #ececee; --text-2: #c8c8cd; --muted: #8e8e96; --faint: #5f5f66;
+      --ink: #ececee; --on-ink: #0f0f10;
+      --accent: #2dd4bf; --accent-soft: rgba(45, 212, 191, .12); --ring: 0 0 0 3px rgba(45, 212, 191, .22);
+      --shadow-pop: 0 1px 2px rgba(0,0,0,.5), 0 16px 40px -8px rgba(0,0,0,.65);
+      --shadow-panel: 0 0 0 1px var(--border);
+      --scrim: rgba(0, 0, 0, .55);
     }
 
-    body.dark-theme {
-      --bg-body: #0b1120;
-      --bg-sidebar: #0f172a;
-      --bg-sidebar-elevated: #162238;
-      --bg-stage: #090e1a;
-      --bg-header: #0e1628;
-      --bg-flyout: #111a2e;
-      --card-bg-elevated: #152238;
-      --card-border-hover: rgba(148, 163, 184, 0.25);
-      --border-color: rgba(148, 163, 184, 0.12);
-      --border-color-hover: rgba(148, 163, 184, 0.25);
-      --text-main: #f8fafc;
-      --text-muted: #94a3b8;
-      --nav-hover: rgba(255, 255, 255, 0.05);
-      --nav-active: rgba(79, 70, 229, 0.16);
-      --nav-active-text: #a5b4fc;
-      --badge-bg: rgba(148, 163, 184, 0.14);
-      --shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
-    }
-
-    body.light-theme {
-      --bg-body: #f8fafc;
-      --bg-sidebar: #ffffff;
-      --bg-sidebar-elevated: #f1f5f9;
-      --bg-stage: #edf2f7;
-      --bg-header: #ffffff;
-      --bg-flyout: #ffffff;
-      --card-bg-elevated: #ffffff;
-      --card-border-hover: rgba(203, 213, 225, 0.9);
-      --border-color: rgba(203, 213, 225, 0.8);
-      --border-color-hover: rgba(148, 163, 184, 0.5);
-      --text-main: #0f172a;
-      --text-muted: #64748b;
-      --nav-hover: rgba(0, 0, 0, 0.04);
-      --nav-active: rgba(79, 70, 229, 0.1);
-      --nav-active-text: #4338ca;
-      --badge-bg: rgba(100, 116, 139, 0.12);
-      --shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-    }
-
-    *, *::before, *::after {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    html, body {
-      width: 100%;
-      height: 100%;
-      overflow: hidden;
-      font-family: var(--font-body);
-      background-color: var(--bg-body);
-      color: var(--text-main);
-      transition: background-color 0.2s ease, color 0.2s ease;
-    }
-
-    /* Main Workstation Layout Shell */
-    .workstation-shell {
-      display: flex;
-      width: 100vw;
-      height: 100vh;
+    /* ---------- Base ---------- */
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; }
+    body {
+      font: 13px/1.45 var(--font);
+      color: var(--text);
+      background: var(--canvas);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
       overflow: hidden;
     }
-
-    /* Fixed Left Sidebar */
-    .workstation-sidebar {
-      width: var(--sidebar-width);
-      height: 100%;
-      background: var(--bg-sidebar);
-      border-right: 1px solid var(--border-color);
-      display: flex;
-      flex-direction: column;
-      flex-shrink: 0;
-      z-index: 100;
-      transition: width 0.22s cubic-bezier(0.4, 0, 0.2, 1);
-      position: relative;
-    }
-
-    .workstation-sidebar.collapsed {
-      width: var(--sidebar-collapsed-width);
-    }
-
-    /* Sidebar Brand & System Status */
-    .sidebar-brand-box {
-      padding: 14px 16px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      border-bottom: 1px solid var(--border-color);
-      flex-shrink: 0;
-    }
-
-    .brand-logo-icon {
-      width: 36px;
-      height: 36px;
-      border-radius: 9px;
-      background: linear-gradient(135deg, #4f46e5, #0ea5e9);
-      color: #fff;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 16px;
-      flex-shrink: 0;
-      box-shadow: 0 2px 8px var(--primary-glow);
-    }
-
-    .brand-meta {
-      display: flex;
-      flex-direction: column;
-      min-width: 0;
-      flex: 1;
-    }
-
-    .brand-title {
-      font-family: var(--font-display);
-      font-size: 14px;
-      font-weight: 700;
-      letter-spacing: -0.01em;
-      color: var(--text-main);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .brand-scope-pill {
-      font-size: 9.5px;
-      font-weight: 700;
-      padding: 1px 5px;
+    button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+    a { color: inherit; text-decoration: none; }
+    :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: var(--r-sm); }
+    .ic { width: 16px; height: 16px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; }
+    .ic-sm { width: 14px; height: 14px; }
+    kbd {
+      font: 500 11px/1 var(--mono);
+      color: var(--muted);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-bottom-width: 2px;
       border-radius: 4px;
-      background: rgba(99, 102, 241, 0.15);
-      color: #818cf8;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-    }
-
-    .brand-sub {
-      font-size: 11px;
-      color: var(--text-muted);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .status-pulse-dot {
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background: var(--success);
-      box-shadow: 0 0 6px var(--success);
-      flex-shrink: 0;
-    }
-
-    /* Sidebar Search Input */
-    .sidebar-search-box {
-      padding: 10px 14px;
-      border-bottom: 1px solid var(--border-color);
-      flex-shrink: 0;
-    }
-
-    .search-input-wrapper {
-      position: relative;
-      display: flex;
-      align-items: center;
-    }
-
-    .search-input-wrapper i {
-      position: absolute;
-      left: 10px;
-      font-size: 12px;
-      color: var(--text-muted);
-      pointer-events: none;
-    }
-
-    .sidebar-search-input {
-      width: 100%;
-      padding: 7px 28px 7px 30px;
-      background: var(--bg-sidebar-elevated);
-      border: 1px solid var(--border-color);
-      border-radius: 8px;
-      font-size: 12px;
-      color: var(--text-main);
-      outline: none;
-      transition: border-color 0.15s ease;
-    }
-
-    .sidebar-search-input:focus {
-      border-color: var(--primary);
-    }
-
-    .search-kbd {
-      position: absolute;
-      right: 8px;
-      font-size: 10px;
-      padding: 1px 4px;
-      border-radius: 4px;
-      background: var(--border-color);
-      color: var(--text-muted);
-      pointer-events: none;
-      font-family: monospace;
-    }
-
-    /* Sidebar Navigation Tree & Hover Flyouts */
-    .sidebar-nav-scroll {
-      flex: 1;
-      overflow-y: auto;
-      overflow-x: hidden;
-      padding: 10px 8px;
-      display: flex;
-      flex-direction: column;
-      gap: 3px;
-    }
-
-    .sidebar-nav-scroll::-webkit-scrollbar {
-      width: 4px;
-    }
-    .sidebar-nav-scroll::-webkit-scrollbar-thumb {
-      background: var(--border-color);
-      border-radius: 4px;
-    }
-
-    .nav-group-item {
-      position: relative;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .group-trigger-btn {
-      width: 100%;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 7px 10px;
-      border: 1px solid transparent;
-      border-radius: 8px;
-      background: transparent;
-      color: var(--text-main);
-      font-size: 12.5px;
-      font-weight: 500;
-      cursor: pointer;
-      text-align: left;
-      text-decoration: none;
-      transition: all 0.15s ease;
-      position: relative;
-      user-select: none;
-    }
-
-    .group-trigger-btn:hover,
-    .nav-group-item:hover > .group-trigger-btn,
-    .nav-group-item.flyout-open > .group-trigger-btn {
-      background: var(--nav-hover);
-      border-color: var(--border-color);
-    }
-
-    .group-trigger-btn.has-active {
-      background: var(--nav-active);
-      color: var(--nav-active-text);
-      font-weight: 600;
-      border-color: rgba(99, 102, 241, 0.35);
-    }
-
-    .group-trigger-btn.has-active::before {
-      content: '';
-      position: absolute;
-      left: 0;
-      top: 6px;
-      bottom: 6px;
-      width: 3px;
-      border-radius: 0 3px 3px 0;
-      background: var(--primary);
-    }
-
-    .group-icon {
-      font-size: 13px;
-      width: 18px;
+      padding: 2px 5px;
+      min-width: 18px;
       text-align: center;
-      color: var(--text-muted);
-      flex-shrink: 0;
-      transition: color 0.15s ease;
+    }
+    .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+    /* ---------- Layout ---------- */
+    .app { display: grid; grid-template-columns: var(--sb-w) minmax(0, 1fr); height: 100dvh; transition: grid-template-columns .2s var(--ease); }
+    .rail .app { grid-template-columns: var(--rail-w) minmax(0, 1fr); }
+
+    /* ---------- Sidebar ---------- */
+    .sb { display: flex; flex-direction: column; min-width: 0; min-height: 0; padding: 10px 8px 8px; gap: 8px; }
+    .brand { display: flex; align-items: center; gap: 10px; height: 36px; padding: 0 6px; min-width: 0; }
+    .mark {
+      width: 26px; height: 26px; border-radius: 7px; flex: none;
+      display: grid; place-items: center;
+      background: var(--ink); color: var(--on-ink);
+    }
+    .mark .ic { width: 15px; height: 15px; stroke-width: 2.1; }
+    .brand-t { min-width: 0; line-height: 1.2; }
+    .brand-t b { display: block; font-size: 13.5px; font-weight: 600; letter-spacing: -.01em; white-space: nowrap; }
+    .brand-t span { display: block; font-size: 11.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    .search {
+      display: flex; align-items: center; gap: 8px;
+      height: 32px; padding: 0 6px 0 9px;
+      border-radius: var(--r-sm);
+      background: var(--surface);
+      box-shadow: 0 0 0 1px var(--border);
+      color: var(--muted);
+      text-align: left;
+      transition: box-shadow .12s, color .12s;
+    }
+    .search:hover { color: var(--text-2); box-shadow: 0 0 0 1px var(--border-strong); }
+    .search span { flex: 1; white-space: nowrap; overflow: hidden; }
+    .search kbd { background: var(--surface-2); }
+
+    .nav { flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; margin: 0 -8px; padding: 2px 8px 8px; scrollbar-width: thin; scrollbar-color: var(--border-strong) transparent; }
+    .nav::-webkit-scrollbar { width: 8px; }
+    .nav::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 8px; border: 2px solid var(--canvas); }
+    .sec { font-size: 11px; font-weight: 500; color: var(--faint); padding: 14px 8px 4px; white-space: nowrap; }
+    .ni, .ng {
+      display: flex; align-items: center; gap: 9px; width: 100%;
+      height: 30px; padding: 0 8px;
+      border-radius: var(--r-sm);
+      color: var(--text-2);
+      white-space: nowrap; text-align: left;
+      transition: background-color .1s, color .1s;
+      position: relative;
+    }
+    .ni:hover, .ng:hover { background: var(--hover); color: var(--text); }
+    .ni .ic, .ng .ic { color: var(--muted); }
+    .ni:hover .ic, .ng:hover .ic { color: var(--text-2); }
+    .lbl { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+    .chev { color: var(--faint); transition: transform .15s var(--ease); }
+    .grp.open > .ng .chev { transform: rotate(90deg); }
+    .grp.has-active > .ng { color: var(--text); }
+    .grp.has-active > .ng .ic:first-child { color: var(--text); }
+    .ni[aria-current="page"] {
+      background: var(--surface);
+      color: var(--text);
+      font-weight: 500;
+      box-shadow: 0 0 0 1px var(--border), 0 1px 2px rgba(0,0,0,.04);
+    }
+    .ni[aria-current="page"] .ic { color: var(--text); }
+    .sub { display: none; position: relative; padding: 2px 0 4px; }
+    .grp.open > .sub { display: block; }
+    .sub::before { content: ""; position: absolute; left: 15px; top: 2px; bottom: 6px; width: 1px; background: var(--border); }
+    .sub .ni { height: 28px; padding-left: 26px; font-size: 12.75px; }
+    .sub .ni[aria-current="page"]::before { content: ""; position: absolute; left: 14px; top: 8px; bottom: 8px; width: 3px; border-radius: 2px; background: var(--accent); }
+    .ni.hit mark { background: none; color: var(--text); font-weight: 600; }
+
+    .foot { border-top: 1px solid var(--border); margin: 0 -8px; padding: 8px 8px 0; }
+    .me {
+      display: flex; align-items: center; gap: 9px; width: 100%;
+      padding: 6px; border-radius: var(--r-sm);
+      text-align: left;
+    }
+    .me:hover, .me[aria-expanded="true"] { background: var(--hover); }
+    .av {
+      width: 28px; height: 28px; border-radius: 50%; flex: none;
+      display: grid; place-items: center;
+      background: var(--surface); box-shadow: 0 0 0 1px var(--border-strong);
+      font-size: 11.5px; font-weight: 600; color: var(--text-2);
+    }
+    .me-t { flex: 1; min-width: 0; line-height: 1.25; }
+    .me-t b { display: block; font-weight: 500; font-size: 12.75px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .me-t span { display: block; font-size: 11.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .me .ic { color: var(--faint); }
+
+    @media (min-width: 901px) {
+    /* Rail (collapsed) */
+      .rail .sb .brand-t, .rail .sb .search span, .rail .sb .search kbd, .rail .sb .sec, .rail .sb .lbl, .rail .sb .chev, .rail .sb .me-t, .rail .sb .me > .ic, .rail .sb .sub { display: none !important; }
+      .rail .sb .brand { padding: 0; justify-content: center; }
+      .rail .sb .search { justify-content: center; padding: 0; background: none; box-shadow: none; }
+      .rail .sb .search:hover { background: var(--hover); }
+      .rail .sb .ni, .rail .sb .ng { justify-content: center; padding: 0; }
+      .rail .sb .sec-gap { height: 10px; }
+      .rail .sb .grp.has-active > .ng { background: var(--surface); box-shadow: 0 0 0 1px var(--border); }
+      .rail .sb .me { justify-content: center; padding: 6px 0; }
+      .sec-gap { display: none; }
+      .rail .sb .sec-gap { display: block; }
     }
 
-    .group-trigger-btn:hover .group-icon,
-    .nav-group-item:hover .group-icon,
-    .group-trigger-btn.has-active .group-icon {
-      color: var(--primary);
-    }
-
-    .group-title {
-      flex: 1;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .group-count {
-      font-size: 10px;
-      font-weight: 700;
-      padding: 1px 6px;
-      border-radius: 999px;
-      background: var(--border-color);
-      color: var(--text-muted);
-      flex-shrink: 0;
-    }
-
-    .group-chevron {
-      font-size: 9px;
-      color: var(--text-muted);
-      opacity: 0.6;
-      transition: transform 0.15s ease, opacity 0.15s ease;
-      flex-shrink: 0;
-    }
-
-    .group-trigger-btn:hover .group-chevron,
-    .nav-group-item:hover .group-chevron {
-      opacity: 1;
-      transform: translateX(2px);
-      color: var(--primary);
-    }
-
-    /* Floating Flyout Menu on Hover */
-    .group-flyout {
-      position: fixed;
-      left: calc(var(--sidebar-width) + 6px);
-      top: 56px;
-      display: none;
-      opacity: 0;
-      pointer-events: none;
-      width: 290px;
-      max-width: calc(100vw - 40px);
-      max-height: calc(100vh - 24px);
-      background: var(--bg-flyout);
-      border: 1px solid var(--border-color);
-      border-radius: 12px;
-      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45), 0 2px 10px rgba(0, 0, 0, 0.25);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      z-index: 10000;
-      flex-direction: column;
-      overflow: hidden;
-      transition: opacity 0.15s ease, transform 0.15s ease;
-      transform: translateX(4px);
-    }
-
-    .workstation-sidebar.collapsed .group-flyout {
-      left: calc(var(--sidebar-collapsed-width) + 6px);
-    }
-
-    /* Invisible hover bridge connecting sidebar item to flyout */
-    .group-flyout::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      bottom: 0;
-      left: -16px;
-      width: 18px;
-      pointer-events: auto;
-    }
-
-    .nav-group-item:hover > .group-flyout,
-    .nav-group-item.flyout-open > .group-flyout,
-    .group-flyout:hover {
-      display: flex !important;
-      opacity: 1 !important;
-      pointer-events: auto !important;
-      transform: translateX(0) !important;
-    }
-
-    .flyout-header {
-      padding: 10px 14px;
-      background: var(--bg-sidebar-elevated);
-      border-bottom: 1px solid var(--border-color);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-      flex-shrink: 0;
-    }
-
-    .flyout-header-title {
-      font-size: 12px;
-      font-weight: 700;
-      color: var(--text-main);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .flyout-header-title i {
-      color: var(--primary);
-      font-size: 13px;
-    }
-
-    .flyout-badge {
-      font-size: 10px;
-      font-weight: 600;
-      padding: 1px 6px;
-      border-radius: 4px;
-      background: rgba(99, 102, 241, 0.15);
-      color: #818cf8;
-      white-space: nowrap;
-    }
-
-    .flyout-list {
+    /* Rail flyout */
+    .fly {
+      position: fixed; z-index: 60; min-width: 220px; max-width: 280px;
+      max-height: calc(100dvh - 16px); overflow: auto;
+      background: var(--surface); border-radius: 10px;
+      box-shadow: 0 0 0 1px var(--border), var(--shadow-pop);
       padding: 6px;
-      overflow-y: auto;
-      max-height: calc(100vh - 90px);
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
     }
+    .fly[hidden] { display: none; }
+    .fly h4 { margin: 0; padding: 6px 8px 6px; font-size: 11.5px; font-weight: 500; color: var(--muted); }
+    .fly .ni { height: 30px; }
 
-    .flyout-list::-webkit-scrollbar {
-      width: 4px;
-    }
-    .flyout-list::-webkit-scrollbar-thumb {
-      background: var(--border-color);
-      border-radius: 4px;
-    }
-
-    .flyout-item-btn {
-      width: 100%;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 7px 10px;
-      border: none;
-      border-radius: 7px;
-      background: transparent;
-      color: var(--text-main);
-      font-size: 12px;
-      font-weight: 500;
-      cursor: pointer;
-      text-align: left;
-      text-decoration: none;
-      transition: all 0.12s ease;
-    }
-
-    .flyout-item-btn:hover {
-      background: var(--nav-hover);
-      color: var(--text-main);
-    }
-
-    .flyout-item-btn.active {
-      background: var(--nav-active);
-      color: var(--nav-active-text);
-      font-weight: 600;
-    }
-
-    .flyout-item-icon {
-      font-size: 12px;
-      width: 16px;
-      text-align: center;
-      color: var(--text-muted);
-      flex-shrink: 0;
-    }
-
-    .flyout-item-btn:hover .flyout-item-icon,
-    .flyout-item-btn.active .flyout-item-icon {
-      color: var(--primary);
-    }
-
-    .flyout-item-label {
-      flex: 1;
-      white-space: nowrap;
+    /* ---------- Main panel ---------- */
+    .main { min-width: 0; min-height: 0; padding: 8px 8px 8px 0; display: flex; }
+    .panel {
+      flex: 1; min-width: 0; display: flex; flex-direction: column;
+      background: var(--bg);
+      border-radius: 10px;
+      box-shadow: var(--shadow-panel);
       overflow: hidden;
-      text-overflow: ellipsis;
     }
-
-    /* Sidebar Footer User Card */
-    .sidebar-footer {
-      padding: 12px 14px;
-      border-top: 1px solid var(--border-color);
-      background: var(--bg-sidebar);
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      flex-shrink: 0;
+    .bar {
+      height: var(--bar-h); flex: none;
+      display: flex; align-items: center; gap: 6px;
+      padding: 0 8px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
     }
-
-    .user-profile-strip {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      min-width: 0;
-    }
-
-    .user-avatar-circle {
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      background: rgba(99, 102, 241, 0.16);
-      color: var(--primary);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 12px;
-      font-weight: 700;
-      flex-shrink: 0;
-      border: 1px solid rgba(99, 102, 241, 0.25);
-    }
-
-    .user-text-info {
-      display: flex;
-      flex-direction: column;
-      min-width: 0;
-      flex: 1;
-    }
-
-    .user-name-title {
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--text-main);
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    .user-role-subtitle {
-      font-size: 10px;
-      color: var(--text-muted);
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    .sidebar-action-row {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .btn-side-tool {
-      flex: 1;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      padding: 6px 10px;
-      border-radius: 6px;
-      border: 1px solid var(--border-color);
-      background: var(--bg-sidebar-elevated);
-      color: var(--text-muted);
-      font-size: 11px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.12s ease;
-      text-decoration: none;
-    }
-
-    .btn-side-tool:hover {
-      background: var(--border-color-hover);
-      color: var(--text-main);
-    }
-
-    .btn-side-tool.danger:hover {
-      background: rgba(239, 68, 68, 0.15);
-      color: #ef4444;
-      border-color: rgba(239, 68, 68, 0.3);
-    }
-
-    /* Main Workspace Section */
-    .workstation-main {
-      flex: 1;
-      height: 100%;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      background: var(--bg-stage);
-    }
-
-    /* Top Workspace Header Bar */
-    .workstation-header {
-      height: var(--header-height);
-      background: var(--bg-header);
-      border-bottom: 1px solid var(--border-color);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 16px;
-      flex-shrink: 0;
-      z-index: 50;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-    }
-
-    .header-left-tools {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      min-width: 0;
-    }
-
-    .btn-toggle-sidebar {
-      width: 32px;
-      height: 32px;
-      border-radius: 6px;
-      border: 1px solid var(--border-color);
-      background: transparent;
-      color: var(--text-muted);
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 13px;
-      cursor: pointer;
-      transition: all 0.12s ease;
-    }
-
-    .btn-toggle-sidebar:hover {
-      background: var(--nav-hover);
-      color: var(--text-main);
-    }
-
-    .breadcrumbs-wrap {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 12px;
-      color: var(--text-muted);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .bc-sep {
-      font-size: 10px;
-      opacity: 0.5;
-    }
-
-    .bc-active {
-      font-weight: 600;
-      color: var(--text-main);
-    }
-
-    /* Header Right Tools */
-    .header-right-tools {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex-shrink: 0;
-    }
-
-    .btn-header-tool {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      padding: 6px 10px;
-      border-radius: 6px;
-      border: 1px solid var(--border-color);
-      background: transparent;
-      color: var(--text-muted);
-      font-size: 11.5px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.12s ease;
-      text-decoration: none;
-    }
-
-    .btn-header-tool:hover {
-      background: var(--nav-hover);
-      color: var(--text-main);
-    }
-
-    .btn-header-tool.btn-primary-workstation {
-      background: var(--primary);
-      border-color: var(--primary);
-      color: #fff;
-    }
-
-    .btn-header-tool.btn-primary-workstation:hover {
-      background: var(--primary-hover);
-    }
-
-    /* Embedded Workstation Stage */
-    .workstation-stage {
-      flex: 1;
-      width: 100%;
-      height: calc(100% - var(--header-height));
+    .crumbs { flex: 1; min-width: 0; display: flex; align-items: center; gap: 6px; font-size: 13px; white-space: nowrap; padding-left: 4px; }
+    .crumbs .c-g { color: var(--muted); overflow: hidden; text-overflow: ellipsis; flex: 0 1 auto; }
+    .crumbs .c-s { color: var(--faint); }
+    .crumbs .c-p { color: var(--text); font-weight: 500; overflow: hidden; text-overflow: ellipsis; }
+    .crumbs .c-g:empty, .crumbs .c-g:empty + .c-s { display: none; }
+    .vr { width: 1px; height: 18px; background: var(--border); margin: 0 4px; flex: none; }
+    .ib {
+      width: 32px; height: 32px; flex: none;
+      display: grid; place-items: center;
+      border-radius: var(--r-sm);
+      color: var(--muted);
       position: relative;
-      background: var(--bg-stage);
+      transition: background-color .1s, color .1s;
+    }
+    .ib:hover { background: var(--hover-soft); color: var(--text); }
+    .ib:active { background: var(--hover); }
+    .ib.spin .ic { animation: spin .6s var(--ease); }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Tooltips */
+    [data-tip]::after {
+      content: attr(data-tip);
+      position: absolute; top: calc(100% + 6px); left: 50%;
+      transform: translateX(-50%) translateY(-2px);
+      background: var(--ink); color: var(--on-ink);
+      font: 500 11.5px/1 var(--font); white-space: nowrap;
+      padding: 6px 8px; border-radius: 5px;
+      opacity: 0; pointer-events: none; z-index: 70;
+      transition: opacity .12s, transform .12s;
+    }
+    [data-tip]:hover::after { opacity: 1; transform: translateX(-50%) translateY(0); transition-delay: .35s; }
+    [data-tip-end]::after { left: auto; right: 0; transform: translateY(-2px); }
+    [data-tip-end]:hover::after { transform: translateY(0); }
+    .tip {
+      position: fixed; z-index: 80; pointer-events: none;
+      background: var(--ink); color: var(--on-ink);
+      font: 500 11.5px/1 var(--font); white-space: nowrap;
+      padding: 6px 8px; border-radius: 5px;
+    }
+    .tip[hidden] { display: none; }
+
+    /* ---------- Stage ---------- */
+    .stage { position: relative; flex: 1; min-height: 0; background: var(--bg); }
+    .stage iframe {
+      position: absolute; inset: 0; width: 100%; height: 100%;
+      border: 0; display: block; background: transparent;
+    }
+    .stage iframe.off { visibility: hidden; pointer-events: none; }
+    .stage-msg {
+      position: absolute; inset: 0; display: grid; place-items: center;
+      color: var(--muted); font-size: 12.5px;
+      opacity: 0; transition: opacity .2s .25s;
+    }
+    .stage.busy .stage-msg { opacity: 1; }
+    .prog { position: absolute; top: 0; left: 0; right: 0; height: 2px; z-index: 5; overflow: hidden; pointer-events: none; opacity: 0; transition: opacity .2s; }
+    .stage.busy .prog { opacity: 1; }
+    .prog::before {
+      content: ""; position: absolute; top: 0; bottom: 0; width: 40%;
+      background: var(--accent); border-radius: 2px;
+      animation: prog 1.1s var(--ease) infinite;
+    }
+    @keyframes prog { from { left: -40%; } to { left: 100%; } }
+
+    /* ---------- Menus ---------- */
+    .menu {
+      position: fixed; z-index: 60; width: 248px;
+      background: var(--surface); border-radius: 10px;
+      box-shadow: 0 0 0 1px var(--border), var(--shadow-pop);
+      padding: 6px;
+    }
+    .menu[hidden] { display: none; }
+    .menu-h { padding: 8px 8px 10px; border-bottom: 1px solid var(--border); margin: -6px -6px 6px; padding-top: 12px; padding-left: 14px; }
+    .menu-h b { display: block; font-weight: 600; font-size: 13px; }
+    .menu-h span { display: block; color: var(--muted); font-size: 12px; margin-top: 1px; }
+    .mi { display: flex; align-items: center; gap: 9px; width: 100%; height: 32px; padding: 0 8px; border-radius: var(--r-sm); color: var(--text-2); text-align: left; }
+    .mi:hover { background: var(--hover-soft); color: var(--text); }
+    .mi .ic { color: var(--muted); }
+    .mi.danger:hover { color: #dc2626; }
+    .mi.danger:hover .ic { color: #dc2626; }
+    .mi-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 4px 4px 4px 8px; height: 38px; color: var(--text-2); }
+    .seg { display: inline-flex; padding: 2px; border-radius: 7px; background: var(--surface-2); box-shadow: inset 0 0 0 1px var(--border); }
+    .seg button { width: 28px; height: 24px; display: grid; place-items: center; border-radius: 5px; color: var(--muted); }
+    .seg button:hover { color: var(--text); }
+    .seg button[aria-pressed="true"] { background: var(--surface); color: var(--text); box-shadow: 0 0 0 1px var(--border-strong), 0 1px 1px rgba(0,0,0,.05); }
+    .menu hr { border: 0; border-top: 1px solid var(--border); margin: 6px -6px; }
+
+    /* ---------- Command palette ---------- */
+    dialog.pal {
+      width: min(600px, calc(100vw - 24px));
+      margin: 12vh auto auto; padding: 0;
+      border: 0; border-radius: 12px;
+      background: var(--surface); color: var(--text);
+      box-shadow: 0 0 0 1px var(--border), var(--shadow-pop);
       overflow: hidden;
     }
+    dialog.pal::backdrop { background: var(--scrim); }
+    dialog.pal[open] { animation: pop .14s var(--ease); }
+    @keyframes pop { from { opacity: 0; transform: translateY(-4px) scale(.985); } }
+    .pal-in { display: flex; align-items: center; gap: 10px; padding: 0 14px; height: 52px; border-bottom: 1px solid var(--border); color: var(--muted); }
+    .pal-in input { flex: 1; min-width: 0; height: 100%; border: 0; outline: 0; background: none; color: var(--text); font: 15px var(--font); }
+    .pal-in input::placeholder { color: var(--faint); }
+    .pal-list { max-height: min(400px, 52vh); overflow-y: auto; padding: 6px; scrollbar-width: thin; }
+    .pal-sec { font-size: 11.5px; color: var(--muted); padding: 8px 10px 4px; }
+    .pal-it { display: flex; align-items: center; gap: 10px; height: 38px; padding: 0 10px; border-radius: 7px; color: var(--text-2); cursor: pointer; }
+    .pal-it .ic { color: var(--muted); }
+    .pal-it .t { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .pal-it .t mark { background: none; color: var(--text); font-weight: 600; }
+    .pal-it .g { color: var(--faint); font-size: 12px; white-space: nowrap; }
+    .pal-it[aria-selected="true"] { background: var(--hover-soft); color: var(--text); }
+    .pal-it[aria-selected="true"] .ic { color: var(--text); }
+    .pal-empty { padding: 28px 10px; text-align: center; color: var(--muted); }
+    .pal-ft { display: flex; gap: 14px; align-items: center; padding: 8px 14px; border-top: 1px solid var(--border); color: var(--muted); font-size: 11.5px; background: var(--surface-2); }
+    .pal-ft span { display: inline-flex; align-items: center; gap: 5px; }
 
-    .stage-iframe {
-      width: 100%;
-      height: 100%;
-      border: none;
-      display: block;
-      background: transparent;
-    }
-
-    /* Loading overlay */
-    .stage-loader {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: var(--bg-stage);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 12px;
-      z-index: 20;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.15s ease;
-    }
-
-    .stage-loader.loading {
-      opacity: 1;
-      pointer-events: all;
-    }
-
-    .stage-spinner {
-      width: 28px;
-      height: 28px;
-      border: 3px solid rgba(99, 102, 241, 0.2);
-      border-top-color: var(--primary);
-      border-radius: 50%;
-      animation: spin 0.7s linear infinite;
-    }
-
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-
-    .loader-text {
-      font-size: 12px;
-      color: var(--text-muted);
-      letter-spacing: 0.02em;
-    }
-
-    /* Mobile off-canvas drawer */
-    @media (max-width: 1024px) {
-      .workstation-sidebar {
-        position: fixed;
-        left: -100%;
-        top: 0;
-        bottom: 0;
-        width: 280px;
-        box-shadow: 4px 0 24px rgba(0, 0, 0, 0.5);
-        transition: left 0.25s ease;
+    /* ---------- Mobile ---------- */
+    .scrim { display: none; }
+    @media (max-width: 900px) {
+      .app, .rail .app { grid-template-columns: minmax(0, 1fr); }
+      .sb {
+        position: fixed; z-index: 50; inset: 0 auto 0 0; width: min(296px, 86vw);
+        background: var(--canvas);
+        box-shadow: var(--shadow-pop);
+        transform: translateX(-102%);
+        transition: transform .22s var(--ease);
       }
-
-      .workstation-sidebar.open {
-        left: 0;
-      }
-
-      .sidebar-backdrop {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100vh;
-        background: rgba(0, 0, 0, 0.5);
-        backdrop-filter: blur(4px);
-        z-index: 90;
-        opacity: 0;
-        pointer-events: none;
-        transition: opacity 0.25s ease;
-      }
-
-      .sidebar-backdrop.active {
-        opacity: 1;
-        pointer-events: all;
-      }
+      .drawer .sb { transform: none; }
+      .scrim { display: block; position: fixed; inset: 0; z-index: 40; background: var(--scrim); opacity: 0; pointer-events: none; transition: opacity .2s; }
+      .drawer .scrim { opacity: 1; pointer-events: auto; }
+      .main { padding: 0; }
+      .panel { border-radius: 0; box-shadow: none; }
+      .hide-sm { display: none !important; }
+      .search kbd { display: none; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: .001ms !important; transition-duration: .001ms !important; }
     }
   </style>
 </head>
-<body class="dark-theme">
-  <!-- Mobile Drawer Backdrop -->
-  <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="toggleSidebar(false)"></div>
+<body>
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <symbol id="i-zap" viewBox="0 0 24 24"><path d="M13 2 4.5 13.5H12L11 22l8.5-11.5H12L13 2z"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></symbol>
+    <symbol id="i-chev" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></symbol>
+    <symbol id="i-updown" viewBox="0 0 24 24"><path d="m7 15 5 5 5-5"/><path d="m7 9 5-5 5 5"/></symbol>
+    <symbol id="i-panel" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="M9.5 4v16"/></symbol>
+    <symbol id="i-reload" viewBox="0 0 24 24"><path d="M20.5 12a8.5 8.5 0 1 1-2.6-6.1L20.5 8.5"/><path d="M20.5 3.5v5h-5"/></symbol>
+    <symbol id="i-ext" viewBox="0 0 24 24"><path d="M14 4h6v6"/><path d="M20 4 11 13"/><path d="M18 14v4.5a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 4 18.5v-11A1.5 1.5 0 0 1 5.5 6H10"/></symbol>
+    <symbol id="i-max" viewBox="0 0 24 24"><path d="M15 4h5v5"/><path d="M9 20H4v-5"/><path d="m20 4-6 6"/><path d="m4 20 6-6"/></symbol>
+    <symbol id="i-min" viewBox="0 0 24 24"><path d="M4 14h6v6"/><path d="M20 10h-6V4"/><path d="m14 10 6-6"/><path d="m4 20 6-6"/></symbol>
+    <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M4.6 4.6 6 6M18 18l1.4 1.4M2.5 12h2M19.5 12h2M4.6 19.4 6 18M18 6l1.4-1.4"/></symbol>
+    <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></symbol>
+    <symbol id="i-monitor" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12.5" rx="2"/><path d="M8.5 20.5h7M12 16.5v4"/></symbol>
+    <symbol id="i-out" viewBox="0 0 24 24"><path d="M9.5 20.5H6A2.5 2.5 0 0 1 3.5 18V6A2.5 2.5 0 0 1 6 3.5h3.5"/><path d="m15.5 16.5 4.5-4.5-4.5-4.5"/><path d="M20 12H9.5"/></symbol>
+    <symbol id="i-phone" viewBox="0 0 24 24"><rect x="6" y="2.5" width="12" height="19" rx="2.5"/><path d="M11 18.5h2"/></symbol>
+    <symbol id="i-home" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="7" height="8" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="5" rx="1.5"/><rect x="13.5" y="11.5" width="7" height="9" rx="1.5"/><rect x="3.5" y="14.5" width="7" height="6" rx="1.5"/></symbol>
+    <symbol id="i-plug" viewBox="0 0 24 24"><path d="M9 3v5M15 3v5"/><path d="M6.5 8h11v3.5a5.5 5.5 0 0 1-11 0z"/><path d="M12 17v4"/></symbol>
+    <symbol id="i-rupee" viewBox="0 0 24 24"><path d="M6.5 4h11M6.5 8.5h11"/><path d="M9.5 4c4.5 0 6 2 6 4.5S13.5 13 9.5 13H7l8 7"/></symbol>
+    <symbol id="i-clip" viewBox="0 0 24 24"><rect x="8.5" y="2.5" width="7" height="4" rx="1"/><path d="M15.5 4.5H17a2 2 0 0 1 2 2V19a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6.5a2 2 0 0 1 2-2h1.5"/><path d="m9 14 2 2 4-4"/></symbol>
+    <symbol id="i-gauge" viewBox="0 0 24 24"><path d="M3.8 18a9 9 0 1 1 16.4 0"/><path d="m12 14 4-4.5"/><circle cx="12" cy="14" r="1"/></symbol>
+    <symbol id="i-wallet" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="14" rx="2.5"/><path d="M3 9.5h18"/><path d="M6 6V5a1.5 1.5 0 0 1 1.9-1.4l9 2.4"/><path d="M16.5 14.5h1"/></symbol>
+    <symbol id="i-grid" viewBox="0 0 24 24"><circle cx="5" cy="6" r="2"/><circle cx="19" cy="6" r="2"/><circle cx="12" cy="18" r="2"/><path d="M7 6h10M6 7.8l5 8.4M18 7.8l-5 8.4"/></symbol>
+    <symbol id="i-mark" viewBox="0 0 24 24"><path d="M18 21l-6-4-6 4V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2z"/></symbol>
+    <symbol id="i-news" viewBox="0 0 24 24"><path d="M5 20h14a2 2 0 0 0 2-2V5a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v13a2 2 0 0 1-2 2zm0 0a2 2 0 0 1-2-2v-7h4"/><path d="M11 8h6M11 12h6M11 16h4"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 21s7-3.2 7-9.5V5.5L12 3 5 5.5v6C5 17.8 12 21 12 21z"/></symbol>
+    <symbol id="i-chat" viewBox="0 0 24 24"><path d="M20.5 11.5a8 8 0 0 1-11.9 7L3.5 20l1.5-4.6A8 8 0 1 1 20.5 11.5z"/><path d="M8.5 10.5h7M8.5 13.5h4.5"/></symbol>
+    <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></symbol>
+    <symbol id="i-enter" viewBox="0 0 24 24"><path d="M19 5v6a3 3 0 0 1-3 3H5"/><path d="m9 10-4 4 4 4"/></symbol>
+    <symbol id="i-bolt-cmd" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></symbol>
+  </svg>
 
-  <div class="workstation-shell">
-    <!-- FIXED LEFT SIDEBAR -->
-    <aside class="workstation-sidebar" id="workstationSidebar">
-      <!-- 1. Brand Box -->
-      <div class="sidebar-brand-box">
-        <div class="brand-logo-icon">
-          <i class="fas fa-bolt"></i>
-        </div>
-        <div class="brand-meta">
-          <div class="brand-title">
-            <span>MZO Workstation</span>
-            <span class="brand-scope-pill" id="sidebarScopePill">CE · HQ</span>
-          </div>
-          <div class="brand-sub">
-            <span class="status-pulse-dot"></span>
-            <span>WBSEDCL Operational Hub</span>
-          </div>
-        </div>
+  <div class="app">
+    <aside class="sb" id="sb" aria-label="Workstation navigation">
+      <div class="brand">
+        <span class="mark"><svg class="ic"><use href="#i-zap"/></svg></span>
+        <span class="brand-t"><b>MZO Reports</b><span>Malda Zone · WBSEDCL</span></span>
       </div>
-
-      <!-- 2. Search Box -->
-      <div class="sidebar-search-box">
-        <div class="search-input-wrapper">
-          <i class="fas fa-search"></i>
-          <input type="text" id="sidebarSearch" class="sidebar-search-input" placeholder="Search module… (/)" autocomplete="off" oninput="filterNavItems(this.value)" />
-          <span class="search-kbd">/</span>
-        </div>
-      </div>
-
-      <!-- 3. Navigation Tree -->
-      <nav class="sidebar-nav-scroll" id="sidebarNavTree">
-        <div class="nav-group-item" data-group-id="executive" onmouseenter="handleGroupHover(this)">
-          <button type="button" class="group-trigger-btn" onclick="switchModule('home', 'Executive Briefing', 'executive_briefing.html', 'Executive Briefing')" title="Executive Briefing (Critical Analytics)">
-            <i class="fas fa-bell group-icon"></i>
-            <span class="group-title">Executive Briefing</span>
-            <span class="nav-pill-badge green">Live</span>
-          </button>
-          <div class="group-flyout" id="flyout_executive">
-            <div class="flyout-header">
-              <div class="flyout-header-title"><i class="fas fa-bell"></i> Executive Briefing</div>
-              <span class="flyout-badge">1 page</span>
-            </div>
-            <div class="flyout-list">
-              <button type="button" class="flyout-item-btn" data-module="home" onclick="switchModule('home', 'Executive Briefing', 'executive_briefing.html', 'Executive Briefing')" title="Executive Briefing">
-                <i class="fas fa-bell flyout-item-icon"></i>
-                <span class="flyout-item-label">Executive Briefing</span>
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div class="nav-group-item" data-group-id="nsc_group" onmouseenter="handleGroupHover(this)">
-          <button type="button" class="group-trigger-btn" onclick="toggleGroupFlyout('nsc_group')" title="New Service Connection">
-            <i class="fas fa-user-plus group-icon"></i>
-            <span class="group-title">New Service Connection</span>
-            <span class="group-count">13</span>
-            <i class="fas fa-chevron-right group-chevron"></i>
-          </button>
-          <div class="group-flyout" id="flyout_nsc_group">
-            <div class="flyout-header">
-              <div class="flyout-header-title"><i class="fas fa-user-plus"></i> New Service Connection</div>
-              <span class="flyout-badge">13 pages</span>
-            </div>
-            <div class="flyout-list">
-              <button type="button" class="flyout-item-btn" data-module="nsc" onclick="switchModule('nsc', 'Pending NSC', 'nsc.html', 'New Service Connection')" title="Pending NSC">
-                <i class="fas fa-chart-bar flyout-item-icon"></i>
-                <span class="flyout-item-label">Pending NSC</span>
-              </button>
-              <button type="button" class="flyout-item-btn" data-module="historical_nsc" onclick="switchModule('historical_nsc', 'Historical Analysis', 'historical_nsc.html', 'New Service Connection')" title="Historical Analysis">
-                <i class="fas fa-history flyout-item-icon"></i>
-                <span class="flyout-item-label">Historical Analysis</span>
-              </button>
-              <button type="button" class="flyout-item-btn" data-module="nsc_kpi" onclick="switchModule('nsc_kpi', 'KPIs', 'nsc/kpi.html', 'New Service Connection')" title="KPIs">
-                <i class="fas fa-lightbulb flyout-item-icon"></i>
-                <span class="flyout-item-label">KPIs</span>
-              </button>
-              <button type="button" class="flyout-item-btn" data-module="weekly" onclick="switchModule('weekly', 'Weekly Deposit vs Disposal', 'weekly.html', 'New Service Connection')" title="Weekly Deposit vs Disposal">
-                <i class="fas fa-calendar-week flyout-item-icon"></i>
-                <span class="flyout-item-label">Weekly Deposit vs Disposal</span>
-              </button>
-              <button type="button" class="flyout-item-btn" data-module="pending_mc" onclick="switchModule('pending_mc', 'Pending Master Card', 'pending_mc.html', 'New Service Connection')" title="Pending Master Card">
-                <i class="fas fa-credit-card flyout-item-icon"></i>
-                <span class="flyout-item-label">Pending Master Card</span>
-              </button>
-              <button type="button" class="flyout-item-btn" data-module="withheld" onclick="switchModule('withheld', 'Withheld', 'withheld.html', 'New Service Connection')" title="Withheld">
-                <i class="fas fa-pause-circle flyout-item-icon"></i>
-                <span class="flyout-item-label">Withheld</span>
-              </button>
-              <button type="button" class="flyout-item-btn" data-module="pending_load_extension" onclick="switchModule('pending_load_extension', 'Pending Load Extension', 'pending_load_extension.html', 'New Service Connection')" title="Pending Load Extension">
-                <i class="fas fa-plug flyout-item-icon"></i>
-                <span class="flyout-item-label">Pending Load Extension</span>
-              </button>
-              <button type="button" class="flyout-item-btn" data-module="solar" onclick="switchModule('solar', 'Solar Connection', 'solar.html', 'New Service Connection')" title="Solar Connection">
-                <i class="fas fa-solar-panel flyout-item-icon"></i>
-                <span class="flyout-item-label">Solar Connection</span>
-              </button>
-              <button type="button" class="flyout-item-btn" data-module="jjm" onclick="switchModule('jjm', 'JJM Connection', 'jjm.html', 'New Service Connection')" title="JJM Connection">
-                <i class="fas fa-tint flyout-item-icon"></i>
-                <span class="flyout-item-label">JJM Connection</span>
-              </button>
-              <button type="button" class="flyout-item-btn" data-module="meter_utilization" onclick="switchModule('meter_utilization', 'Meter Utilization', 'meter_utilization.html', 'New Service Connection')" title="Meter Utilization">
-                <i class="fas fa-tachometer-alt flyout-item-icon"></i>
-                <span class="flyout-item-label">Meter Utilization</span>
-              </button>
-              <button type="button" class="flyout-item-btn" data-module="wridd" onclick="switchModule('wridd', 'WRIDD Schemes', 'wridd.html', 'New Service Connection')" title="WRIDD Schemes">
-                <i class="fas fa-water flyout-item-icon"></i>
-                <span class="flyout-item-label">WRIDD Schemes</span>
-              </button>
-              <button type="button" class="flyout-item-btn" data-module="bharatnet" onclick="switchModule('bharatnet', 'Bharat Net', 'bharatnet.html', 'New Service Connection')" title="Bharat Net">
-                <i class="fas fa-network-wired flyout-item-icon"></i>
-                <span class="flyout-item-label">Bharat Net</span>
-              </button>
-              <button type="button" class="flyout-item-btn" data-module="icds" onclick="switchModule('icds', 'ICDS Connections', 'icds.html', 'New Service Connection')" title="ICDS Connections">
-                <i class="fas fa-school flyout-item-icon"></i>
-                <span class="flyout-item-label">ICDS Connections</span>
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div class="nav-group-item" data-group-id="revenue" onmouseenter="handleGroupHover(this)">
-          <button type="button" class="group-trigger-btn" onclick="toggleGroupFlyout('revenue')" title="Revenue Reports">
-            <i class="fas fa-rupee-sign group-icon"></i>
-            <span class="group-title">Revenue Reports</span>
-            <span class="group-count">7</span>
-            <i class="fas fa-chevron-right group-chevron"></i>
-          </button>
-          <div class="group-flyout" id="flyout_revenue">
-            <div class="flyout-header">
-              <div class="flyout-header-title"><i class="fas fa-rupee-sign"></i> Revenue Reports</div>
-              <span class="flyout-badge">7 pages</span>
-            </div>
-            <div class="flyout-list">
-              <button type="button" class="flyout-item-btn" data-module="loss" onclick="switchModule('loss', 'Losses', 'loss.html', 'Revenue Reports')" title="Losses">
-                <i class="fas fa-chart-area flyout-item-icon"></i>
-                <span class="flyout-item-label">Losses</span>
-              </button>
-              <button type="button" class="flyout-item-btn" data-module="performance_index" onclick="switchModule('performance_index', 'Performance Index', 'performance_index.html', 'Revenue Reports')" title="Performance Index">
-                <i class="fas fa-trophy flyout-item-icon"></i>
-                <span class="flyout-item-label">Performance Index</span>
-              </button>
-              <button type="button" class="flyout-item-btn" data-module="collection" onclick="switchModule('collection', 'Collection', 'collection.html', 'Revenue Reports')" title="Collection">
-                <i class="fas fa-cash-register flyout-item-icon"></i>
-                <span class="flyout-item-label">Collection</span>
-              </button>
-              <button type="button" class="flyout-item-btn" data-module="disconnection" onclick="switchModule('disconnection', 'Disconnection Tracker', 'disconnection.html', 'Revenue Reports')" title="Disconnection Tracker">
-                <i class="fas fa-plug-circle-xmark flyout-item-icon"></i>
-                <span class="flyout-item-label">Disconnection Tracker</span>
-              </button>
-              <button type="button" class="flyout-item-btn" data-module="theft_assessment" onclick="switchModule('theft_assessment', 'Theft Assessment', 'theft_assessment.html', 'Revenue Reports')" title="Theft Assessment">
-                <i class="fas fa-gavel flyout-item-icon"></i>
-                <span class="flyout-item-label">Theft Assessment</span>
-              </button>
-              <button type="button" class="flyout-item-btn" data-module="remosd5000" onclick="switchModule('remosd5000', 'REM OSD >₹5000/-', 'remosd5000.html', 'Revenue Reports')" title="REM OSD >₹5000/-">
-                <i class="fas fa-rupee-sign flyout-item-icon"></i>
-                <span class="flyout-item-label">REM OSD >₹5000/-</span>
-              </button>
-              <button type="button" class="flyout-item-btn" data-module="rem_defaulters" onclick="switchModule('rem_defaulters', 'REM Defaulters', 'rem/defaulters.html', 'Revenue Reports')" title="REM Defaulters">
-                <i class="fas fa-user-times flyout-item-icon"></i>
-                <span class="flyout-item-label">REM Defaulters</span>
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div class="nav-group-item" data-group-id="dd_visit" onmouseenter="handleGroupHover(this)">
-          <button type="button" class="group-trigger-btn" onclick="toggleGroupFlyout('dd_visit')" title="DD Visit">
-            <i class="fas fa-user-check group-icon"></i>
-            <span class="group-title">DD Visit</span>
-            <span class="group-count">2</span>
-            <i class="fas fa-chevron-right group-chevron"></i>
-          </button>
-          <div class="group-flyout" id="flyout_dd_visit">
-            <div class="flyout-header">
-              <div class="flyout-header-title"><i class="fas fa-user-check"></i> DD Visit</div>
-              <span class="flyout-badge">2 pages</span>
-            </div>
-            <div class="flyout-list">
-              <button type="button" class="flyout-item-btn" data-module="upcoming_dd" onclick="switchModule('upcoming_dd', 'Upcoming DD', 'dd/upcomingDD.html', 'DD Visit')" title="Upcoming DD">
-                <i class="fas fa-calendar-alt flyout-item-icon"></i>
-                <span class="flyout-item-label">Upcoming DD</span>
-              </button>
-              <button type="button" class="flyout-item-btn" data-module="dd_visit_page" onclick="switchModule('dd_visit_page', 'DD Visit', 'dd/dd_visit.html', 'DD Visit')" title="DD Visit">
-                <i class="fas fa-clipboard-check flyout-item-icon"></i>
-                <span class="flyout-item-label">DD Visit</span>
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div class="nav-group-item" data-group-id="consumer_meter" onmouseenter="handleGroupHover(this)">
-          <button type="button" class="group-trigger-btn" onclick="toggleGroupFlyout('consumer_meter')" title="Consumer / Meter Analytics">
-            <i class="fas fa-bolt group-icon"></i>
-            <span class="group-title">Consumer / Meter Analytics</span>
-            <span class="group-count">5</span>
-            <i class="fas fa-chevron-right group-chevron"></i>
-          </button>
-          <div class="group-flyout" id="flyout_consumer_meter">
-            <div class="flyout-header">
-              <div class="flyout-header-title"><i class="fas fa-bolt"></i> Consumer / Meter Analytics</div>
-              <span class="flyout-badge">5 pages</span>
-            </div>
-            <div class="flyout-list">
-              <button type="button" class="flyout-item-btn" data-module="defective_meter" onclick="switchModule('defective_meter', 'Defective Meter', 'consumer/defective_meter.html', 'Consumer / Meter Analytics')" title="Defective Meter">
-                <i class="fas fa-exclamation-circle flyout-item-icon"></i>
-                <span class="flyout-item-label">Defective Meter</span>
-              </button>
-              <button type="button" class="flyout-item-btn" data-module="consumers" onclick="switchModule('consumers', 'Consumers', 'consumer/consumer.html', 'Consumer / Meter Analytics')" title="Consumers">
-                <i class="fas fa-users flyout-item-icon"></i>
-                <span class="flyout-item-label">Consumers</span>
-              </button>
-              <button type="button" class="flyout-item-btn" data-module="docket" onclick="switchModule('docket', 'Docket Call', 'docket.html', 'Consumer / Meter Analytics')" title="Docket Call">
-                <i class="fas fa-headset flyout-item-icon"></i>
-                <span class="flyout-item-label">Docket Call</span>
-              </button>
-              <button type="button" class="flyout-item-btn" data-module="docket_kpi" onclick="switchModule('docket_kpi', 'Docket KPI', 'docket/kpi.html', 'Consumer / Meter Analytics')" title="Docket KPI">
-                <i class="fas fa-tachometer-alt flyout-item-icon"></i>
-                <span class="flyout-item-label">Docket KPI</span>
-              </button>
-              <button type="button" class="flyout-item-btn" data-module="smart_meter" onclick="switchModule('smart_meter', 'Smart Meter Utilization', 'smart_meter/dashboard.html', 'Consumer / Meter Analytics')" title="Smart Meter Utilization">
-                <i class="fas fa-microchip flyout-item-icon"></i>
-                <span class="flyout-item-label">Smart Meter Utilization</span>
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div class="nav-group-item" data-group-id="advance" onmouseenter="handleGroupHover(this)">
-          <button type="button" class="group-trigger-btn" onclick="toggleGroupFlyout('advance')" title="Advance to Vendor">
-            <i class="fas fa-credit-card group-icon"></i>
-            <span class="group-title">Advance to Vendor</span>
-            <span class="group-count">2</span>
-            <i class="fas fa-chevron-right group-chevron"></i>
-          </button>
-          <div class="group-flyout" id="flyout_advance">
-            <div class="flyout-header">
-              <div class="flyout-header-title"><i class="fas fa-credit-card"></i> Advance to Vendor</div>
-              <span class="flyout-badge">2 pages</span>
-            </div>
-            <div class="flyout-list">
-              <button type="button" class="flyout-item-btn" data-module="capex_all" onclick="switchModule('capex_all', 'Capex Summary', 'capex_all.html', 'Advance to Vendor')" title="Capex Summary">
-                <i class="fas fa-chart-bar flyout-item-icon"></i>
-                <span class="flyout-item-label">Capex Summary</span>
-              </button>
-              <button type="button" class="flyout-item-btn" data-module="advance_onm" onclick="switchModule('advance_onm', 'O&M Summary', 'advance_onm.html', 'Advance to Vendor')" title="O&M Summary">
-                <i class="fas fa-tools flyout-item-icon"></i>
-                <span class="flyout-item-label">O&M Summary</span>
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div class="nav-group-item" data-group-id="substation_network" onmouseenter="handleGroupHover(this)">
-          <button type="button" class="group-trigger-btn" onclick="toggleGroupFlyout('substation_network')" title="Substation / Network">
-            <i class="fas fa-industry group-icon"></i>
-            <span class="group-title">Substation / Network</span>
-            <span class="group-count">4</span>
-            <i class="fas fa-chevron-right group-chevron"></i>
-          </button>
-          <div class="group-flyout" id="flyout_substation_network">
-            <div class="flyout-header">
-              <div class="flyout-header-title"><i class="fas fa-industry"></i> Substation / Network</div>
-              <span class="flyout-badge">4 pages</span>
-            </div>
-            <div class="flyout-list">
-              <button type="button" class="flyout-item-btn" data-module="power_map" onclick="switchModule('power_map', 'Power Map', 'power_map/map.html', 'Substation / Network')" title="Power Map">
-                <i class="fas fa-map-marked-alt flyout-item-icon"></i>
-                <span class="flyout-item-label">Power Map</span>
-              </button>
-              <button type="button" class="flyout-item-btn" data-module="highway_crossings" onclick="switchModule('highway_crossings', 'Electric Line–Highway Crossings', 'power_map/nh_sh_crossings.html', 'Substation / Network')" title="Electric Line–Highway Crossings">
-                <i class="fas fa-road flyout-item-icon"></i>
-                <span class="flyout-item-label">Electric Line–Highway Crossings</span>
-              </button>
-              <button type="button" class="flyout-item-btn" data-module="prt_oil" onclick="switchModule('prt_oil', 'PRT/Transformer Records', 'prt-oil/index.html', 'Substation / Network')" title="PRT/Transformer Records">
-                <i class="fas fa-industry flyout-item-icon"></i>
-                <span class="flyout-item-label">PRT/Transformer Records</span>
-              </button>
-              <button type="button" class="flyout-item-btn" data-module="feeder_outage" onclick="switchModule('feeder_outage', 'Feeder Outage', 'feeder_outage.html', 'Substation / Network')" title="Feeder Outage">
-                <i class="fas fa-bolt flyout-item-icon"></i>
-                <span class="flyout-item-label">Feeder Outage</span>
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div class="nav-group-item" data-group-id="important" onmouseenter="handleGroupHover(this)">
-          <button type="button" class="group-trigger-btn" onclick="toggleGroupFlyout('important')" title="Important">
-            <i class="fas fa-star group-icon"></i>
-            <span class="group-title">Important</span>
-            <span class="group-count">14</span>
-            <i class="fas fa-chevron-right group-chevron"></i>
-          </button>
-          <div class="group-flyout" id="flyout_important">
-            <div class="flyout-header">
-              <div class="flyout-header-title"><i class="fas fa-star"></i> Important</div>
-              <span class="flyout-badge">14 pages</span>
-            </div>
-            <div class="flyout-list">
-              <button type="button" class="flyout-item-btn" data-module="perf_index_imp" onclick="switchModule('perf_index_imp', 'Performance Index', 'performance_index.html', 'Important')" title="Performance Index">
-                <i class="fas fa-trophy flyout-item-icon"></i>
-                <span class="flyout-item-label">Performance Index</span>
-              </button>
-              <button type="button" class="flyout-item-btn" data-module="cmo" onclick="switchModule('cmo', 'CMO Grievance', 'cmo.html', 'Important')" title="CMO Grievance">
-                <i class="fas fa-exclamation-circle flyout-item-icon"></i>
-                <span class="flyout-item-label">CMO Grievance</span>
-              </button>
-              <button type="button" class="flyout-item-btn" data-module="pmsgy" onclick="switchModule('pmsgy', 'PM Surya Ghar', 'pmsgy.html', 'Important')" title="PM Surya Ghar">
-                <i class="fas fa-solar-panel flyout-item-icon"></i>
-                <span class="flyout-item-label">PM Surya Ghar</span>
-              </button>
-              <button type="button" class="flyout-item-btn" data-module="si_works" onclick="switchModule('si_works', 'Priority SI Works', 'si-works/si.html', 'Important')" title="Priority SI Works">
-                <i class="fas fa-diagram-project flyout-item-icon"></i>
-                <span class="flyout-item-label">Priority SI Works</span>
-              </button>
-              <button type="button" class="flyout-item-btn" data-module="jjm_report" onclick="switchModule('jjm_report', 'JJM Report', 'jjm.html', 'Important')" title="JJM Report">
-                <i class="fas fa-tint flyout-item-icon"></i>
-                <span class="flyout-item-label">JJM Report</span>
-              </button>
-              <button type="button" class="flyout-item-btn" data-module="accident" onclick="switchModule('accident', 'Accident Reports', 'accident/accident.html', 'Important')" title="Accident Reports">
-                <i class="fas fa-exclamation-triangle flyout-item-icon"></i>
-                <span class="flyout-item-label">Accident Reports</span>
-              </button>
-              <button type="button" class="flyout-item-btn" data-module="safety_app" onclick="switchModule('safety_app', 'Safety App Reports', 'safety_inspection.html', 'Important')" title="Safety App Reports">
-                <i class="fas fa-mobile-alt flyout-item-icon"></i>
-                <span class="flyout-item-label">Safety App Reports</span>
-              </button>
-              <button type="button" class="flyout-item-btn" data-module="manpower" onclick="switchModule('manpower', 'Manpower Report', 'manpower.html', 'Important')" title="Manpower Report">
-                <i class="fas fa-users flyout-item-icon"></i>
-                <span class="flyout-item-label">Manpower Report</span>
-              </button>
-              <button type="button" class="flyout-item-btn" data-module="upkeeping" onclick="switchModule('upkeeping', 'Substation Upkeeping', 'Upkeeping/index.html', 'Important')" title="Substation Upkeeping">
-                <i class="fas fa-tools flyout-item-icon"></i>
-                <span class="flyout-item-label">Substation Upkeeping</span>
-              </button>
-              <button type="button" class="flyout-item-btn" data-module="dtr" onclick="switchModule('dtr', 'DTR Records', 'dtr/index.html', 'Important')" title="DTR Records">
-                <i class="fas fa-clipboard-list flyout-item-icon"></i>
-                <span class="flyout-item-label">DTR Records</span>
-              </button>
-              <button type="button" class="flyout-item-btn" data-module="dtr_load" onclick="switchModule('dtr_load', 'Peak Load Measurements', 'dtr/load.html', 'Important')" title="Peak Load Measurements">
-                <i class="fas fa-chart-area flyout-item-icon"></i>
-                <span class="flyout-item-label">Peak Load Measurements</span>
-              </button>
-              <button type="button" class="flyout-item-btn" data-module="health_checkup" onclick="switchModule('health_checkup', 'Health Check-up', 'health_checkup.html', 'Important')" title="Health Check-up">
-                <i class="fas fa-heartbeat flyout-item-icon"></i>
-                <span class="flyout-item-label">Health Check-up</span>
-              </button>
-              <button type="button" class="flyout-item-btn" data-module="stock" onclick="switchModule('stock', 'Stock', 'stock/index.html', 'Important')" title="Stock">
-                <i class="fas fa-boxes flyout-item-icon"></i>
-                <span class="flyout-item-label">Stock</span>
-              </button>
-              <button type="button" class="flyout-item-btn" data-module="important_sheets" onclick="switchModule('important_sheets', 'Important Data Sheets', 'important_sheets.html', 'Important')" title="Important Data Sheets">
-                <i class="fas fa-file-excel flyout-item-icon"></i>
-                <span class="flyout-item-label">Important Data Sheets</span>
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div class="nav-group-item" data-group-id="media" onmouseenter="handleGroupHover(this)">
-          <button type="button" class="group-trigger-btn" onclick="toggleGroupFlyout('media')" title="Media Corner">
-            <i class="fas fa-newspaper group-icon"></i>
-            <span class="group-title">Media Corner</span>
-            <span class="group-count">1</span>
-            <i class="fas fa-chevron-right group-chevron"></i>
-          </button>
-          <div class="group-flyout" id="flyout_media">
-            <div class="flyout-header">
-              <div class="flyout-header-title"><i class="fas fa-newspaper"></i> Media Corner</div>
-              <span class="flyout-badge">1 page</span>
-            </div>
-            <div class="flyout-list">
-              <button type="button" class="flyout-item-btn" data-module="media_news" onclick="switchModule('media_news', 'Power News Hub', 'media_news.html', 'Media Corner')" title="Power News Hub">
-                <i class="fas fa-newspaper flyout-item-icon"></i>
-                <span class="flyout-item-label">Power News Hub</span>
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div class="nav-group-item" data-group-id="admin" onmouseenter="handleGroupHover(this)">
-          <button type="button" class="group-trigger-btn" onclick="toggleGroupFlyout('admin')" title="Administration">
-            <i class="fas fa-user-shield group-icon"></i>
-            <span class="group-title">Administration</span>
-            <span class="group-count">7</span>
-            <i class="fas fa-chevron-right group-chevron"></i>
-          </button>
-          <div class="group-flyout" id="flyout_admin">
-            <div class="flyout-header">
-              <div class="flyout-header-title"><i class="fas fa-user-shield"></i> Administration</div>
-              <span class="flyout-badge">7 pages</span>
-            </div>
-            <div class="flyout-list">
-              <button type="button" class="flyout-item-btn" data-module="admin_users" onclick="switchModule('admin_users', 'Users', 'admin_users.html?tab=users', 'Administration')" title="Users">
-                <i class="fas fa-users-cog flyout-item-icon"></i>
-                <span class="flyout-item-label">Users</span>
-              </button>
-              <button type="button" class="flyout-item-btn" data-module="admin_sources" onclick="switchModule('admin_sources', 'Sources', 'admin_users.html?tab=sources', 'Administration')" title="Sources">
-                <i class="fas fa-database flyout-item-icon"></i>
-                <span class="flyout-item-label">Sources</span>
-              </button>
-              <button type="button" class="flyout-item-btn" data-module="admin_activity" onclick="switchModule('admin_activity', 'Activity', 'admin_users.html?tab=activity', 'Administration')" title="Activity">
-                <i class="fas fa-clock-rotate-left flyout-item-icon"></i>
-                <span class="flyout-item-label">Activity</span>
-              </button>
-              <button type="button" class="flyout-item-btn" data-module="admin_visitors" onclick="switchModule('admin_visitors', 'Visitors', 'admin_users.html?tab=visitors', 'Administration')" title="Visitors">
-                <i class="fas fa-user-clock flyout-item-icon"></i>
-                <span class="flyout-item-label">Visitors</span>
-              </button>
-              <button type="button" class="flyout-item-btn" data-module="admin_powermap" onclick="switchModule('admin_powermap', 'Power Map', 'admin_users.html?tab=powermap', 'Administration')" title="Power Map">
-                <i class="fas fa-bolt flyout-item-icon"></i>
-                <span class="flyout-item-label">Power Map</span>
-              </button>
-              <button type="button" class="flyout-item-btn" data-module="admin_corrections" onclick="switchModule('admin_corrections', 'Corrections', 'admin_users.html?tab=corrections', 'Administration')" title="Corrections">
-                <i class="fas fa-pen flyout-item-icon"></i>
-                <span class="flyout-item-label">Corrections</span>
-              </button>
-              <button type="button" class="flyout-item-btn" data-module="admin_structure" onclick="switchModule('admin_structure', 'Structure', 'admin.html', 'Administration')" title="Structure">
-                <i class="fas fa-cubes flyout-item-icon"></i>
-                <span class="flyout-item-label">Structure</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      </nav>
-
-      <!-- 4. Sidebar Footer User & System Strip -->
-      <div class="sidebar-footer">
-        <div class="user-profile-strip">
-          <div class="user-avatar-circle" id="userAvatarCircle">
-            <i class="fas fa-user-shield"></i>
-          </div>
-          <div class="user-text-info">
-            <span class="user-name-title" id="userNameTitle">smartlineman</span>
-            <span class="user-role-subtitle" id="userRoleSubtitle">Administrator · CE Office</span>
-          </div>
-        </div>
-        <div class="sidebar-action-row">
-          <button type="button" class="btn-side-tool" onclick="toggleTheme()" id="themeToggleBtn" title="Toggle Light/Dark Theme">
-            <i class="fas fa-moon" id="themeIcon"></i> <span>Dark</span>
-          </button>
-          <button type="button" class="btn-side-tool danger" onclick="handleLogout()" title="Sign Out">
-            <i class="fas fa-sign-out-alt"></i> <span>Logout</span>
-          </button>
-        </div>
+      <button type="button" class="search" id="openPal" data-rtip="Search  ⌘K">
+        <svg class="ic"><use href="#i-search"/></svg>
+        <span>Search reports…</span>
+        <kbd id="kbdHint">⌘K</kbd>
+      </button>
+      <nav class="nav" id="nav"></nav>
+      <div class="foot">
+        <button type="button" class="me" id="meBtn" aria-haspopup="menu" aria-expanded="false" data-rtip="Account">
+          <span class="av" id="meAv">·</span>
+          <span class="me-t"><b id="meName">Signed in</b><span id="meSub">&nbsp;</span></span>
+          <svg class="ic ic-sm"><use href="#i-updown"/></svg>
+        </button>
       </div>
     </aside>
 
-    <!-- MAIN WORKSPACE -->
-    <main class="workstation-main">
-      <!-- Top Workspace Header -->
-      <header class="workstation-header">
-        <div class="header-left-tools">
-          <button type="button" class="btn-toggle-sidebar" onclick="toggleSidebar()" title="Toggle Sidebar [Ctrl + B]">
-            <i class="fas fa-bars"></i>
+    <div class="main">
+      <section class="panel">
+        <header class="bar">
+          <button type="button" class="ib" id="railBtn" data-tip="Toggle sidebar  ⌘B" aria-label="Toggle sidebar">
+            <svg class="ic"><use href="#i-panel"/></svg>
           </button>
-          <div class="breadcrumbs-wrap">
-            <span>MZO Workstation</span>
-            <span class="bc-sep">/</span>
-            <span id="bcCategory">Administration</span>
-            <span class="bc-sep">/</span>
-            <span class="bc-active" id="bcPageName">User Directory &amp; Roles</span>
+          <span class="vr hide-sm"></span>
+          <div class="crumbs" aria-label="Current page">
+            <span class="c-g" id="cG"></span><span class="c-s">/</span><span class="c-p" id="cP">Loading…</span>
           </div>
+          <button type="button" class="ib" id="reloadBtn" data-tip="Reload page" aria-label="Reload page"><svg class="ic"><use href="#i-reload"/></svg></button>
+          <button type="button" class="ib hide-sm" id="popBtn" data-tip="Open in new tab" aria-label="Open in new tab"><svg class="ic"><use href="#i-ext"/></svg></button>
+          <button type="button" class="ib hide-sm" id="fsBtn" data-tip="Full screen" aria-label="Full screen"><svg class="ic"><use href="#i-max" id="fsIco"/></svg></button>
+          <button type="button" class="ib" id="themeBtn" data-tip="Switch theme" data-tip-end aria-label="Switch theme"><svg class="ic"><use href="#i-moon" id="themeIco"/></svg></button>
+        </header>
+        <div class="stage busy" id="stage" aria-live="polite">
+          <div class="prog"></div>
+          <div class="stage-msg" id="stageMsg">Loading…</div>
         </div>
+      </section>
+    </div>
+  </div>
+  <div class="scrim" id="scrim"></div>
 
-        <div class="header-right-tools">
-          <button type="button" class="btn-header-tool" onclick="refreshCurrentStage()" title="Reload Active Canvas">
-            <i class="fas fa-arrows-rotate"></i> <span>Reload</span>
-          </button>
-          <button type="button" class="btn-header-tool" onclick="openInNewWindow()" title="Open In Separate Window">
-            <i class="fas fa-arrow-up-right-from-square"></i> <span>Pop Out</span>
-          </button>
-          <button type="button" class="btn-header-tool" onclick="toggleFullscreen()" title="Toggle Fullscreen [F11]">
-            <i class="fas fa-expand"></i>
-          </button>
-          <a href="index.html" class="btn-header-tool" title="Return to Mobile Card Grid">
-            <i class="fas fa-mobile-screen"></i> <span>Mobile View</span>
-          </a>
-        </div>
-      </header>
+  <div class="fly" id="fly" hidden></div>
+  <div class="tip" id="tip" hidden></div>
 
-      <!-- Embedded Stage Canvas -->
-      <div class="workstation-stage" id="workstationStage">
-        <iframe id="activeStageFrame" class="stage-iframe" src="admin_users.html" title="MZO Active Workstation Stage"></iframe>
-        <div class="stage-loader" id="stageLoader">
-          <div class="stage-spinner"></div>
-          <span class="loader-text" id="loaderText">Loading module…</span>
-        </div>
-      </div>
-    </main>
+  <div class="menu" id="meMenu" role="menu" hidden>
+    <div class="menu-h"><b id="mhName"></b><span id="mhSub"></span></div>
+    <div class="mi-row">
+      <span>Theme</span>
+      <span class="seg" role="group" aria-label="Theme">
+        <button type="button" data-pref="light" aria-label="Light" title="Light"><svg class="ic ic-sm"><use href="#i-sun"/></svg></button>
+        <button type="button" data-pref="dark" aria-label="Dark" title="Dark"><svg class="ic ic-sm"><use href="#i-moon"/></svg></button>
+        <button type="button" data-pref="system" aria-label="System" title="System"><svg class="ic ic-sm"><use href="#i-monitor"/></svg></button>
+      </span>
+    </div>
+    <a class="mi" role="menuitem" href="/index.html"><svg class="ic"><use href="#i-phone"/></svg>Mobile view</a>
+    <hr />
+    <button type="button" class="mi danger" role="menuitem" id="logoutBtn"><svg class="ic"><use href="#i-out"/></svg>Sign out</button>
   </div>
 
+  <dialog class="pal" id="pal" aria-label="Search reports">
+    <div class="pal-in">
+      <svg class="ic"><use href="#i-search"/></svg>
+      <input id="palQ" type="text" placeholder="Search reports and actions…" autocomplete="off" spellcheck="false"
+             role="combobox" aria-expanded="true" aria-controls="palList" aria-autocomplete="list" />
+      <kbd>esc</kbd>
+    </div>
+    <div class="pal-list" id="palList" role="listbox"></div>
+    <div class="pal-ft">
+      <span><kbd>↑</kbd><kbd>↓</kbd> move</span>
+      <span><kbd>↵</kbd> open</span>
+      <span><kbd id="ftMod">⌘</kbd><kbd>↵</kbd> new tab</span>
+    </div>
+  </dialog>
+
   <script>
-    // Module Registry mapping hash keys to module metadata
-    const MODULES = {
-  "home": {
-    "name": "Executive Briefing",
-    "url": "executive_briefing.html",
-    "group": "Executive Briefing"
-  },
-  "nsc": {
-    "name": "Pending NSC",
-    "url": "nsc.html",
-    "group": "New Service Connection"
-  },
-  "historical_nsc": {
-    "name": "Historical Analysis",
-    "url": "historical_nsc.html",
-    "group": "New Service Connection"
-  },
-  "nsc_kpi": {
-    "name": "KPIs",
-    "url": "nsc/kpi.html",
-    "group": "New Service Connection"
-  },
-  "weekly": {
-    "name": "Weekly Deposit vs Disposal",
-    "url": "weekly.html",
-    "group": "New Service Connection"
-  },
-  "pending_mc": {
-    "name": "Pending Master Card",
-    "url": "pending_mc.html",
-    "group": "New Service Connection"
-  },
-  "withheld": {
-    "name": "Withheld",
-    "url": "withheld.html",
-    "group": "New Service Connection"
-  },
-  "pending_load_extension": {
-    "name": "Pending Load Extension",
-    "url": "pending_load_extension.html",
-    "group": "New Service Connection"
-  },
-  "solar": {
-    "name": "Solar Connection",
-    "url": "solar.html",
-    "group": "New Service Connection"
-  },
-  "jjm": {
-    "name": "JJM Connection",
-    "url": "jjm.html",
-    "group": "New Service Connection"
-  },
-  "meter_utilization": {
-    "name": "Meter Utilization",
-    "url": "meter_utilization.html",
-    "group": "New Service Connection"
-  },
-  "wridd": {
-    "name": "WRIDD Schemes",
-    "url": "wridd.html",
-    "group": "New Service Connection"
-  },
-  "bharatnet": {
-    "name": "Bharat Net",
-    "url": "bharatnet.html",
-    "group": "New Service Connection"
-  },
-  "icds": {
-    "name": "ICDS Connections",
-    "url": "icds.html",
-    "group": "New Service Connection"
-  },
-  "loss": {
-    "name": "Losses",
-    "url": "loss.html",
-    "group": "Revenue Reports"
-  },
-  "performance_index": {
-    "name": "Performance Index",
-    "url": "performance_index.html",
-    "group": "Revenue Reports"
-  },
-  "collection": {
-    "name": "Collection",
-    "url": "collection.html",
-    "group": "Revenue Reports"
-  },
-  "disconnection": {
-    "name": "Disconnection Tracker",
-    "url": "disconnection.html",
-    "group": "Revenue Reports"
-  },
-  "theft_assessment": {
-    "name": "Theft Assessment",
-    "url": "theft_assessment.html",
-    "group": "Revenue Reports"
-  },
-  "remosd5000": {
-    "name": "REM OSD >₹5000/-",
-    "url": "remosd5000.html",
-    "group": "Revenue Reports"
-  },
-  "rem_defaulters": {
-    "name": "REM Defaulters",
-    "url": "rem/defaulters.html",
-    "group": "Revenue Reports"
-  },
-  "upcoming_dd": {
-    "name": "Upcoming DD",
-    "url": "dd/upcomingDD.html",
-    "group": "DD Visit"
-  },
-  "dd_visit_page": {
-    "name": "DD Visit",
-    "url": "dd/dd_visit.html",
-    "group": "DD Visit"
-  },
-  "defective_meter": {
-    "name": "Defective Meter",
-    "url": "consumer/defective_meter.html",
-    "group": "Consumer / Meter Analytics"
-  },
-  "consumers": {
-    "name": "Consumers",
-    "url": "consumer/consumer.html",
-    "group": "Consumer / Meter Analytics"
-  },
-  "docket": {
-    "name": "Docket Call",
-    "url": "docket.html",
-    "group": "Consumer / Meter Analytics"
-  },
-  "docket_kpi": {
-    "name": "Docket KPI",
-    "url": "docket/kpi.html",
-    "group": "Consumer / Meter Analytics"
-  },
-  "smart_meter": {
-    "name": "Smart Meter Utilization",
-    "url": "smart_meter/dashboard.html",
-    "group": "Consumer / Meter Analytics"
-  },
-  "capex_all": {
-    "name": "Capex Summary",
-    "url": "capex_all.html",
-    "group": "Advance to Vendor"
-  },
-  "advance_onm": {
-    "name": "O&M Summary",
-    "url": "advance_onm.html",
-    "group": "Advance to Vendor"
-  },
-  "power_map": {
-    "name": "Power Map",
-    "url": "power_map/map.html",
-    "group": "Substation / Network"
-  },
-  "highway_crossings": {
-    "name": "Electric Line–Highway Crossings",
-    "url": "power_map/nh_sh_crossings.html",
-    "group": "Substation / Network"
-  },
-  "prt_oil": {
-    "name": "PRT/Transformer Records",
-    "url": "prt-oil/index.html",
-    "group": "Substation / Network"
-  },
-  "feeder_outage": {
-    "name": "Feeder Outage",
-    "url": "feeder_outage.html",
-    "group": "Substation / Network"
-  },
-  "perf_index_imp": {
-    "name": "Performance Index",
-    "url": "performance_index.html",
-    "group": "Important"
-  },
-  "cmo": {
-    "name": "CMO Grievance",
-    "url": "cmo.html",
-    "group": "Important"
-  },
-  "pmsgy": {
-    "name": "PM Surya Ghar",
-    "url": "pmsgy.html",
-    "group": "Important"
-  },
-  "si_works": {
-    "name": "Priority SI Works",
-    "url": "si-works/si.html",
-    "group": "Important"
-  },
-  "jjm_report": {
-    "name": "JJM Report",
-    "url": "jjm.html",
-    "group": "Important"
-  },
-  "accident": {
-    "name": "Accident Reports",
-    "url": "accident/accident.html",
-    "group": "Important"
-  },
-  "safety_app": {
-    "name": "Safety App Reports",
-    "url": "safety_inspection.html",
-    "group": "Important"
-  },
-  "manpower": {
-    "name": "Manpower Report",
-    "url": "manpower.html",
-    "group": "Important"
-  },
-  "upkeeping": {
-    "name": "Substation Upkeeping",
-    "url": "Upkeeping/index.html",
-    "group": "Important"
-  },
-  "dtr": {
-    "name": "DTR Records",
-    "url": "dtr/index.html",
-    "group": "Important"
-  },
-  "dtr_load": {
-    "name": "Peak Load Measurements",
-    "url": "dtr/load.html",
-    "group": "Important"
-  },
-  "health_checkup": {
-    "name": "Health Check-up",
-    "url": "health_checkup.html",
-    "group": "Important"
-  },
-  "stock": {
-    "name": "Stock",
-    "url": "stock/index.html",
-    "group": "Important"
-  },
-  "important_sheets": {
-    "name": "Important Data Sheets",
-    "url": "important_sheets.html",
-    "group": "Important"
-  },
-  "media_news": {
-    "name": "Power News Hub",
-    "url": "media_news.html",
-    "group": "Media Corner"
-  },
-  "admin_users": {
-    "name": "Users",
-    "url": "admin_users.html?tab=users",
-    "group": "Administration"
-  },
-  "admin_sources": {
-    "name": "Sources",
-    "url": "admin_users.html?tab=sources",
-    "group": "Administration"
-  },
-  "admin_activity": {
-    "name": "Activity",
-    "url": "admin_users.html?tab=activity",
-    "group": "Administration"
-  },
-  "admin_visitors": {
-    "name": "Visitors",
-    "url": "admin_users.html?tab=visitors",
-    "group": "Administration"
-  },
-  "admin_powermap": {
-    "name": "Power Map",
-    "url": "admin_users.html?tab=powermap",
-    "group": "Administration"
-  },
-  "admin_corrections": {
-    "name": "Corrections",
-    "url": "admin_users.html?tab=corrections",
-    "group": "Administration"
-  },
-  "admin_structure": {
-    "name": "Structure",
-    "url": "admin.html",
-    "group": "Administration"
-  }
-};
+  (function () {
+    'use strict';
 
-    let activeModuleKey = 'admin_users';
-    let stageTimer = null;
+    /* ================= Module registry (single source of truth) ================= */
+    // [key, name, url, extra search words]
+    var NAV = [
+      { id: 'nsc_group', label: 'New service connection', icon: 'plug', items: [
+        ['nsc', 'Pending NSC', 'nsc.html', 'new service connection applications pending'],
+        ['nsc_simple', 'NSC · draft A (simple)', 'nsc_simple.html', 'pending connections simple field draft'],
+        ['nsc_pipeline', 'NSC · draft B (pipeline)', 'nsc_pipeline.html', 'pipeline stages supervisor agency draft'],
+        ['nsc_classic', 'NSC · draft C (classic)', 'nsc_classic.html', 'classic familiar old layout tabs draft'],
+        ['historical_nsc', 'Historical analysis', 'historical_nsc.html', 'nsc history trend'],
+        ['nsc_kpi', 'NSC KPIs', 'nsc/kpi.html', 'new service connection'],
+        ['weekly', 'Weekly deposit vs disposal', 'weekly.html', 'nsc'],
+        ['pending_mc', 'Pending master card', 'pending_mc.html', 'mc'],
+        ['withheld', 'Withheld', 'withheld.html', 'nsc'],
+        ['pending_load_extension', 'Pending load extension', 'pending_load_extension.html', 'le enhancement'],
+        ['solar', 'Solar connection', 'solar.html', 'rooftop net meter'],
+        ['jjm', 'JJM connection', 'jjm.html', 'jal jeevan mission water'],
+        ['meter_utilization', 'Meter utilization', 'meter_utilization.html', 'stock meter'],
+        ['wridd', 'WRIDD schemes', 'wridd.html', 'water resources'],
+        ['bharatnet', 'Bharat Net', 'bharatnet.html', 'broadband'],
+        ['icds', 'ICDS connections', 'icds.html', 'anganwadi']
+      ]},
+      { id: 'revenue', label: 'Revenue', icon: 'rupee', items: [
+        ['loss', 'Losses', 'loss.html', 'at&c t&d loss'],
+        ['performance_index', 'Performance index', 'performance_index.html', 'ranking score'],
+        ['collection', 'Collection', 'collection.html', 'revenue payment'],
+        ['disconnection', 'Disconnection tracker', 'disconnection.html', 'osd defaulter follow-up'],
+        ['theft_assessment', 'Theft assessment', 'theft_assessment.html', 'pilferage'],
+        ['remosd5000', 'REM OSD > ₹5,000', 'remosd5000.html', 'outstanding 5000'],
+        ['rem_defaulters', 'REM defaulters', 'rem/defaulters.html', 'outstanding']
+      ]},
+      { id: 'dd_visit', label: 'DD visit', icon: 'clip', items: [
+        ['upcoming_dd', 'Upcoming DD', 'dd/upcomingDD.html', 'visit schedule'],
+        ['dd_visit_page', 'DD visit', 'dd/dd_visit.html', 'visit']
+      ]},
+      { id: 'consumer_meter', label: 'Consumers & meters', icon: 'gauge', items: [
+        ['defective_meter', 'Defective meter', 'consumer/defective_meter.html', 'faulty'],
+        ['consumers', 'Consumers', 'consumer/consumer.html', 'consumer master'],
+        ['docket', 'Docket calls', 'docket.html', 'complaints'],
+        ['docket_kpi', 'Docket KPI', 'docket/kpi.html', 'complaints'],
+        ['smart_meter', 'Smart meter utilization', 'smart_meter/dashboard.html', 'ami']
+      ]},
+      { id: 'advance', label: 'Vendor advances', icon: 'wallet', items: [
+        ['capex_all', 'Capex summary', 'capex_all.html', 'advance vendor'],
+        ['advance_onm', 'O&M summary', 'advance_onm.html', 'advance vendor maintenance']
+      ]},
+      { id: 'substation_network', label: 'Substation & network', icon: 'grid', items: [
+        ['power_map', 'Power map', 'power_map/map.html', 'substation feeder gis'],
+        ['highway_crossings', 'Line–highway crossings', 'power_map/nh_sh_crossings.html', 'nh sh crossing'],
+        ['prt_oil', 'PRT / transformer records', 'prt-oil/index.html', 'oil test'],
+        ['feeder_outage', 'Feeder outage', 'feeder_outage.html', 'interruption tripping']
+      ]},
+      { id: 'important', label: 'Important', icon: 'mark', items: [
+        ['perf_index_imp', 'Performance index', 'performance_index.html', 'ranking'],
+        ['cmo', 'CMO grievance', 'cmo.html', 'complaint'],
+        ['pmsgy', 'PM Surya Ghar', 'pmsgy.html', 'solar rooftop'],
+        ['si_works', 'Priority SI works', 'si-works/si.html', 'safety inspection'],
+        ['jjm_report', 'JJM report', 'jjm.html', 'jal jeevan'],
+        ['accident', 'Accident reports', 'accident/accident.html', 'safety'],
+        ['safety_app', 'Safety app reports', 'safety_inspection.html', 'inspection'],
+        ['manpower', 'Manpower report', 'manpower.html', 'staff'],
+        ['upkeeping', 'Substation upkeeping', 'Upkeeping/index.html', 'maintenance'],
+        ['dtr', 'DTR records', 'dtr/index.html', 'transformer'],
+        ['dtr_load', 'Peak load measurements', 'dtr/load.html', 'transformer load'],
+        ['health_checkup', 'Health check-up', 'health_checkup.html', ''],
+        ['stock', 'Stock', 'stock/index.html', 'material inventory'],
+        ['important_sheets', 'Important data sheets', 'important_sheets.html', 'google sheets'],
+        ['sheet_links', 'Sheet links', 'sheet_links.html', 'google sheets sources', 'sheets']
+      ]},
+      { id: 'media', label: 'Media', icon: 'news', items: [
+        ['media_news', 'Power news hub', 'media_news.html', 'news']
+      ]},
+      { id: 'admin', label: 'Administration', icon: 'shield', admin: true, items: [
+        ['admin_users', 'Users', 'admin_users.html?tab=users', 'accounts roles approvals'],
+        ['admin_sources', 'Sources', 'admin_users.html?tab=sources', 'datasets'],
+        ['admin_activity', 'Activity', 'admin_users.html?tab=activity', 'logs'],
+        ['admin_visitors', 'Visitors', 'admin_users.html?tab=visitors', ''],
+        ['admin_powermap', 'Power map edits', 'admin_users.html?tab=powermap', ''],
+        ['admin_corrections', 'Corrections', 'admin_users.html?tab=corrections', ''],
+        ['admin_structure', 'Structure', 'admin.html', 'estimate']
+      ]}
+    ];
+    var HOME = { k: 'home', n: 'Briefing', u: 'executive_briefing.html', g: '', icon: 'home', kw: 'overview summary critical' };
+    var ASK = { k: 'ask', n: 'Ask', u: 'assistant.html', g: '', icon: 'chat', kw: 'assistant ai question chat help' };
 
-    // Toggle Left Sidebar (Desktop collapse & Mobile off-canvas drawer)
-    function toggleSidebar(forceState) {
-      const sidebar = document.getElementById('workstationSidebar');
-      if (!sidebar) return;
-      const isMobile = window.innerWidth <= 1024;
-      if (isMobile) {
-        const shouldOpen = typeof forceState === 'boolean' ? forceState : !sidebar.classList.contains('open');
-        sidebar.classList.toggle('open', shouldOpen);
-        const backdrop = document.getElementById('sidebarBackdrop');
-        if (backdrop) backdrop.classList.toggle('active', shouldOpen);
-      } else {
-        const shouldCollapse = typeof forceState === 'boolean' ? !forceState : !sidebar.classList.contains('collapsed');
-        sidebar.classList.toggle('collapsed', shouldCollapse);
-      }
+    var LS = {
+      get: function (k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+      set: function (k, v) { try { localStorage.setItem(k, v); } catch (e) {} },
+      del: function (k) { try { localStorage.removeItem(k); } catch (e) {} }
+    };
+    var $ = function (id) { return document.getElementById(id); };
+    var root = document.documentElement;
+    var isMac = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
+    if (!isMac) { $('kbdHint').textContent = 'Ctrl K'; $('ftMod').textContent = 'Ctrl'; $('openPal').setAttribute('data-rtip', 'Search  Ctrl K'); $('railBtn').setAttribute('data-tip', 'Toggle sidebar  Ctrl B'); }
+
+    /* ================= Session ================= */
+    var profile = null;
+    try { profile = JSON.parse(LS.get('mzo_user_profile') || 'null'); } catch (e) {}
+    if (!profile && LS.get('mzo_authenticated') !== 'true') { location.replace('/login.html'); return; }
+
+    function isAdmin(p) { return !!p && String(p.role || '').toLowerCase() === 'admin'; }
+    function canSheets(p) {
+      if (isAdmin(p)) return true;
+      var f = String((p && (p['sheets-autho'] != null ? p['sheets-autho'] : p.sheets_autho)) || '').trim().toLowerCase();
+      return f === 'list' || f === 'edit' || f === 'y' || f === 'all';
     }
 
-    // Filter Navigation Items via Search Input
-    function filterNavItems(query) {
-      const q = (query || '').toLowerCase().trim();
-      const groups = document.querySelectorAll('.nav-group-item');
-      groups.forEach(group => {
-        if (!q) {
-          group.style.display = '';
-          const items = group.querySelectorAll('.flyout-item-btn');
-          items.forEach(it => it.style.display = '');
-          return;
-        }
-        const groupTitle = (group.querySelector('.group-title')?.textContent || '').toLowerCase();
-        const items = group.querySelectorAll('.flyout-item-btn');
-        let hasMatch = groupTitle.includes(q);
-        items.forEach(it => {
-          const label = (it.querySelector('.flyout-item-label')?.textContent || '').toLowerCase();
-          const match = label.includes(q) || hasMatch;
-          it.style.display = match ? '' : 'none';
-          if (match) hasMatch = true;
+    /* ================= Index ================= */
+    var MODS = {}, BY_URL = {}, ALL = [];
+    function norm(u) { return String(u || '').replace(/^\/+/, '').replace(/#.*$/, ''); }
+    function index() {
+      MODS = {}; BY_URL = {}; ALL = [];
+      var add = function (m) { MODS[m.k] = m; if (!BY_URL[norm(m.u)]) BY_URL[norm(m.u)] = m.k; ALL.push(m); };
+      add(HOME);
+      add(ASK);
+      NAV.forEach(function (g) {
+        g.visible = !g.admin || isAdmin(profile);
+        g.mods = [];
+        g.items.forEach(function (it) {
+          if (it[4] === 'sheets' && !canSheets(profile)) return;
+          if (!g.visible) return;
+          var m = { k: it[0], n: it[1], u: it[2], kw: it[3] || '', g: g.label, gid: g.id, icon: g.icon };
+          add(m);
+          g.mods.push(m);
         });
-        group.style.display = hasMatch ? '' : 'none';
       });
     }
 
-    // Reload active iframe stage
-    function refreshCurrentStage() {
-      const iframe = document.getElementById('activeStageFrame');
-      const loader = document.getElementById('stageLoader');
-      if (iframe) {
-        if (loader) loader.classList.add('loading');
-        clearTimeout(stageTimer);
-        stageTimer = setTimeout(() => {
-          if (loader) loader.classList.remove('loading');
-        }, 1200);
-        try {
-          iframe.contentWindow.location.reload();
-        } catch (_) {
-          iframe.src = iframe.src;
-        }
-      }
-    }
+    /* ================= Sidebar ================= */
+    function icon(name, cls) { return '<svg class="ic' + (cls ? ' ' + cls : '') + '"><use href="#i-' + name + '"/></svg>'; }
+    function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+    var openGroups = {};
+    try { openGroups = JSON.parse(LS.get('mzo_ws_groups') || '{}') || {}; } catch (e) {}
 
-    // Open active page in external window/tab
-    function openInNewWindow() {
-      const iframe = document.getElementById('activeStageFrame');
-      if (iframe && iframe.src) {
-        window.open(iframe.src, '_blank');
-      }
-    }
-
-    // Toggle Fullscreen view
-    function toggleFullscreen() {
-      if (!document.fullscreenElement) {
-        document.documentElement.requestFullscreen().catch(() => {});
-      } else {
-        document.exitFullscreen().catch(() => {});
-      }
-    }
-
-    // Switch active embedded module
-    function switchModule(key, name, url, group, updateHistory = true) {
-      activeModuleKey = key;
-      const iframe = document.getElementById('activeStageFrame');
-      const loader = document.getElementById('stageLoader');
-      const loaderText = document.getElementById('loaderText');
-      const bcCategory = document.getElementById('bcCategory');
-      const bcPageName = document.getElementById('bcPageName');
-
-      // Close all flyouts
-      document.querySelectorAll('.nav-group-item').forEach(i => i.classList.remove('flyout-open'));
-
-      // Update Breadcrumbs
-      if (bcCategory) bcCategory.textContent = group || 'Workstation';
-      if (bcPageName) bcPageName.textContent = name || key;
-
-      // Update active states on flyout buttons and group trigger buttons
-      document.querySelectorAll('.flyout-item-btn').forEach(btn => {
-        const isMatch = btn.getAttribute('data-module') === key;
-        btn.classList.toggle('active', isMatch);
+    function renderNav() {
+      var h = '<a class="ni" href="#home" data-k="home" data-rtip="' + HOME.n + '">' + icon('home') + '<span class="lbl">' + HOME.n + '</span></a>' +
+        '<a class="ni" href="#ask" data-k="ask" data-rtip="' + ASK.n + '">' + icon('chat') + '<span class="lbl">' + ASK.n + '</span></a>';
+      h += '<div class="sec">Reports</div><div class="sec-gap"></div>';
+      NAV.forEach(function (g) {
+        if (!g.visible || !g.mods.length) return;
+        if (g.admin) h += '<div class="sec">Admin</div><div class="sec-gap"></div>';
+        h += '<div class="grp' + (openGroups[g.id] ? ' open' : '') + '" data-g="' + g.id + '">' +
+          '<button type="button" class="ng" aria-expanded="' + (!!openGroups[g.id]) + '" data-rtip="' + esc(g.label) + '">' + icon(g.icon) +
+          '<span class="lbl">' + esc(g.label) + '</span>' + icon('chev', 'ic-sm chev') + '</button><div class="sub">';
+        g.mods.forEach(function (m) { h += '<a class="ni" href="#' + m.k + '" data-k="' + m.k + '"><span class="lbl">' + esc(m.n) + '</span></a>'; });
+        h += '</div></div>';
       });
-
-      document.querySelectorAll('.nav-group-item').forEach(gItem => {
-        const hasActiveChild = !!gItem.querySelector(`.flyout-item-btn[data-module="${key}"]`);
-        const trigger = gItem.querySelector('.group-trigger-btn');
-        if (trigger) trigger.classList.toggle('has-active', hasActiveChild);
-      });
-
-      // Show loader
-      if (loader) {
-        if (loaderText) loaderText.textContent = `Loading ${name}…`;
-        loader.classList.add('loading');
-      }
-
-      // Safety timeout: dismiss loader after max 1.2s even if onload is blocked
-      clearTimeout(stageTimer);
-      stageTimer = setTimeout(() => {
-        if (loader) loader.classList.remove('loading');
-      }, 1200);
-
-      if (iframe) {
-        iframe.onload = () => {
-          clearTimeout(stageTimer);
-          if (loader) loader.classList.remove('loading');
-          syncThemeToStage();
-        };
-
-        const currentSrc = iframe.getAttribute('src') || '';
-        if (currentSrc === url) {
-          clearTimeout(stageTimer);
-          if (loader) loader.classList.remove('loading');
-          syncThemeToStage();
-        } else {
-          iframe.src = url;
-        }
-      }
-
-      // Update URL hash
-      if (updateHistory && window.location.hash !== '#' + key) {
-        window.history.pushState(null, name, '#' + key);
-      }
-
-      // Mobile close sidebar
-      if (window.innerWidth <= 1024) {
-        toggleSidebar(false);
-      }
+      $('nav').innerHTML = h;
     }
 
-    // Hover positioning for flyout strictly to the right of the sidebar
-    function handleGroupHover(el) {
-      const flyout = el.querySelector('.group-flyout');
-      if (!flyout) return;
-      const sidebar = document.getElementById('workstationSidebar') || el.closest('.workstation-sidebar');
-      if (!sidebar) return;
-      const sidebarRect = sidebar.getBoundingClientRect();
-      const rect = el.getBoundingClientRect();
-
-      // Position strictly outside and adjacent to the sidebar
-      flyout.style.left = (sidebarRect.right + 6) + 'px';
-      const viewportHeight = window.innerHeight;
-      const flyoutHeight = flyout.offsetHeight || 380;
-      let top = rect.top;
-      if (top + flyoutHeight > viewportHeight - 12) {
-        top = Math.max(12, viewportHeight - flyoutHeight - 12);
-      }
-      flyout.style.top = top + 'px';
+    function setGroup(gid, open) {
+      var el = document.querySelector('.grp[data-g="' + gid + '"]');
+      if (!el) return;
+      el.classList.toggle('open', open);
+      el.firstElementChild.setAttribute('aria-expanded', String(open));
+      if (open) openGroups[gid] = 1; else delete openGroups[gid];
+      LS.set('mzo_ws_groups', JSON.stringify(openGroups));
     }
 
-    function toggleGroupFlyout(groupId) {
-      const item = document.querySelector(`.nav-group-item[data-group-id="${groupId}"]`);
-      if (!item) return;
-      const isOpen = item.classList.contains('flyout-open');
-      document.querySelectorAll('.nav-group-item').forEach(i => i.classList.remove('flyout-open'));
-      if (!isOpen) {
-        item.classList.add('flyout-open');
-        handleGroupHover(item);
-      }
+    function markActive(k) {
+      var m = MODS[k];
+      var cur = document.querySelectorAll('#nav [aria-current]');
+      for (var i = 0; i < cur.length; i++) cur[i].removeAttribute('aria-current');
+      var hits = document.querySelectorAll('#nav .ni[data-k="' + ((m && m.base) || k) + '"]');
+      for (var j = 0; j < hits.length; j++) hits[j].setAttribute('aria-current', 'page');
+      var gs = document.querySelectorAll('#nav .grp');
+      for (var x = 0; x < gs.length; x++) gs[x].classList.toggle('has-active', !!(m && m.gid === gs[x].getAttribute('data-g')));
+      if (m && m.gid && !root.classList.contains('rail')) setGroup(m.gid, true);
+      var a = hits[0];
+      if (a && a.scrollIntoView) { var r = a.getBoundingClientRect(), n = $('nav').getBoundingClientRect(); if (r.top < n.top || r.bottom > n.bottom) a.scrollIntoView({ block: 'nearest' }); }
     }
 
-    // Close flyouts when clicking outside
-    document.addEventListener('click', (e) => {
-      if (!e.target.closest('.nav-group-item')) {
-        document.querySelectorAll('.nav-group-item').forEach(i => i.classList.remove('flyout-open'));
+    $('nav').addEventListener('click', function (e) {
+      var ng = e.target.closest('.ng');
+      if (ng) {
+        var gid = ng.parentNode.getAttribute('data-g');
+        if (root.classList.contains('rail') && !isSmall()) { showFly(gid, ng); return; }
+        setGroup(gid, !ng.parentNode.classList.contains('open'));
+        return;
+      }
+      var a = e.target.closest('.ni[data-k]');
+      if (a) {
+        if (e.metaKey || e.ctrlKey || e.shiftKey || e.button === 1) { e.preventDefault(); openTab(MODS[a.getAttribute('data-k')]); return; }
+        e.preventDefault();
+        go(a.getAttribute('data-k'));
       }
     });
+    // Warm the next page while the pointer is on its link.
+    $('nav').addEventListener('pointerover', function (e) { var a = e.target.closest('.ni[data-k]'); if (a) prefetch(MODS[a.getAttribute('data-k')]); });
+    $('nav').addEventListener('focusin', function (e) { var a = e.target.closest('.ni[data-k]'); if (a) prefetch(MODS[a.getAttribute('data-k')]); });
 
-    // Universal Theme Synchronization across Enterprise Workstation
-    // Pages load mzo_theme.js/css (shared tokens). We just tell the active stage to repaint.
-    function syncThemeToStage() {
-      const isDark = document.body.classList.contains('dark-theme');
-      const val = isDark ? 'dark' : 'light';
+    /* Rail tooltips (CSS ::after would be clipped by the scrolling nav) */
+    var tip = $('tip'), tipT = 0;
+    document.querySelector('.sb').addEventListener('pointerover', function (e) {
+      var el = e.target.closest('[data-rtip]');
+      clearTimeout(tipT); tip.hidden = true;
+      if (!el || !root.classList.contains('rail') || isSmall() || !fly.hidden) return;
+      tipT = setTimeout(function () {
+        if (!fly.hidden) return;
+        var r = el.getBoundingClientRect();
+        tip.textContent = el.getAttribute('data-rtip');
+        tip.hidden = false;
+        tip.style.left = (r.right + 10) + 'px';
+        tip.style.top = (r.top + r.height / 2 - tip.offsetHeight / 2) + 'px';
+      }, 250);
+    });
+    document.querySelector('.sb').addEventListener('pointerleave', function () { clearTimeout(tipT); tip.hidden = true; });
+
+    /* Rail flyout */
+    var fly = $('fly');
+    function showFly(gid, btn) {
+      var g = NAV.filter(function (x) { return x.id === gid; })[0];
+      if (!g) return;
+      clearTimeout(tipT); tip.hidden = true;
+      if (!fly.hidden && fly.getAttribute('data-g') === gid) { hideFly(); return; }
+      var h = '<h4>' + esc(g.label) + '</h4>';
+      g.mods.forEach(function (m) { h += '<a class="ni" href="#' + m.k + '" data-k="' + m.k + '"' + (m.k === active ? ' aria-current="page"' : '') + '><span class="lbl">' + esc(m.n) + '</span></a>'; });
+      fly.innerHTML = h;
+      fly.setAttribute('data-g', gid);
+      fly.hidden = false;
+      var r = btn.getBoundingClientRect();
+      var top = Math.min(r.top - 6, innerHeight - fly.offsetHeight - 8);
+      fly.style.left = (r.right + 10) + 'px';
+      fly.style.top = Math.max(8, top) + 'px';
+    }
+    function hideFly() { fly.hidden = true; fly.removeAttribute('data-g'); }
+    fly.addEventListener('click', function (e) {
+      var a = e.target.closest('.ni[data-k]');
+      if (!a) return;
+      e.preventDefault(); hideFly();
+      if (e.metaKey || e.ctrlKey) openTab(MODS[a.getAttribute('data-k')]); else go(a.getAttribute('data-k'));
+    });
+    fly.addEventListener('pointerover', function (e) { var a = e.target.closest('.ni[data-k]'); if (a) prefetch(MODS[a.getAttribute('data-k')]); });
+
+    /* ================= Stage: keep-alive frames ================= */
+    var stage = $('stage');
+    var frames = {};                  // key -> { el, t }
+    var MAX_ALIVE = (navigator.deviceMemory && navigator.deviceMemory <= 4) || matchMedia('(max-width: 900px)').matches ? 2 : 5;
+    var active = null, loadTimer = 0, prefetched = {};
+
+    function isSmall() { return matchMedia('(max-width: 900px)').matches; }
+
+    function prefetch(m) {
+      if (!m || frames[m.k] || prefetched[m.u]) return;
+      prefetched[m.u] = 1;
+      var l = document.createElement('link');
+      l.rel = 'prefetch'; l.href = '/' + norm(m.u);
+      document.head.appendChild(l);
+    }
+
+    function busy(on, name) {
+      clearTimeout(loadTimer);
+      stage.classList.toggle('busy', !!on);
+      if (on) { $('stageMsg').textContent = 'Loading ' + name + '…'; loadTimer = setTimeout(function () { stage.classList.remove('busy'); }, 20000); }
+    }
+
+    function frameFor(m) {
+      var f = frames[m.k];
+      if (f) return f;
+      var el = document.createElement('iframe');
+      el.title = m.n;
+      el.setAttribute('data-k', m.k);
+      el.addEventListener('load', function () { onFrameLoad(el); });
+      el.src = '/' + norm(m.u);
+      stage.appendChild(el);
+      f = frames[m.k] = { el: el, t: 0, loaded: false };
+      return f;
+    }
+
+    function evict() {
+      var keys = Object.keys(frames);
+      if (keys.length <= MAX_ALIVE) return;
+      keys.sort(function (a, b) { return frames[a].t - frames[b].t; });
+      for (var i = 0; i < keys.length - MAX_ALIVE; i++) {
+        if (keys[i] === active) continue;
+        frames[keys[i]].el.remove();
+        delete frames[keys[i]];
+      }
+    }
+
+    function show(k) {
+      var m = MODS[k];
+      if (!m) return;
+      var f = frameFor(m);
+      f.t = Date.now();
+      Object.keys(frames).forEach(function (key) { frames[key].el.classList.toggle('off', key !== k); });
+      active = k;
+      busy(!f.loaded, m.n);
+      evict();
+    }
+
+    function onFrameLoad(el) {
+      var k = el.getAttribute('data-k');
+      var f = frames[k];
+      if (f) f.loaded = true;
+      var win = el.contentWindow, path = '', search = '';
+      try { path = win.location.pathname; search = win.location.search; } catch (e) {}
+      // Session ended inside the page → leave the shell for the login screen.
+      if (/\/login\.html$/i.test(path)) { location.replace('/login.html'); return; }
+      // A page linked back to the phone hub → stay in the workstation instead.
+      if (path === '/' || /\/index\.html$/i.test(path)) { el.remove(); delete frames[k]; go('home', true); return; }
       try {
-        const iframe = document.getElementById('activeStageFrame');
-        const win = iframe && iframe.contentWindow;
-        if (!win || !win.document) return;
-        if (win.MzoTheme) {
-          win.MzoTheme.apply(val);
-        } else {
-          // Fallback for pages that do not load the shared layer (e.g. admin_users.html)
-          const doc = win.document;
-          const themeClass = isDark ? 'dark-theme' : 'light-theme';
-          doc.documentElement.setAttribute('data-bs-theme', val);
-          [doc.documentElement, doc.body].forEach(el => {
-            if (!el) return;
-            el.classList.remove('dark-theme', 'light-theme', 'dark', 'light', 'puja-theme');
-            el.classList.add(themeClass, val);
-          });
-          try { win.dispatchEvent(new CustomEvent('mzo-theme-change', { detail: { theme: val } })); } catch (_) {}
-        }
-        if (win.document.body) win.document.body.classList.add('in-workstation');
+        var doc = win.document;
+        doc.documentElement.classList.add('mzo-in-shell');
+        if (doc.body) doc.body.classList.add('in-workstation');
+        if (!win.MzoTheme) paintLegacy(doc, win);
+        win.addEventListener('keydown', shortcuts);
       } catch (e) {}
-    }
-
-    // Follow theme changes made by a page's own toggle
-    window.addEventListener('storage', (e) => {
-      if (e.key !== 'theme' && e.key !== 'mzo_theme') return;
-      const next = e.newValue === 'light' ? 'light-theme' : 'dark-theme';
-      if (!document.body.classList.contains(next)) {
-        document.body.className = next;
-        updateThemeIcon(next);
-        syncThemeToStage();
-      }
-    });
-
-    function toggleTheme() {
-      const isDark = document.body.classList.contains('dark-theme');
-      const nextTheme = isDark ? 'light-theme' : 'dark-theme';
-      const val = isDark ? 'light' : 'dark';
-      document.body.className = nextTheme;
-      localStorage.setItem('theme', val);
-      localStorage.setItem('mzo_theme', val);
-      localStorage.setItem('collectionDashboardTheme', val);
-      updateThemeIcon(nextTheme);
-      syncThemeToStage();
-    }
-
-    function updateThemeIcon(theme) {
-      const icon = document.getElementById('themeIcon');
-      const btn = document.getElementById('themeToggleBtn');
-      if (theme === 'light-theme') {
-        if (icon) icon.className = 'fas fa-sun';
-        if (btn) btn.querySelector('span').textContent = 'Light';
-      } else {
-        if (icon) icon.className = 'fas fa-moon';
-        if (btn) btn.querySelector('span').textContent = 'Dark';
-      }
-    }
-
-    function initTheme() {
-      const saved = localStorage.getItem('theme') || localStorage.getItem('mzo_theme') || 'dark';
-      const theme = saved === 'light' ? 'light-theme' : 'dark-theme';
-      document.body.className = theme;
-      const val = saved === 'light' ? 'light' : 'dark';
-      localStorage.setItem('theme', val);
-      localStorage.setItem('mzo_theme', val);
-      localStorage.setItem('collectionDashboardTheme', val);
-      updateThemeIcon(theme);
-    }
-
-    // User session info initialization
-    function initUserSession() {
-      const username = localStorage.getItem('mzo_username') || 'smartlineman';
-      const role = localStorage.getItem('mzo_role') || 'admin';
-      const office = localStorage.getItem('mzo_office_level') || 'CE';
-      const region = localStorage.getItem('mzo_region') || '';
-
-      const nameEl = document.getElementById('userNameTitle');
-      const roleEl = document.getElementById('userRoleSubtitle');
-      const scopePill = document.getElementById('sidebarScopePill');
-      const avatarEl = document.getElementById('userAvatarCircle');
-
-      if (nameEl) nameEl.textContent = username;
-      if (roleEl) roleEl.textContent = `${role === 'admin' ? 'Administrator' : 'Officer'} · ${office} Scope`;
-      if (scopePill) scopePill.textContent = `${office}${region ? ' · ' + region : ''}`;
-      if (avatarEl) avatarEl.textContent = username.charAt(0).toUpperCase();
-    }
-
-    // Handle Logout
-    function handleLogout() {
-      if (confirm('Are you sure you want to log out of the MZO Workstation?')) {
-        localStorage.removeItem('mzo_authenticated');
-        localStorage.removeItem('mzo_username');
-        localStorage.removeItem('mzo_role');
-        sessionStorage.clear();
-        window.location.href = 'login.html';
-      }
-    }
-
-    // Handle hash route changes (Browser Back / Forward)
-    window.addEventListener('hashchange', () => {
-      const hash = (window.location.hash || '').replace('#', '').trim();
-      if (hash && MODULES[hash]) {
-        const mod = MODULES[hash];
-        switchModule(hash, mod.name, mod.url, mod.group, false);
-      }
-    });
-
-    // Global Keyboard Shortcuts
-    window.addEventListener('keydown', (e) => {
-      // Shortcut: Press '/' to focus search
-      if (e.key === '/' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
-        e.preventDefault();
-        const search = document.getElementById('sidebarSearch');
-        if (search) {
-          search.focus();
-          search.select();
+      // The page navigated itself (in-page link) → follow it in the shell.
+      var rel = norm(path + search);
+      var was = MODS[k] ? norm(MODS[k].u).split('?')[0] : '';
+      if (f && path && norm(path) !== was) {
+        var nk = BY_URL[rel] || BY_URL[norm(path)];
+        if (!nk) { nk = '~' + rel; MODS[nk] = { k: nk, n: (win.document && win.document.title) || rel, u: rel, g: '' }; }
+        if (nk !== k && !frames[nk]) {
+          frames[nk] = f; delete frames[k];
+          el.setAttribute('data-k', nk);
+          if (active === k) { active = nk; setChrome(nk); history.replaceState(null, '', '#' + nk); }
+          k = nk;
         }
       }
-      // Shortcut: Ctrl + B or Cmd + B to toggle sidebar
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'b') {
-        e.preventDefault();
-        toggleSidebar();
+      if (k === active) busy(false);
+    }
+
+    // Pages without mzo_theme.js still follow the shell theme.
+    function paintLegacy(doc, win) {
+      var t = root.getAttribute('data-mzo-theme');
+      doc.documentElement.setAttribute('data-bs-theme', t);
+      [doc.documentElement, doc.body].forEach(function (n) {
+        if (!n) return;
+        n.classList.remove('dark-theme', 'light-theme', 'dark', 'light', 'puja-theme');
+        n.classList.add(t + '-theme', t);
+      });
+      try { win.dispatchEvent(new CustomEvent('mzo-theme-change', { detail: { theme: t } })); } catch (e) {}
+    }
+
+    /* ================= Routing ================= */
+    var RECENT_KEY = 'mzo_ws_recent';
+    function remember(k) {
+      if (k.charAt(0) === '~') return;
+      var r = [];
+      try { r = JSON.parse(LS.get(RECENT_KEY) || '[]'); } catch (e) {}
+      r = [k].concat(r.filter(function (x) { return x !== k; })).slice(0, 6);
+      LS.set(RECENT_KEY, JSON.stringify(r));
+    }
+    function recents() {
+      try { return JSON.parse(LS.get(RECENT_KEY) || '[]').filter(function (k) { return MODS[k]; }); } catch (e) { return []; }
+    }
+
+    function setChrome(k) {
+      var m = MODS[k];
+      $('cG').textContent = m.g || '';
+      $('cP').textContent = m.n;
+      document.title = m.n + ' · MZO Reports';
+      markActive(k);
+    }
+
+    function go(k, replace) {
+      if (!MODS[k]) k = 'home';
+      if (isSmall()) drawer(false);
+      hideFly();
+      if (k !== active) {
+        setChrome(k);
+        show(k);
+        remember(k);
       }
+      var h = '#' + k;
+      if (location.hash !== h) history[replace ? 'replaceState' : 'pushState'](null, '', h);
+    }
+
+    function fromHash() {
+      var h = decodeURIComponent((location.hash || '').slice(1));
+      if (h.charAt(0) === '~') {
+        var u = norm(h.slice(1));
+        var known = BY_URL[u];
+        if (known) return known;
+        var base = MODS[BY_URL[u.split('?')[0]]];
+        if (u && !/^(https?:)?\/\//i.test(u)) { MODS[h] = base ? { k: h, n: base.n, u: u, g: base.g, gid: base.gid, base: base.k } : { k: h, n: u, u: u, g: '' }; return h; }
+        return 'home';
+      }
+      return MODS[h] ? h : 'home';
+    }
+    window.addEventListener('popstate', function () { go(fromHash(), true); });
+
+    // Pages call parent.openPage(url, title) to jump to another report.
+    window.openPage = function (url, title) {
+      var u = norm(url);
+      if (/^https?:\/\//i.test(u)) { window.open(url, '_blank', 'noopener'); return; }
+      var k = BY_URL[u];
+      if (!k) {
+        // Deep link with its own query (e.g. ?kpi=…, ?division=…): open that exact URL,
+        // labelled and highlighted as its base report.
+        var base = MODS[BY_URL[u.split('?')[0]]];
+        k = '~' + u;
+        if (frames[k]) { frames[k].el.remove(); delete frames[k]; }
+        MODS[k] = base ? { k: k, n: base.n, u: u, g: base.g, gid: base.gid, icon: base.icon, base: base.k } : { k: k, n: title || u, u: u, g: '' };
+      }
+      go(k);
+    };
+
+    function openTab(m) { if (m) window.open('/' + norm(m.u), '_blank', 'noopener'); }
+
+    /* ================= Theme ================= */
+    var mq = matchMedia('(prefers-color-scheme: dark)');
+    function pref() { return root.getAttribute('data-theme-pref') || 'system'; }
+    function resolved(p) { return p === 'system' ? (mq.matches ? 'dark' : 'light') : p; }
+    function applyTheme(p, persist) {
+      var t = resolved(p);
+      root.setAttribute('data-mzo-theme', t);
+      root.setAttribute('data-theme-pref', p);
+      if (persist) LS.set('mzo_theme_pref', p);
+      ['theme', 'mzo_theme', 'collectionDashboardTheme'].forEach(function (key) { LS.set(key, t); });
+      document.body.classList.toggle('light-theme', t === 'light');
+      document.body.classList.toggle('dark-theme', t === 'dark');
+      document.querySelector('meta[name="theme-color"]').setAttribute('content', t === 'dark' ? '#09090a' : '#f1f1f0');
+      $('themeIco').setAttribute('href', t === 'dark' ? '#i-sun' : '#i-moon');
+      $('themeBtn').setAttribute('data-tip', t === 'dark' ? 'Light theme' : 'Dark theme');
+      var segs = document.querySelectorAll('.seg button');
+      for (var i = 0; i < segs.length; i++) segs[i].setAttribute('aria-pressed', String(segs[i].getAttribute('data-pref') === p));
+      Object.keys(frames).forEach(function (k) {
+        try {
+          var w = frames[k].el.contentWindow;
+          if (w.MzoTheme) w.MzoTheme.apply(t); else paintLegacy(w.document, w);
+        } catch (e) {}
+      });
+    }
+    mq.addEventListener && mq.addEventListener('change', function () { if (pref() === 'system') applyTheme('system'); });
+    $('themeBtn').addEventListener('click', function () { applyTheme(resolved(pref()) === 'dark' ? 'light' : 'dark', true); });
+    // A page's own toggle changed the theme.
+    window.addEventListener('storage', function (e) {
+      if ((e.key === 'theme' || e.key === 'mzo_theme') && (e.newValue === 'light' || e.newValue === 'dark') && e.newValue !== root.getAttribute('data-mzo-theme')) applyTheme(e.newValue, true);
     });
 
-    // On Load Startup
-    window.addEventListener('DOMContentLoaded', () => {
-      initTheme();
-      initUserSession();
+    /* ================= Chrome actions ================= */
+    function rail(on) {
+      root.classList.toggle('rail', on);
+      LS.set('mzo_ws_rail', on ? '1' : '0');
+      hideFly();
+      if (!on && active && MODS[active] && MODS[active].gid) setGroup(MODS[active].gid, true);
+    }
+    function drawer(on) { root.classList.toggle('drawer', on); }
+    $('railBtn').addEventListener('click', function () { if (isSmall()) drawer(!root.classList.contains('drawer')); else rail(!root.classList.contains('rail')); });
+    $('scrim').addEventListener('click', function () { drawer(false); });
 
-      // Check hash route or default to admin_users
-      const hash = (window.location.hash || '').replace('#', '').trim();
-      if (hash && MODULES[hash]) {
-        const mod = MODULES[hash];
-        switchModule(hash, mod.name, mod.url, mod.group, false);
+    $('reloadBtn').addEventListener('click', function () {
+      var f = frames[active];
+      if (!f) return;
+      var b = $('reloadBtn'); b.classList.remove('spin'); void b.offsetWidth; b.classList.add('spin');
+      f.loaded = false; busy(true, MODS[active].n);
+      try { f.el.contentWindow.location.reload(); } catch (e) { f.el.src = f.el.src; }
+    });
+    $('popBtn').addEventListener('click', function () { openTab(MODS[active]); });
+    $('fsBtn').addEventListener('click', function () {
+      if (document.fullscreenElement) document.exitFullscreen().catch(function () {});
+      else document.documentElement.requestFullscreen().catch(function () {});
+    });
+    document.addEventListener('fullscreenchange', function () {
+      var on = !!document.fullscreenElement;
+      $('fsIco').setAttribute('href', on ? '#i-min' : '#i-max');
+      $('fsBtn').setAttribute('data-tip', on ? 'Exit full screen' : 'Full screen');
+    });
+
+    /* Account menu */
+    var menu = $('meMenu'), meBtn = $('meBtn');
+    function menuOpen(on) {
+      menu.hidden = !on;
+      meBtn.setAttribute('aria-expanded', String(on));
+      if (on) {
+        var r = meBtn.getBoundingClientRect();
+        menu.style.left = Math.max(8, Math.min(r.left, innerWidth - menu.offsetWidth - 8)) + 'px';
+        menu.style.top = Math.max(8, r.top - menu.offsetHeight - 6) + 'px';
+      }
+    }
+    meBtn.addEventListener('click', function (e) { e.stopPropagation(); menuOpen(menu.hidden); });
+    menu.addEventListener('click', function (e) {
+      var s = e.target.closest('[data-pref]');
+      if (s) applyTheme(s.getAttribute('data-pref'), true);
+    });
+    document.addEventListener('click', function (e) {
+      if (!menu.hidden && !menu.contains(e.target)) menuOpen(false);
+      if (!fly.hidden && !fly.contains(e.target) && !e.target.closest('.ng')) hideFly();
+    });
+    $('logoutBtn').addEventListener('click', function () {
+      $('logoutBtn').disabled = true;
+      fetch('/api/logout', { method: 'POST', credentials: 'same-origin' }).catch(function () {}).then(function () {
+        LS.del('mzo_authenticated'); LS.del('mzo_user_profile');
+        location.replace('/login.html');
+      });
+    });
+
+    function renderUser() {
+      var p = profile || {};
+      var name = String(p.Name || p.Username || 'Signed in').trim();
+      var role = isAdmin(p) ? 'Administrator' : (p.role ? String(p.role).charAt(0).toUpperCase() + String(p.role).slice(1) : 'Officer');
+      var lvl = String(p.office_level || '').toUpperCase();
+      var scope = p.ccc_code ? 'CCC ' + p.ccc_code : p.division_code ? 'Division ' + p.division_code : p.region_code ? 'Region ' + p.region_code : (lvl && lvl !== 'CCC' ? lvl : 'Malda Zone');
+      var initials = name.split(/\s+/).filter(Boolean).slice(0, 2).map(function (w) { return w.charAt(0); }).join('').toUpperCase() || '·';
+      $('meAv').textContent = initials;
+      $('meName').textContent = name;
+      $('meSub').textContent = role + ' · ' + scope;
+      $('mhName').textContent = name;
+      $('mhSub').textContent = (p.email || p.Username || '') + '';
+    }
+
+    /* ================= Command palette ================= */
+    var pal = $('pal'), palQ = $('palQ'), palList = $('palList');
+    var palItems = [], palSel = 0;
+    var ACTIONS = [
+      { a: 'theme', n: 'Switch theme', icon: 'moon', kw: 'dark light mode appearance' },
+      { a: 'rail', n: 'Toggle sidebar', icon: 'panel', kw: 'collapse expand' },
+      { a: 'reload', n: 'Reload current page', icon: 'reload', kw: 'refresh' },
+      { a: 'pop', n: 'Open current page in new tab', icon: 'ext', kw: 'pop out window' },
+      { a: 'mobile', n: 'Switch to mobile view', icon: 'phone', kw: 'phone hub cards' },
+      { a: 'logout', n: 'Sign out', icon: 'out', kw: 'logout exit' }
+    ];
+
+    function score(q, m) {
+      var n = m.n.toLowerCase(), hay = (n + ' ' + (m.g || '') + ' ' + (m.kw || '')).toLowerCase();
+      if (n === q) return 1000;
+      if (n.indexOf(q) === 0) return 900 - n.length;
+      if ((' ' + n).indexOf(' ' + q) !== -1) return 800 - n.length;
+      if (n.indexOf(q) !== -1) return 700 - n.indexOf(q);
+      var words = q.split(/\s+/).filter(Boolean);
+      if (words.length && words.every(function (w) { return hay.indexOf(w) !== -1; })) return 500 - n.length;
+      // initials / subsequence ("pnsc" → Pending NSC)
+      var i = 0; for (var c = 0; c < n.length && i < q.length; c++) if (n[c] === q[i]) i++;
+      if (i === q.length) return 200 - n.length;
+      return 0;
+    }
+    function hl(text, q) {
+      if (!q) return esc(text);
+      var i = text.toLowerCase().indexOf(q);
+      if (i < 0) return esc(text);
+      return esc(text.slice(0, i)) + '<mark>' + esc(text.slice(i, i + q.length)) + '</mark>' + esc(text.slice(i + q.length));
+    }
+
+    function palRender() {
+      var q = palQ.value.trim().toLowerCase();
+      var h = '', seen = {};
+      palItems = [];
+      function row(it, kind) {
+        var idx = palItems.length;
+        palItems.push(it);
+        var ic = kind === 'act' ? it.icon : (it.k === 'home' ? 'home' : (it.icon || 'file'));
+        return '<div class="pal-it" role="option" id="po' + idx + '" data-i="' + idx + '">' + icon(kind === 'recent' ? 'clock' : ic) +
+          '<span class="t">' + hl(it.n, q) + '</span><span class="g">' + esc(kind === 'act' ? 'Action' : (it.g || '')) + '</span></div>';
+      }
+      if (!q) {
+        var r = recents();
+        if (r.length) { h += '<div class="pal-sec">Recent</div>'; r.forEach(function (k) { seen[MODS[k].u] = 1; h += row(MODS[k], 'recent'); }); }
+        h += '<div class="pal-sec">Reports</div>';
+        ALL.forEach(function (m) { if (!seen[m.u]) { seen[m.u] = 1; h += row(m, 'mod'); } });
       } else {
-        switchModule('admin_users', 'User Directory & Roles', 'admin_users.html', 'Administration', false);
+        var hits = [];
+        ALL.forEach(function (m) { var s = score(q, m); if (s > 0 && !seen[m.u]) { seen[m.u] = 1; hits.push([s, m]); } });
+        hits.sort(function (a, b) { return b[0] - a[0]; });
+        var acts = ACTIONS.filter(function (a) { return score(q, a) > 0; });
+        if (hits.length) { h += '<div class="pal-sec">Reports</div>'; hits.slice(0, 30).forEach(function (x) { h += row(x[1], 'mod'); }); }
+        if (q.length > 2) { h += '<div class="pal-sec">Assistant</div>'; h += row({ a: 'ask', n: 'Ask: ' + palQ.value.trim(), icon: 'chat', q: palQ.value.trim() }, 'act'); }
+        if (acts.length) { h += '<div class="pal-sec">Actions</div>'; acts.forEach(function (a) { h += row(a, 'act'); }); }
+        if (!palItems.length) h = '<div class="pal-empty">No reports match “' + esc(palQ.value.trim()) + '”</div>';
       }
+      if (!q) { h += '<div class="pal-sec">Actions</div>'; ACTIONS.forEach(function (a) { h += row(a, 'act'); }); }
+      palList.innerHTML = h;
+      palSel = 0; palMark();
+    }
+    function palMark() {
+      var rows = palList.querySelectorAll('.pal-it');
+      for (var i = 0; i < rows.length; i++) rows[i].setAttribute('aria-selected', String(i === palSel));
+      var cur = rows[palSel];
+      if (cur) { palQ.setAttribute('aria-activedescendant', cur.id); cur.scrollIntoView({ block: 'nearest' }); if (palItems[palSel] && palItems[palSel].u) prefetch(palItems[palSel]); }
+    }
+    function palRun(i, newTab) {
+      var it = palItems[i];
+      if (!it) return;
+      pal.close();
+      if (it.a) return runAction(it.a, it);
+      if (newTab) openTab(it); else go(it.k);
+    }
+    function runAction(a, it) {
+      if (a === 'ask') { window.openPage('assistant.html?q=' + encodeURIComponent(it.q)); return; }
+      if (a === 'theme') $('themeBtn').click();
+      else if (a === 'rail') $('railBtn').click();
+      else if (a === 'reload') $('reloadBtn').click();
+      else if (a === 'pop') openTab(MODS[active]);
+      else if (a === 'mobile') location.href = '/index.html';
+      else if (a === 'logout') $('logoutBtn').click();
+    }
+    function palOpen() {
+      if (pal.open) { palQ.select(); return; }
+      menuOpen(false); hideFly();
+      palQ.value = '';
+      palRender();
+      pal.showModal();
+      palQ.focus();
+    }
+    palQ.addEventListener('input', palRender);
+    palQ.addEventListener('keydown', function (e) {
+      if (e.key === 'ArrowDown') { e.preventDefault(); palSel = Math.min(palItems.length - 1, palSel + 1); palMark(); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); palSel = Math.max(0, palSel - 1); palMark(); }
+      else if (e.key === 'Enter') { e.preventDefault(); palRun(palSel, e.metaKey || e.ctrlKey); }
     });
+    palList.addEventListener('click', function (e) { var r = e.target.closest('.pal-it'); if (r) palRun(+r.getAttribute('data-i'), e.metaKey || e.ctrlKey); });
+    palList.addEventListener('pointermove', function (e) { var r = e.target.closest('.pal-it'); if (r && +r.getAttribute('data-i') !== palSel) { palSel = +r.getAttribute('data-i'); palMark(); } });
+    pal.addEventListener('click', function (e) { if (e.target === pal) pal.close(); });
+    $('openPal').addEventListener('click', palOpen);
+
+    /* ================= Keyboard ================= */
+    function shortcuts(e) {
+      var mod = e.metaKey || e.ctrlKey;
+      var k = (e.key || '').toLowerCase();
+      if (mod && k === 'k') { e.preventDefault(); palOpen(); return; }
+      if (mod && k === 'b') { e.preventDefault(); $('railBtn').click(); return; }
+      if (e.key === 'Escape') { menuOpen(false); hideFly(); if (isSmall()) drawer(false); }
+      if (e.key === '/' && !mod && e.currentTarget === window) {
+        var t = document.activeElement && document.activeElement.tagName;
+        if (t !== 'INPUT' && t !== 'TEXTAREA' && t !== 'SELECT') { e.preventDefault(); palOpen(); }
+      }
+    }
+    window.addEventListener('keydown', shortcuts);
+
+    /* ================= Boot ================= */
+    index();
+    renderNav();
+    renderUser();
+    applyTheme(pref(), false);
+    go(fromHash(), true);
+
+    // Validate the session in the background; refresh the profile.
+    if (navigator.onLine !== false) {
+      fetch('/api/session-check', { headers: { Accept: 'application/json' }, credentials: 'same-origin' })
+        .then(function (r) {
+          if (r.status === 401) { LS.del('mzo_authenticated'); LS.del('mzo_user_profile'); location.replace('/login.html'); return null; }
+          return r.ok ? r.json() : null;
+        })
+        .then(function (d) {
+          if (!d || !d.profile) return;
+          var wasAdmin = isAdmin(profile), wasSheets = canSheets(profile);
+          profile = d.profile;
+          LS.set('mzo_authenticated', 'true');
+          LS.set('mzo_user_profile', JSON.stringify(profile));
+          renderUser();
+          if (wasAdmin !== isAdmin(profile) || wasSheets !== canSheets(profile)) { index(); renderNav(); if (!MODS[active]) go('home', true); else markActive(active); }
+        })
+        .catch(function () {});
+    }
+
+    // After first paint: app-update notice, and warm recent pages.
+    var idle = window.requestIdleCallback || function (fn) { return setTimeout(fn, 1200); };
+    idle(function () {
+      var s = document.createElement('script');
+      s.src = '/mzo_app_update.js?v=87'; s.async = true;
+      document.head.appendChild(s);
+      recents().slice(0, 3).forEach(function (k) { prefetch(MODS[k]); });
+    });
+  })();
   </script>
 </body>
 </html>

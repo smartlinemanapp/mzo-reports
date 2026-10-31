@@ -1,6 +1,6 @@
 {
-  "version": "2.66",
-  "cache": "mzo-reports-cache-v257",
+  "version": "2.67",
+  "cache": "mzo-reports-cache-v259",
   "force_update": false,
-  "message": "ICDS: live forceCheck, Bhatpara 6631101 and data-entry CCC code normalization"
+  "message": "New look: one clean design across every report, a faster workstation with search (Ctrl K), and Ask \u2014 type a question to get numbers or open a filtered report."
 }

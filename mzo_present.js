@@ -14,6 +14,7 @@
   function skipPage() {
     var p = String((location && location.pathname) || '');
     if (p === '/login.html' || /\/login\.html$/i.test(p)) return true;
+    if (p === '/app.html') return true; // workstation shell: pages inside it zoom themselves
     if (p === '/offline.html' || /\/offline\.html$/i.test(p)) return true;
     if (p.indexOf('/power_map/') !== -1) return true;
     if (p.indexOf('/sld/') !== -1) return true;
@@ -169,23 +170,24 @@
     root.innerHTML =
       '<style>' +
       '#mzo-present-zoom{position:fixed;right:16px;bottom:16px;z-index:2147482000;display:none;align-items:center;gap:2px;' +
-      'padding:4px;border-radius:999px;background:#131b2e;color:#f8fafc;border:1px solid rgba(255,255,255,.18);' +
-      'box-shadow:0 8px 24px rgba(0,0,0,.28);font-family:system-ui,-apple-system,sans-serif;font-size:13px;font-weight:600;' +
-      'user-select:none}' +
+      'padding:3px;border-radius:9px;background:var(--mzo-surface,#fff);color:var(--mzo-text-2,#3f3f46);' +
+      'border:1px solid var(--mzo-border,#e7e7e5);box-shadow:var(--mzo-shadow-pop,0 8px 24px rgba(0,0,0,.12));' +
+      'font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;font-size:12px;font-weight:500;' +
+      'font-variant-numeric:tabular-nums;user-select:none}' +
       '@media (min-width:900px){#mzo-present-zoom{display:flex}}' +
-      '#mzo-present-zoom[data-zoom="100"]{opacity:.78}' +
+      '#mzo-present-zoom[data-zoom="100"]{opacity:.7}' +
       '#mzo-present-zoom:hover,#mzo-present-zoom:focus-within{opacity:1}' +
       '#mzo-present-zoom button{appearance:none;border:0;background:transparent;color:inherit;font:inherit;cursor:pointer;' +
-      'min-width:36px;height:36px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:0 8px}' +
+      'min-width:30px;height:28px;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;gap:5px;padding:0 7px}' +
       '#mzo-present-zoom button:disabled{opacity:.35;cursor:default}' +
-      '#mzo-present-zoom button:not(:disabled):hover{background:rgba(255,255,255,.08)}' +
-      '#mzo-present-zoom button:focus-visible{outline:2px solid #93c5fd;outline-offset:1px}' +
+      '#mzo-present-zoom button:not(:disabled):hover{background:var(--mzo-hover,#efefee);color:var(--mzo-text,#18181b)}' +
+      '#mzo-present-zoom button:focus-visible{outline:2px solid var(--mzo-accent,#0f766e);outline-offset:1px}' +
       '#mzo-present-zoom svg{display:block}' +
       '@media print{#mzo-present-zoom{display:none !important}}' +
       '</style>' +
       '<button type="button" data-act="out" aria-label="Smaller">−</button>' +
       '<button type="button" data-act="reset" aria-label="Reset zoom">' +
-      '<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">' +
+      '<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">' +
       '<circle cx="10.5" cy="10.5" r="6.25" fill="none" stroke="currentColor" stroke-width="2"></circle>' +
       '<path d="M15.2 15.2 L20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>' +
       '</svg>' +
