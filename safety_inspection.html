@@ -1,2081 +1,290 @@
 <!DOCTYPE html>
-
-<html lang="en">
-
+<html lang="en" class="ui">
 <head>
-  <script src="mzo_theme.js?v=1"></script>
   <meta charset="utf-8" />
-  <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-  <title>Safety Inspection Dashboard</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <script src="mzo_data_hub.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Safety inspection · MZO Reports</title>
+  <script src="/mzo_theme.js?v=3"></script>
+  <link rel="stylesheet" href="/mzo_theme.css?v=3" />
+  <script src="/mzo_ui.js?v=2" defer></script>
+  <script src="/mzo_data_hub.js" defer></script>
+  <script src="/mzo_scope.js?v=5" defer></script>
   <style>
-    /* Design Tokens */
-    :root {
-      --primary: #1e40af;
-      --primary-light: #3b82f6;
-      --primary-dark: #1e3a8a;
-      --bg-color: #f8fafc;
-      --card-bg: #ffffff;
-      --text-main: #1e293b;
-      --text-muted: #64748b;
-      --success: #10b981;
-      --warning: #f59e0b;
-      --danger: #ef4444;
-      --border-color: #e2e8f0;
-      --radius: 12px;
-      --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-      --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-    }
-
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      font-family: 'Outfit', sans-serif;
-      background: var(--bg-color);
-      color: var(--text-main);
-      line-height: 1.5;
-    }
-
-    .container {
-      max-width: 1400px;
-      margin: 0 auto;
-      padding: 20px;
-      padding-top: 80px;
-    }
-
-    /* Header */
-    .header {
-      background: rgba(255, 255, 255, 0.8);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border-bottom: 1px solid var(--border-color);
-      padding: 12px 24px;
-      position: fixed;
-      top: 0;
-      width: 100%;
-      z-index: 1000;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      transition: all 0.3s ease;
-    }
-
-    .header h1 {
-      font-size: 20px;
-      font-weight: 700;
-      color: var(--primary-dark);
-      letter-spacing: -0.5px;
-    }
-
-    .report-period {
-      background: var(--primary-light);
-      color: white;
-      padding: 4px 12px;
-      border-radius: 20px;
-      font-size: 13px;
-      font-weight: 500;
-    }
-
-    /* Controls Panel */
-    .view-options-container {
-      background: var(--card-bg);
-      border-radius: var(--radius);
-      padding: 16px;
-      margin-bottom: 20px;
-      box-shadow: var(--shadow);
-      display: flex;
-      flex-wrap: wrap;
-      gap: 20px;
-      align-items: center;
-      border: 1px solid var(--border-color);
-    }
-
-    .control-group {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding-right: 20px;
-      border-right: 1px solid var(--border-color);
-    }
-
-    .control-group:last-child {
-      border-right: none;
-    }
-
-    .control-group label {
-      font-size: 14px;
-      font-weight: 600;
-      color: var(--text-muted);
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    input[type="radio"] {
-      appearance: none;
-      width: 18px;
-      height: 18px;
-      border: 2px solid var(--border-color);
-      border-radius: 50%;
-      cursor: pointer;
-      position: relative;
-    }
-
-    input[type="radio"]:checked {
-      border-color: var(--primary);
-    }
-
-    input[type="radio"]:checked::after {
-      content: '';
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 10px;
-      height: 10px;
-      background: var(--primary);
-      border-radius: 50%;
-    }
-
-    header select {
-      padding: 8px 12px;
-      border-radius: 8px;
-      border: 1px solid var(--border-color);
-      font-family: inherit;
-      font-size: 14px;
-      color: var(--text-main);
-      background: var(--bg-color);
-      cursor: pointer;
-      outline: none;
-      transition: border-color 0.2s;
-    }
-
-    header select:focus {
-      border-color: var(--primary);
-    }
-
-    /* Stat Cards */
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 20px;
-      margin-bottom: 24px;
-    }
-
-    .stat-card {
-      background: var(--card-bg);
-      border-radius: var(--radius);
-      padding: 24px;
-      box-shadow: var(--shadow);
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
-      border: 1px solid var(--border-color);
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .stat-card:hover {
-      transform: translateY(-4px);
-      box-shadow: var(--shadow-lg);
-    }
-
-    .stat-card .value {
-      font-size: 28px;
-      font-weight: 700;
-      color: var(--text-main);
-    }
-
-    .stat-card .label {
-      font-size: 14px;
-      font-weight: 500;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    .total-inspected {
-      border-top: 4px solid var(--primary);
-    }
-
-    .total-rectified {
-      border-top: 4px solid var(--success);
-    }
-
-    .avg-inspected {
-      border-top: 4px solid var(--warning);
-    }
-
-    .week-inspected {
-      border-top: 4px solid var(--primary-light);
-    }
-
-    /* Tables */
-    .dashboard-section {
-      background: var(--card-bg);
-      border-radius: var(--radius);
-      padding: 24px;
-      box-shadow: var(--shadow);
-      border: 1px solid var(--border-color);
-    }
-
-    .dashboard-section h2 {
-      font-size: 18px;
-      font-weight: 700;
-      margin-bottom: 20px;
-      color: var(--primary-dark);
-    }
-
-    .table-responsive {
-      border-radius: 8px;
-      overflow-x: auto;
-      overflow-y: hidden;
-      border: 1px solid var(--border-color);
-      -webkit-overflow-scrolling: touch;
-    }
-
-    .mini-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 14px;
-    }
-
-    .mini-table th {
-      background: #f1f5f9;
-      padding: 12px 16px;
-      text-align: left;
-      font-weight: 600;
-      color: var(--text-muted);
-      border-bottom: 2px solid var(--border-color);
-    }
-
-    .mini-table td {
-      padding: 12px 16px;
-      border-bottom: 1px solid var(--border-color);
-    }
-
-    .mini-table tr:last-child td {
-      border-bottom: none;
-    }
-
-    .mini-table tr.clickable-row {
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-
-    .mini-table tr.clickable-row:hover {
-      background: #f8fafc;
-    }
-
-    .mini-table th.sortable-header:hover {
-      color: var(--primary);
-    }
-
-    /* Charts */
-    .chart-container {
-      height: 350px !important;
-      padding: 10px;
-    }
-
-    /* Modal */
-    .modal {
-      display: none;
-      position: fixed;
-      z-index: 2000;
-      left: 0;
-      top: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0, 0, 0, 0.5);
-      backdrop-filter: blur(4px);
-    }
-
-    .modal-content {
-      background: var(--card-bg);
-      margin: 5% auto;
-      padding: 0;
-      border-radius: var(--radius);
-      width: 90%;
-      max-width: 800px;
-      box-shadow: var(--shadow-lg);
-      overflow: hidden;
-      animation: modalSlideUp 0.3s ease-out;
-    }
-
-    @keyframes modalSlideUp {
-      from {
-        transform: translateY(20px);
-        opacity: 0;
-      }
-
-      to {
-        transform: translateY(0);
-        opacity: 1;
-      }
-    }
-
-    .modal-header {
-      padding: 20px 24px;
-      background: var(--primary-dark);
-      color: white;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .modal-header h3 {
-      font-size: 18px;
-      font-weight: 600;
-    }
-
-    .close-modal {
-      color: white;
-      font-size: 28px;
-      font-weight: bold;
-      cursor: pointer;
-      line-height: 1;
-    }
-
-    .action-group {
-      display: flex;
-      gap: 12px;
-      align-items: center;
-    }
-
-    .action-btn {
-      background: rgba(30, 64, 175, 0.1);
-      border: 1px solid var(--border-color);
-      color: var(--primary);
-      width: 36px;
-      height: 36px;
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .action-btn:hover {
-      background: var(--primary);
-      color: white;
-      transform: translateY(-2px);
-    }
-
-    .action-btn.whatsapp:hover {
-      background: #25d366;
-      border-color: #25d366;
-    }
-
-    .modal-actions {
-      display: flex;
-      gap: 12px;
-      align-items: center;
-      margin-right: 16px;
-    }
-
-    .modal-btn {
-      background: rgba(255, 255, 255, 0.2);
-      border: none;
-      color: white;
-      width: 36px;
-      height: 36px;
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .modal-btn:hover {
-      background: rgba(255, 255, 255, 0.3);
-      transform: translateY(-2px);
-    }
-
-    .modal-btn.whatsapp:hover {
-      background: #25d366;
-    }
-
-    .modal-btn i {
-      font-size: 16px;
-    }
-
-    .modal-header-left {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .modal-body {
-      padding: 24px;
-      max-height: 70vh;
-      overflow-y: auto;
-    }
-
-    .pending-list {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .pending-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 16px;
-      background: var(--bg-color);
-      border-radius: 8px;
-      border-left: 4px solid var(--danger);
-    }
-
-    .pending-info h4 {
-      font-size: 15px;
-      color: var(--text-main);
-      margin-bottom: 4px;
-    }
-
-    .pending-info p {
-      font-size: 13px;
-      color: var(--text-muted);
-    }
-
-    .duration-badge {
-      font-size: 12px;
-      font-weight: 600;
-      background: #fee2e2;
-      color: var(--danger);
-      padding: 4px 10px;
-      border-radius: 12px;
-      white-space: nowrap;
-    }
-
-    /* Responsive */
-    @media (max-width: 768px) {
-      .header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 12px;
-        padding: 16px;
-        position: static;
-        /* Remove sticky on mobile to save space */
-      }
-
-      .header h1 {
-        font-size: 18px;
-      }
-
-      #dropdownFiltersContainer {
-        width: 100%;
-        overflow-x: auto;
-        padding-bottom: 4px;
-        -webkit-overflow-scrolling: touch;
-      }
-
-      .container {
-        padding: 12px;
-        padding-top: 20px;
-      }
-
-      .view-options-container {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 16px;
-      }
-
-      .control-group {
-        border-right: none;
-        padding-right: 0;
-        padding-bottom: 12px;
-        border-bottom: 1px solid var(--border-color);
-        width: 100%;
-        justify-content: space-between;
-      }
-
-      .control-group:last-child {
-        border-bottom: none;
-        padding-bottom: 0;
-      }
-
-      .stats-grid {
-        grid-template-columns: 1fr 1fr;
-        gap: 12px;
-      }
-
-      .stat-card {
-        padding: 16px;
-      }
-
-      .stat-card .value {
-        font-size: 20px;
-      }
-
-      .stat-card .label {
-        font-size: 11px;
-      }
-
-      .mini-table {
-        min-width: 800px;
-      }
-    }
-
-    @media (max-width: 480px) {
-      .stats-grid {
-        grid-template-columns: 1fr;
-      }
-    }
-    /* Trophy Icon & Animation */
-    .trophy-container {
-      cursor: pointer;
-      position: relative;
-      transition: transform 0.3s ease;
-      perspective: 1000px;
-    }
-
-    .trophy-container:hover {
-      transform: scale(1.1);
-    }
-
-    .trophy-icon {
-      font-size: 24px;
-      color: #fbbf24; /* Gold */
-      animation: trophy-reveal 2s infinite ease-in-out;
-      filter: drop-shadow(0 0 8px rgba(251, 191, 36, 0.4));
-    }
-
-    @keyframes trophy-reveal {
-      0% { transform: rotateY(0deg); }
-      100% { transform: rotateY(360deg); }
-    }
-
-    /* Leaderboard Modal Specifics */
-    .leaderboard-table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 15px;
-    }
-
-    .leaderboard-table th {
-      background: #f8fafc;
-      text-align: left;
-      padding: 12px;
-      font-size: 12px;
-      text-transform: uppercase;
-      color: var(--text-muted);
-      border-bottom: 2px solid var(--border-color);
-    }
-
-    .leaderboard-table td {
-      padding: 14px 12px;
-      border-bottom: 1px solid var(--border-color);
-      font-size: 14px;
-    }
-
-    .leaderboard-rank {
-      font-weight: 700;
-      width: 40px;
-      color: var(--primary);
-    }
-
-    .leaderboard-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 4px 10px;
-      border-radius: 20px;
-      font-size: 11px;
-      font-weight: 600;
-    }
-
-    .badge-overall { background: #fef3c7; color: #92400e; }
-    .badge-region { background: #dcfce7; color: #166534; }
-    .badge-division { background: #dbeafe; color: #1e40af; }
-
-    .leaderboard-section-title {
-      font-size: 13px;
-      font-weight: 700;
-      color: var(--primary-dark);
-      margin: 24px 0 12px 0;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .leaderboard-section-title::after {
-      content: '';
-      flex: 1;
-      height: 1px;
-      background: var(--border-color);
-    }
-
-    /* Tab Styles */
-    .tabs-nav {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 12px;
-      overflow-x: auto;
-      padding-bottom: 4px;
-      border-bottom: 1px solid var(--border-color);
-      scrollbar-width: thin;
-    }
-
-    .tabs-nav::-webkit-scrollbar {
-      height: 4px;
-    }
-
-    .tabs-nav::-webkit-scrollbar-thumb {
-      background: var(--border-color);
-      border-radius: 4px;
-    }
-
-    .tab-btn {
-      padding: 6px 14px;
-      border-radius: 20px 20px 0 0;
-      background: #f1f5f9;
-      color: var(--text-muted);
-      font-size: 11px;
-      font-weight: 600;
-      cursor: pointer;
-      border: 1px solid var(--border-color);
-      border-bottom: none;
-      white-space: nowrap;
-      transition: all 0.2s;
-    }
-
-    .tab-btn.active {
-      background: #fff;
-      color: var(--primary);
-      border-color: var(--primary);
-      box-shadow: 0 4px 0 #fff; /* Cover the border underneath */
-      z-index: 1;
-    }
-
-    .tab-content {
-      display: none;
-      animation: fadeIn 0.3s ease;
-    }
-
-    .tab-content.active {
-      display: block;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(5px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
+    .si-desc { max-width: 380px; white-space: normal; color: var(--mzo-text-2); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
   </style>
-  <link rel="stylesheet" href="mzo_theme.css?v=1" />
 </head>
-
 <body>
-  <header class="header">
-    <div style="display: flex; align-items: center; gap: 12px;">
-      <h1>Safety Inspection Dashboard</h1>
-      <div class="trophy-container" onclick="showLeaderboard()" title="View Inspection Leaderboard">
-        <i class="fas fa-trophy trophy-icon"></i>
+  <main class="ui-page">
+    <header class="ui-head">
+      <div>
+        <h1>Safety inspection</h1>
+        <p id="meta">Loading…</p>
       </div>
-    </div>
-    <div class="report-period" id="reportPeriodText">Report Period</div>
-    <div id="dropdownFiltersContainer" style="display: flex; gap: 12px; align-items: center;">
-      <select id="regionFilter">
-        <option value="all">Region</option>
-      </select>
-      <select id="divisionFilter" disabled>
-        <option value="all">Division</option>
-      </select>
-      <select id="cccFilter" disabled>
-        <option value="all">CCC</option>
-      </select>
-    </div>
-  </header>
+      <div class="ui-actions">
+        <div class="ui-seg" id="countBy" role="group" aria-label="Count by">
+          <button type="button" data-g="Site ID" aria-pressed="true">By site</button>
+          <button type="button" data-g="Inspection ID" aria-pressed="false">By inspection</button>
+        </div>
+        <button type="button" class="ui-btn icon" id="refreshBtn" aria-label="Refresh" title="Refresh"><svg class="ui-i"><use href="#ui-refresh"/></svg></button>
+      </div>
+    </header>
 
-  <div class="container">
-    <div id="loading" style="text-align: center; padding: 40px; color: var(--text-muted);">
-      <p>Loading data, please wait...</p>
+    <div class="ui-filters">
+      <label class="ui-search"><svg class="ui-i"><use href="#ui-search"/></svg><input class="ui-input" id="q" type="search" placeholder="Location, issue or inspector" autocomplete="off" /></label>
+      <span class="ui-select"><select id="regionFilter" aria-label="Region"><option value="">All regions</option></select></span>
+      <span class="ui-select"><select id="divisionFilter" aria-label="Division"><option value="">All divisions</option></select></span>
+      <span class="ui-select"><select id="cccFilter" aria-label="CCC"><option value="">All CCCs</option></select></span>
+      <span class="ui-select"><select id="catFilter" aria-label="Issue type"><option value="">All issue types</option></select></span>
+      <button type="button" class="ui-btn ghost" id="clearBtn" hidden><svg class="ui-i"><use href="#ui-x"/></svg>Clear</button>
     </div>
 
-    <div class="dashboard" id="dashboard" style="display: none;">
-      <div id="viewOptions" class="view-options-container">
-        <div class="control-group">
-          <span style="font-size: 14px; font-weight: 600; color: var(--text-muted); margin-right: 8px;">View:</span>
-          <label><input type="radio" name="viewMode" value="office" checked> Office</label>
-          <label><input type="radio" name="viewMode" value="weekly"> Weekly</label>
-          <label><input type="radio" name="viewMode" value="chart"> Chart</label>
-        </div>
-        <div class="control-group">
-          <span style="font-size: 14px; font-weight: 600; color: var(--text-muted); margin-right: 8px;">By:</span>
-          <label><input type="radio" name="groupBy" value="Inspection ID"> Inspection ID</label>
-          <label><input type="radio" name="groupBy" value="Site ID" checked> Site ID</label>
-        </div>
-        <div class="control-group">
-          <span style="font-size: 14px; font-weight: 600; color: var(--text-muted); margin-right: 8px;">Level:</span>
-          <label><input type="radio" name="tableLevel" value="regionalOffice" checked> Region</label>
-          <label><input type="radio" name="tableLevel" value="division"> Division</label>
-          <label><input type="radio" name="tableLevel" value="ccc"> CCC</label>
-        </div>
-      </div>
+    <section class="ui-stats" style="--n:5" id="stats" aria-label="Summary">
+      <button type="button" class="ui-stat" data-k=""><div class="k">Inspected</div><div class="v"><span class="ui-skel"></span></div><div class="s">&nbsp;</div></button>
+      <button type="button" class="ui-stat" data-k="done"><div class="k"><span class="ui-dot ok"></span>Rectified</div><div class="v"><span class="ui-skel"></span></div><div class="s">&nbsp;</div></button>
+      <button type="button" class="ui-stat" data-k="open"><div class="k"><span class="ui-dot warn"></span>Pending</div><div class="v"><span class="ui-skel"></span></div><div class="s">&nbsp;</div></button>
+      <div class="ui-stat"><div class="k">Per week</div><div class="v" id="sWeek"><span class="ui-skel"></span></div><div class="s" id="sWeekS">&nbsp;</div></div>
+      <div class="ui-stat"><div class="k">This week</div><div class="v" id="sNow"><span class="ui-skel"></span></div><div class="s" id="sNowS">&nbsp;</div></div>
+    </section>
 
-      <div class="stats-grid">
-        <div class="stat-card total-inspected">
-          <div class="label">Total Inspected</div>
-          <div class="value" id="totalInspected">0</div>
-        </div>
-        <div class="stat-card total-rectified">
-          <div class="label">Total Rectified</div>
-          <div class="value" id="totalRectified">0 <span id="totalRectifiedPercent"
-              style="font-size: 16px; color: var(--text-muted); font-weight: 500;">(0%)</span></div>
-        </div>
-        <div class="stat-card avg-inspected">
-          <div class="label">Weekly Avg</div>
-          <div class="value" id="avgInspected">0.0</div>
-        </div>
-        <div class="stat-card week-inspected">
-          <div class="label" id="currentWeekLabel">This Week</div>
-          <div class="value" id="currentWeekInspectedCard">0</div>
-        </div>
-      </div>
-
-      <div class="charts-section">
-        <div id="mainTableSection" class="dashboard-section">
-          <div id="weeklyOfficeFilterContainer" style="display: none; margin-bottom: 16px;">
-            <label style="font-weight: 600; color: var(--text-muted); margin-right: 8px;">Filter Office:</label>
-            <select id="weeklyOfficeFilter"
-              style="padding: 6px 12px; border-radius: 8px; border: 1px solid var(--border-color);"></select>
-          </div>
-          <div id="tableContainer">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-              <h2 id="tableTitle" style="margin-bottom: 0;">Status Overview</h2>
-              <div class="action-group" id="tableActionButtons" style="display: none;">
-                <button class="action-btn" onclick="downloadTableCSV()" title="Download Table CSV">
-                  <i class="fas fa-file-csv"></i>
-                </button>
-                <button class="action-btn whatsapp" onclick="shareTableWhatsApp()" title="Share Summary on WhatsApp">
-                  <i class="fab fa-whatsapp"></i>
-                </button>
-              </div>
-            </div>
-            <div class="table-responsive">
-              <table class="mini-table">
-                <thead id="officeTableHeaderContainer"></thead>
-                <tbody id="officeTableBody"></tbody>
-              </table>
-            </div>
+    <div class="ui-grid">
+      <section class="ui-panel">
+        <div class="ui-panel-h">
+          <h2>By office</h2>
+          <div class="ui-tabs" role="tablist" id="levelTabs">
+            <button type="button" class="ui-tab" role="tab" data-l="region" aria-selected="true">Region</button>
+            <button type="button" class="ui-tab" role="tab" data-l="division">Division</button>
+            <button type="button" class="ui-tab" role="tab" data-l="ccc">CCC</button>
           </div>
         </div>
-
-        <div id="chartViewContainer" class="dashboard-section chart-container" style="display: none;">
-          <h2>Timeline Analysis</h2>
-          <canvas id="timelineChart"></canvas>
-        </div>
-      </div>
+        <div id="officeTable" style="--max-h:520px"><div class="ui-empty">Loading…</div></div>
+      </section>
+      <section class="ui-panel">
+        <div class="ui-panel-h"><h2>Pending by issue</h2></div>
+        <div class="ui-panel-b"><div id="catHist"></div></div>
+      </section>
     </div>
-  </div>
 
+    <section class="ui-panel">
+      <div class="ui-panel-h"><h2>Monthly progress</h2><span class="ui-note" id="weekNote"></span></div>
+      <div class="ui-panel-b"><div id="weekChart"><div class="ui-empty">Loading…</div></div></div>
+    </section>
 
-
-  <div id="pendingModal" class="modal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <div class="modal-header-left">
-          <h3 id="modalTitle">Pending Cases</h3>
-        </div>
-        <div style="display: flex; align-items: center;">
-          <div class="modal-actions">
-            <button class="modal-btn" id="downloadCsvBtn" title="Download CSV">
-              <i class="fas fa-file-csv"></i>
-            </button>
-            <button class="modal-btn whatsapp" id="shareWhatsappBtn" title="Share on WhatsApp">
-              <i class="fab fa-whatsapp"></i>
-            </button>
-          </div>
-          <span class="close-modal" id="closeModal">&times;</span>
-        </div>
+    <section class="ui-panel">
+      <div class="ui-panel-h">
+        <h2 id="listTitle">Pending items <small id="listCount"></small></h2>
+        <button type="button" class="ui-btn sm" id="exportBtn"><svg class="ui-i"><use href="#ui-download"/></svg>Export CSV</button>
       </div>
-      <div class="modal-body">
-        <div id="pendingList" class="pending-list">
-          <!-- Pending items will be injected here -->
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div id="leaderboardModal" class="modal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <div class="modal-header-left">
-          <i class="fas fa-medal text-yellow-400 mr-2"></i>
-          <h3>Inspection Achievements</h3>
-        </div>
-        <span class="close-modal" id="closeLeaderboard">&times;</span>
-      </div>
-      <div class="modal-body">
-        <div id="leaderboardContainer">
-          <!-- Leaderboard content will be injected here -->
-        </div>
-      </div>
-    </div>
-  </div>
+      <div id="listTable"><div class="ui-empty">Loading…</div></div>
+    </section>
+  </main>
 
   <script>
-    let inspectionData = [];
-    let timelineChart;
-    let currentModalData = [];
-    let lastUpdatedDate = null;
-    let currentRegionalFilter = "all"; // NEW: Regional filter
-    let currentDivisionFilter = "all"; // NEW: Division filter
-    let currentCCCFilter = "all"; // NEW: CCC filter
-    let groupBy = 'Site ID'; // NEW: for radio buttons
-    let currentTableLevel = 'regionalOffice'; // NEW: for table aggregation level
-    let currentTableData = []; // NEW: store itemsArray for exports
-    let currentTableHeader = ''; // NEW: store headerLabel for exports
-    let sortColumn = 'total';
-    let sortDirection = 'desc';
-    let totalReportWeeks = 1; // NEW: To hold the fixed number of weeks for the entire report
+  document.addEventListener('DOMContentLoaded', function () {
+    'use strict';
+    var $ = function (id) { return document.getElementById(id); };
+    var raw = [], all = [], groupBy = 'Site ID', status = 'open', level = 'region', weeks = 1, scope = null;
 
-    // NEW: Global variables for hierarchy lookups
-    let officeDetailsMap = {};
-    let regionalOfficeToDivisionsMap = {};
-    let divisionToCCCsMap = {};
-    let dynamicOfficeHierarchy = {}; // This will hold the structured hierarchy for UI filters
+    function category(d) {
+      var s = String(d || '').toLowerCase();
+      if (s.indexOf('spacer') !== -1) return 'Spacer';
+      if (s.indexOf('lt kiosk') !== -1) return 'LT kiosk';
+      if (s.indexOf('ht 11 kv') !== -1) return 'HT 11 kV';
+      if (s.indexOf('ht 33 kv') !== -1) return 'HT 33 kV';
+      if (s.indexOf('lt') !== -1 || s.indexOf('low tension') !== -1) return 'Other LT';
+      return 'Other';
+    }
+    function monday(d) { var x = new Date(d.getFullYear(), d.getMonth(), d.getDate()); var day = x.getDay(); x.setDate(x.getDate() - day + (day === 0 ? -6 : 1)); return x; }
 
-
-
-    // NEW: The mapping string provided by the user
-    const newMappingString = `CODE	OFFICE NAME
-6610000	MALDA REGION
-1111111	MALDA DIV.
-6611000	MALDA DIVISIOIN
-6611101	MANIKCHAK CCC
-6611102	GOLAPGANJ CCC
-6611103	BAISHNABNAGAR CCC
-6611104	KALIACHAK CCC
-6611105	MOTHABARI CCC
-6611106	SUJAPUR CCC
-6611107	RATHBARI CCC
-6611108	FULBARI CCC
-6611109	MOKDUMPUR CCC
-2222222	CHANCHAL DIV.
-6612000	CHANCHAL DIVISION
-6612101	BHALUKA CCC
-6612102	SAMSI CCC
-6612103	PARANPUR CCC
-6612104	CHANCHAL CCC
-6612105	MALATIPUR CCC
-6612106	HARISHCHANDRAPUR CCC
-6612107	KUSHIDA CCC
-3333333	GAZOLE DIV.
-6613000	GAZOLE DIVISION
-6613101	GAZOL CCC
-6613102	AIHO. CCC
-6613103	PANDUA CCC
-6613104	BAMONGOLA CCC
-6613105	OLD MALDA CCC
-6620000	UTTAR DINAJPUR REGION
-4444444	RAIGANJ  DIV.
-6621000	RAIGANJ  DIVISION
-6621101	ITAHAR CCC
-6621102	HEMTABAD CCC
-6621103	KALIYAGANJ CCC
-6621104	RAIGANJ CCC
-6621105	BIRNAGAR CCC
-6621106	KARANDIGHI CCC
-5555555	ISLAMPUR DIV.
-6622000	ISLAMPUR DIVISION
-6622101	ISLAMPUR CCC
-6622102	CHOPRA CCC
-6622103	DALKHOLA CCC
-6622104	GOALPOKHER CCC
-6622105	KANKI CCC
-6630000	DAKSHIN DINAJPUR REGION
-6666666	BALURGHAT DIV.
-6631000	BALURGHAT DIVISION
-6631101	BALURGHAT CCC
-6631102	TAPAN CCC
-6631103	KUMARGANJ CCC
-6631104	HILI CCC
-6631105	PATIRAM CCC
-7777777	BUNIADPUR DIV.
-6632000	BUNIADPUR DIVISION
-6632101	BUNIADPUR CCC
-6632102	KUSMANDI CCC
-6632103	HARIRAMPUR CCC
-6632104	GANGARAMPUR CCC`;
-
-
-    // NEW: Function to build the hierarchy maps from the provided mapping string
-    function buildHierarchyMaps(mappingText) {
-      const lines = mappingText.trim().split('\n').slice(1); // Skip header
-      const parsedMapping = lines.map(line => {
-        const parts = line.split('\t');
-        return {
-          code: parts[0].trim(),
-          name: parts[1].trim()
+    function build() {
+      var seen = {};
+      all = raw.filter(function (r) { var k = r[groupBy]; if (seen[k]) return false; seen[k] = 1; return true; }).map(function (r) {
+        var m = String(r.Office || '').match(/\((\d+)\)\s*$/), code = m ? m[1] : '';
+        var o = UI.office(code);
+        var done = UI.date(r['Rectification done on']);
+        var x = {
+          office: UI.title(String(r.Office || '').replace(/\s*\(\d+\)\s*$/, '')), code: code,
+          _region: o.region, _divn: o.division, _supp: o.ccc, CCC_CODE: code,
+          location: String(r.Location || '').trim(), text: String(r.Description || '').trim(), cat: category(r.Description),
+          by: String(r['Inspection By'] || '').trim(), entered: UI.date(r['Entered on']), inspected: UI.date(r['Inspected on']),
+          doneBy: String(r['Rectification done by'] || '').trim(), doneOn: done, remarks: String(r.Remarks || '').trim(),
+          state: String(r.Status || '').trim(), site: r['Site ID'], insp: r['Inspection ID'], image: String(r.Image || '').trim()
         };
+        x.done = !!done;
+        x.days = x.done ? null : UI.days(x.entered);
+        x.search = (x.location + ' ' + x.text + ' ' + x.by + ' ' + x.office).toLowerCase();
+        return x;
       });
-
-      officeDetailsMap = {};
-      regionalOfficeToDivisionsMap = {};
-      divisionToCCCsMap = {};
-
-      // First pass: Populate officeDetailsMap with types and initial data
-      parsedMapping.forEach(item => {
-        const isRegionalOffice = item.name.endsWith(' REGION');
-        const isShortDivision = item.name.endsWith('DIV.'); // Preferred for UI and logic
-        const isLongDivision = item.name.endsWith('DIVISION') && !isRegionalOffice; // Alternative division name, map to short
-        const isCCC = item.name.endsWith('CCC');
-
-        let type;
-        if (isRegionalOffice) {
-          type = 'regionalOffice';
-        } else if (isShortDivision) {
-          type = 'division'; // Use 'division' for both short and long, but prefer short for display
-        } else if (isLongDivision) {
-          type = 'divisionLong'; // Mark as long to link later
-        } else if (isCCC) {
-          type = 'ccc';
-        } else {
-          type = 'unknown';
-        }
-
-        officeDetailsMap[item.code] = {
-          name: item.name, // The name as it appears in the mapping
-          type: type,
-          code: item.code,
-          parentCode: null, // Will populate in second pass
-          alternativeCode: null // For linking long division names to short codes
-        };
-      });
-
-      // Second pass: Establish parent relationships and link long division names to short codes
-      parsedMapping.forEach(item => {
-        const details = officeDetailsMap[item.code];
-
-        if (details.type === 'division') { // Short division names
-          // Determine parent Regional Office Code based on prefix or explicit link
-          let regionalOfficeCode = null;
-          if (item.code === '1111111' || item.code === '2222222' || item.code === '3333333') regionalOfficeCode = '6610000'; // MALDA RO
-          else if (item.code === '4444444' || item.code === '5555555') regionalOfficeCode = '6620000'; // UTTAR DINAJPUR RO
-          else if (item.code === '6666666' || item.code === '7777777') regionalOfficeCode = '6630000'; // DAKSHIN DINAJPUR RO
-
-          details.parentCode = regionalOfficeCode;
-          if (regionalOfficeCode) {
-            if (!regionalOfficeToDivisionsMap[regionalOfficeCode]) regionalOfficeToDivisionsMap[regionalOfficeCode] = [];
-            regionalOfficeToDivisionsMap[regionalOfficeCode].push(item.code);
-          }
-        } else if (details.type === 'divisionLong') {
-          // Find the corresponding short division code and link it
-          let shortDivisionCode = null;
-          if (item.code === '6611000') shortDivisionCode = '1111111'; // MALDA DIV.
-          else if (item.code === '6612000') shortDivisionCode = '2222222'; // CHANCHAL DIV.
-          else if (item.code === '6613000') shortDivisionCode = '3333333'; // GAZOLE DIV.
-          else if (item.code === '6621000') shortDivisionCode = '4444444'; // RAIGANJ DIV.
-          else if (item.code === '6622000') shortDivisionCode = '5555555'; // ISLAMPUR DIV.
-          else if (item.code === '6631000') shortDivisionCode = '6666666'; // BALURGHAT DIV.
-          else if (item.code === '6632000') shortDivisionCode = '7777777'; // BUNIADPUR DIV.
-
-          details.alternativeCode = shortDivisionCode; // Store link to the preferred short code
-        } else if (details.type === 'ccc') {
-          // Find parent Division (short form preferred)
-          let parentDivisionShortCode = null;
-          if (item.code.startsWith('66111')) parentDivisionShortCode = '1111111'; // MALDA DIV.
-          else if (item.code.startsWith('66121')) parentDivisionShortCode = '2222222'; // CHANCHAL DIV.
-          else if (item.code.startsWith('66131')) parentDivisionShortCode = '3333333'; // GAZOLE DIV.
-          else if (item.code.startsWith('66211')) parentDivisionShortCode = '4444444'; // RAIGANJ DIV.
-          else if (item.code.startsWith('66221')) parentDivisionShortCode = '5555555'; // ISLAMPUR DIV.
-          else if (item.code.startsWith('66311')) parentDivisionShortCode = '6666666'; // BALURGHAT DIV.
-          else if (item.code.startsWith('66321')) parentDivisionShortCode = '7777777'; // BUNIADPUR DIV.
-
-          details.parentCode = parentDivisionShortCode;
-          if (parentDivisionShortCode) {
-            if (!divisionToCCCsMap[parentDivisionShortCode]) divisionToCCCsMap[parentDivisionShortCode] = [];
-            divisionToCCCsMap[parentDivisionShortCode].push(item.code);
-          }
-        }
-      });
-
-      // Construct the officeHierarchy for UI filter generation
-      let constructedOfficeHierarchy = {};
-      for (const roCode in regionalOfficeToDivisionsMap) {
-        const roName = officeDetailsMap[roCode].name;
-        constructedOfficeHierarchy[roName] = {
-          divisions: {}
-        };
-        regionalOfficeToDivisionsMap[roCode].forEach(divisionCode => {
-          const divisionName = officeDetailsMap[divisionCode].name;
-          const cccNames = (divisionToCCCsMap[divisionCode] || []).map(cccCode => officeDetailsMap[cccCode].name);
-          constructedOfficeHierarchy[roName].divisions[divisionName] = cccNames;
-        });
-      }
-      return constructedOfficeHierarchy; // Return this new hierarchy
+      if (window.MzoScope) all = MzoScope.filterRows(all);
+      var dates = [];
+      all.forEach(function (x) { if (x.entered) dates.push(x.entered.getTime()); if (x.doneOn) dates.push(x.doneOn.getTime()); });
+      var lo = dates.length ? Math.min.apply(null, dates) : 0, hi = dates.length ? Math.max.apply(null, dates) : 0;
+      weeks = Math.max(1, (hi - lo) / 864e5 / 7);
+      $('meta').textContent = (lo ? UI.fmtDate(new Date(lo)) + ' – ' + UI.fmtDate(new Date(hi)) + ' · ' : '') + UI.n(all.length) + (groupBy === 'Site ID' ? ' sites' : ' inspections');
+      var cats = {}; all.forEach(function (x) { cats[x.cat] = 1; });
+      UI.fill('catFilter', Object.keys(cats).sort(), 'All issue types');
+      fillFilters();
     }
 
-
-    // Utility functions
-    function parseDate(dateStr) {
-      if (!dateStr) return null;
-      const s = String(dateStr).trim();
-      if (!s) return null;
-      const dmySlash = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
-      if (dmySlash) return new Date(+dmySlash[3], +dmySlash[2] - 1, +dmySlash[1]);
-      const dmyDash = s.match(/^(\d{1,2})-(\d{1,2})-(\d{4})/);
-      if (dmyDash) return new Date(+dmyDash[3], +dmyDash[2] - 1, +dmyDash[1]);
-      const parsed = new Date(s);
-      return isNaN(parsed.getTime()) ? null : parsed;
+    function uniq(rows, k) { var s = {}; rows.forEach(function (r) { if (r[k]) s[r[k]] = 1; }); return Object.keys(s).sort(); }
+    function fillFilters() {
+      var reg = $('regionFilter').value, div = $('divisionFilter').value;
+      UI.fill('regionFilter', uniq(all, '_region'), 'All regions');
+      var r1 = all.filter(function (r) { return !reg || r._region === reg; });
+      UI.fill('divisionFilter', uniq(r1, '_divn'), 'All divisions');
+      var r2 = r1.filter(function (r) { return !div || r._divn === div; });
+      UI.fill('cccFilter', uniq(r2, '_supp'), 'All CCCs');
+      if (!scope) scope = UI.lockScope();
+      ['regionFilter', 'divisionFilter', 'cccFilter', 'catFilter'].forEach(function (id) { UI.mark($(id)); });
     }
 
-    // NEW: Updated cleanOfficeName to also handle 'CODE NAME' format if needed from CSV 'Office' column
-    function cleanOfficeName(officeName) {
-      // This regex will remove any number of digits within parentheses at the end of the string
-      // For example: "Office Name (123)" or "Office Name (123456789)" will both become "Office Name"
-      return officeName.replace(/\s*\(\d+\)$/, '').trim();
-    }
-
-    function isWithinLastWeek(date) {
-      if (!date) return false;
-      const oneWeekAgo = new Date();
-      oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
-      return date >= oneWeekAgo;
-    }
-
-    // NEW: Helper functions for weekly view
-    function getMonday(date) {
-      const d = new Date(date);
-      const day = d.getDay();
-      const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Adjust when day is Sunday
-      return new Date(d.setDate(diff));
-    }
-
-    function getSunday(monday) {
-      const sunday = new Date(monday);
-      sunday.setDate(monday.getDate() + 6);
-      return sunday;
-    }
-
-    function getWeekKey(date) {
-      const monday = getMonday(date);
-      return monday.toISOString().split('T')[0]; // Returns YYYY-MM-DD
-    }
-
-    function formatWeekRange(monday, sunday) {
-      const formattedMonday = monday.toLocaleDateString('en-GB'); // Format: dd/mm/yyyy
-      const formattedSunday = sunday.toLocaleDateString('en-GB'); // Format: dd/mm/yyyy
-      return `${formattedMonday} to ${formattedSunday}`;
-    }
-
-    function getOfficeCountsHtml(officeStats) {
-      if (Object.keys(officeStats).length === 0) {
-        return 'No data for offices.';
-      }
-
-      const sortedOffices = Object.entries(officeStats).sort(([, a], [, b]) => b.count - a.count);
-
-      let html = '';
-      if (sortedOffices.length > 0 && sortedOffices[0][1].count > 0) {
-        const topOffice = sortedOffices[0];
-        const countDisplay = Number.isInteger(topOffice[1].count) ? topOffice[1].count : topOffice[1].count.toFixed(1);
-        html += `<div style="color: #B8860B; font-weight: bold;">⭐ ${topOffice[0]} (${countDisplay})</div>`;
-      }
-
-      // 🧹 Removed the "Lowest" display line here
-
-      return html;
-    }
-
-
-    function getCategory(description) {
-      // Ensure the description is always a string before calling toLowerCase()
-      const lowerDesc = String(description).toLowerCase();
-      if (lowerDesc.includes("spacer")) return "Spacer Issues";
-      if (lowerDesc.includes("lt kiosk")) return "LT Kiosk Issues";
-      if (lowerDesc.includes("ht 11 kv")) return "HT 11 KV Issues";
-      if (lowerDesc.includes("ht 33 kv")) return "HT 33 KV Issues";
-      if (lowerDesc.includes("lt") || lowerDesc.includes("low tension")) return "Other LT Issues";
-      return "Other Issues";
-    }
-
-    function getRegionalOfficeFromCode(code) {
-      let currentCode = code;
-      while (currentCode) {
-        const entry = officeDetailsMap[currentCode];
-        if (!entry) break;
-        if (entry.type === 'regionalOffice') return entry.name;
-        if (entry.type === 'divisionLong' && entry.alternativeCode) {
-          currentCode = entry.alternativeCode;
-        } else {
-          currentCode = entry.parentCode;
-        }
-      }
-      return null;
-    }
-
-    function getDivisionFromCode(code) {
-      let currentCode = code;
-      while (currentCode) {
-        const entry = officeDetailsMap[currentCode];
-        if (!entry) break;
-        if (entry.type === 'division') return entry.name;
-        if (entry.type === 'divisionLong' && entry.alternativeCode) {
-          currentCode = entry.alternativeCode;
-        } else {
-          currentCode = entry.parentCode;
-        }
-      }
-      return null;
-    }
-
-    function extractOfficeCode(officeRaw) {
-      const match = officeRaw.match(/\((\d+)\)$/); // Extract digits inside last parentheses
-      return match ? match[1] : null;
-    }
-
-    // Load and process data
-    async function loadData() {
-      // Build the new hierarchy first
-      dynamicOfficeHierarchy = buildHierarchyMaps(newMappingString);
-      console.log("Dynamically constructed hierarchy:", dynamicOfficeHierarchy); // For debugging
-
-
-      const SAFETY_CSV_URL = 'https://docs.google.com/spreadsheets/d/1A2fjKboWKnw10iaOs1wcXDrdg9jhhDGfzF9OagPjA5s/gviz/tq?tqx=out:csv';
-
-      function parseSafetyRows(data) {
-        if (!data) return [];
-        if (typeof data === 'string') {
-          return Papa.parse(data.trim(), { header: true, skipEmptyLines: true }).data;
-        }
-        return Array.isArray(data) ? data : [];
-      }
-
-      try {
-        let jsonData = [];
-        if (typeof mzoDataHub !== 'undefined') {
-          jsonData = parseSafetyRows(await mzoDataHub.get('CACHE_SAFETY_v2'));
-        }
-
-        if (!jsonData.length) {
-          console.log("Downloading Safety Inspection data from Google Sheet...");
-          const response = await fetch(SAFETY_CSV_URL);
-          jsonData = parseSafetyRows(await response.text());
-        } else {
-          console.log("Successfully fetched Safety Inspection from DataHub.");
-        }
-
-        // Filter for unique entries based on the selected grouping
-        const uniqueKeys = new Set();
-        const uniqueJsonData = jsonData.filter(row => {
-          const key = row[groupBy];
-          if (!uniqueKeys.has(key)) {
-            uniqueKeys.add(key);
-            return true;
-          }
-          return false;
-        });
-
-        inspectionData = uniqueJsonData.map(row => {
-          const officeCode = extractOfficeCode(row.Office || '');
-          const officeMeta = officeDetailsMap[officeCode] || { name: row.Office, type: 'unknown' };
-          const officeNameForDisplay = officeMeta.name || cleanOfficeName(row.Office || '');
-
-          let cccName = null;
-          let divisionName = null;
-          let regionName = null;
-
-          if (officeMeta.type === 'ccc') {
-            cccName = officeNameForDisplay;
-            const divisionCode = officeMeta.parentCode;
-            if (divisionCode) {
-              divisionName = officeDetailsMap[divisionCode]?.name;
-              const regionalCode = officeDetailsMap[divisionCode]?.parentCode;
-              if (regionalCode) {
-                regionName = officeDetailsMap[regionalCode]?.name;
-              }
-            }
-          } else if (officeMeta.type === 'division' || officeMeta.type === 'divisionLong') {
-            const shortDivisionCode = officeMeta.type === 'divisionLong' ? officeMeta.alternativeCode : officeCode;
-            divisionName = officeDetailsMap[shortDivisionCode]?.name || officeNameForDisplay;
-            const regionalCode = officeDetailsMap[shortDivisionCode]?.parentCode;
-            if (regionalCode) {
-              regionName = officeDetailsMap[regionalCode]?.name;
-            }
-          } else if (officeMeta.type === 'regionalOffice') {
-            regionName = officeNameForDisplay;
-          }
-
-          return {
-            officeCode: officeCode,
-            office: officeNameForDisplay, // The name of the inspecting office (CCC or Division)
-            ccc: cccName,
-            division: divisionName,
-            regionalOffice: regionName,
-            location: row.Location || '',
-            description: row.Description || '',
-            category: getCategory(row.Description || ''),
-            rectificationDoneBy: row['Rectification done by'] || '',
-            rectificationDoneOn: parseDate(row['Rectification done on']),
-            remarks: row.Remarks || '',
-            status: row.Status || '',
-            inspectionBy: row['Inspection By'] || '',
-            enteredOn: parseDate(row['Entered on']),
-            updatedOn: parseDate(row['Updated on']),
-            isRectified: row['Rectification done on'] && String(row['Rectification done on']).trim() !== ''
-          };
-        });
-
-        // NEW: Calculate total weeks for the entire report period
-        const allDatesForWeeks = inspectionData.flatMap(item => [item.enteredOn, item.rectificationDoneOn]).filter(Boolean);
-        if (allDatesForWeeks.length > 1) {
-          const earliestDate = new Date(Math.min(...allDatesForWeeks.map(d => d.getTime())));
-          const latestDate = new Date(Math.max(...allDatesForWeeks.map(d => d.getTime()))); // Use latest date from data
-          const timeDiff = latestDate.getTime() - earliestDate.getTime();
-          const daysDiff = Math.max(1, timeDiff / (1000 * 3600 * 24));
-          totalReportWeeks = Math.max(1, daysDiff / 7);
-
-          const reportPeriodElement = document.getElementById('reportPeriodText');
-          if (reportPeriodElement) {
-            const formattedStartDate = earliestDate.toLocaleDateString('en-GB');
-            const formattedEndDate = latestDate.toLocaleDateString('en-GB');
-            reportPeriodElement.textContent = `Report from ${formattedStartDate} to ${formattedEndDate}`;
-          }
-        }
-
-        processData();
-        setupDropdownFilters();
-        setupViewOptionsListener();
-
-        document.getElementById('loading').style.display = 'none';
-        document.getElementById('dashboard').style.display = 'block';
-        // showNotStartedModal();
-      } catch (error) {
-        console.error('Error loading data:', error);
-        document.getElementById('loading').innerHTML = '<p>Error loading data. Please try again later.</p>';
-      }
-    }
-
-    function setupViewOptionsListener() {
-      document.querySelectorAll('input[name="groupBy"]').forEach(radio => {
-        radio.addEventListener('change', (event) => {
-          groupBy = event.target.value;
-          loadData(); // Reload and re-process data with new grouping
-        });
-      });
-      document.querySelectorAll('input[name="viewMode"]').forEach(radio => {
-        radio.addEventListener('change', () => {
-          processData();
-        });
-      });
-      document.querySelectorAll('input[name="tableLevel"]').forEach(radio => {
-        radio.addEventListener('change', (event) => {
-          currentTableLevel = event.target.value;
-          processData();
-        });
+    function base() {
+      var q = $('q').value.trim().toLowerCase(), reg = $('regionFilter').value, div = $('divisionFilter').value, ccc = $('cccFilter').value, cat = $('catFilter').value;
+      return all.filter(function (r) {
+        return (!reg || r._region === reg) && (!div || r._divn === div) && (!ccc || r._supp === ccc) && (!cat || r.cat === cat) && (!q || r.search.indexOf(q) !== -1);
       });
     }
+    var STATUS = { '': function () { return true; }, done: function (r) { return r.done; }, open: function (r) { return !r.done; } };
 
-    function setupDropdownFilters() {
-      const regionFilter = document.getElementById('regionFilter');
-      const divisionFilter = document.getElementById('divisionFilter');
-      const cccFilter = document.getElementById('cccFilter');
-
-      // Populate Regions
-      let regionOptions = '<option value="all">All Regions</option>';
-      Object.keys(dynamicOfficeHierarchy).sort().forEach(regionName => {
-        regionOptions += `<option value="${regionName}">${regionName}</option>`;
+    function render() {
+      var b = base(), view = b.filter(STATUS[status]);
+      var thisMon = monday(new Date()), nextMon = new Date(thisMon.getTime() + 7 * 864e5);
+      [].forEach.call(document.querySelectorAll('#stats button.ui-stat'), function (el) {
+        var k = el.getAttribute('data-k'), c = b.filter(STATUS[k]).length;
+        el.querySelector('.v').textContent = UI.n(c);
+        el.querySelector('.s').textContent = k === 'done' ? UI.pct(c, b.length) + ' complete' : k === 'open' ? UI.pct(c, b.length) + ' still open' : (groupBy === 'Site ID' ? 'Unique sites' : 'All inspections');
+        el.setAttribute('aria-pressed', String(status === k));
       });
-      regionFilter.innerHTML = regionOptions;
+      var nowN = b.filter(function (r) { return r.entered && r.entered >= thisMon && r.entered < nextMon; }).length;
+      $('sWeek').textContent = (b.length / weeks).toFixed(1);
+      $('sWeekS').textContent = 'inspected · ' + (b.filter(STATUS.done).length / weeks).toFixed(1) + ' rectified';
+      $('sNow').textContent = UI.n(nowN);
+      $('sNowS').textContent = 'from ' + UI.fmtDate(thisMon);
 
-      // Region Change Event
-      regionFilter.addEventListener('change', (event) => {
-        currentRegionalFilter = event.target.value;
-        currentDivisionFilter = "all"; // Reset division
-        currentCCCFilter = "all"; // Reset CCC
-
-        // Populate Divisions
-        let divisionOptions = '<option value="all">All Divisions</option>';
-        if (currentRegionalFilter !== 'all') {
-          const divisions = dynamicOfficeHierarchy[currentRegionalFilter]?.divisions || {};
-          Object.keys(divisions).sort().forEach(divName => {
-            divisionOptions += `<option value="${divName}">${divName}</option>`;
-          });
-        }
-        divisionFilter.innerHTML = divisionOptions;
-        cccFilter.innerHTML = '<option value="all">All CCCs</option>'; // Reset CCC dropdown
-        divisionFilter.disabled = (currentRegionalFilter === 'all');
-        cccFilter.disabled = true;
-
-        processData();
+      // Offices
+      var key = level === 'region' ? '_region' : level === 'division' ? '_divn' : '_supp', g = {};
+      b.forEach(function (r) {
+        var name = r[key] || 'Unmapped';
+        var x = g[name] || (g[name] = { name: name, parent: level === 'ccc' ? r._divn : level === 'division' ? r._region : '', n: 0, done: 0, week: 0, last: null });
+        x.n++; if (r.done) x.done++;
+        if (r.entered) { if (r.entered >= thisMon && r.entered < nextMon) x.week++; if (!x.last || r.entered > x.last) x.last = r.entered; }
       });
-
-      // Division Change Event
-      divisionFilter.addEventListener('change', (event) => {
-        currentDivisionFilter = event.target.value;
-        currentCCCFilter = "all"; // Reset CCC
-
-        // Populate CCCs
-        let cccOptions = '<option value="all">All CCCs</option>';
-        if (currentDivisionFilter !== 'all') {
-          const divisionCode = Object.keys(officeDetailsMap).find(code => officeDetailsMap[code].name === currentDivisionFilter);
-          const cccCodes = divisionToCCCsMap[divisionCode] || [];
-          cccCodes.map(code => officeDetailsMap[code].name).sort().forEach(cccName => {
-            cccOptions += `<option value="${cccName}">${cccName}</option>`;
-          });
-        }
-        cccFilter.innerHTML = cccOptions;
-        cccFilter.disabled = (currentDivisionFilter === 'all');
-
-        processData();
+      var list = Object.keys(g).map(function (k) { var x = g[k]; x.open = x.n - x.done; x.perWk = x.n / weeks; return x; });
+      var tot = { n: b.length, done: b.filter(STATUS.done).length, week: nowN };
+      tot.open = tot.n - tot.done;
+      UI.table('officeTable', {
+        rows: list, sort: { key: 'open', dir: 'desc' }, count: false, empty: 'No inspections for these filters.',
+        columns: [
+          { key: 'name', label: { region: 'Region', division: 'Division', ccc: 'CCC' }[level], fmt: function (v, x) { return '<span class="ui-strong">' + UI.esc(v) + '</span>' + (x.parent ? '<span class="sub">' + UI.esc(x.parent) + '</span>' : ''); } },
+          { key: 'n', label: 'Inspected', num: true, fmt: UI.n },
+          { key: 'open', label: 'Pending', num: true, fmt: UI.n },
+          { key: 'rate', label: 'Rectified', sortVal: function (x) { return x.n ? x.done / x.n : 0; }, fmt: function (_, x) { return UI.bar(x.done, x.n, UI.pct(x.done, x.n, 0)); }, width: '24%' },
+          { key: 'week', label: 'This week', num: true, fmt: UI.n, hideSm: true },
+          { key: 'perWk', label: 'Per week', num: true, fmt: function (v) { return v.toFixed(1); }, hideSm: true },
+          { key: 'last', label: 'Last inspection', num: true, hideSm: true, sortVal: function (x) { return x.last ? x.last.getTime() : 0; }, fmt: function (v) { return v ? UI.fmtDate(v) : '—'; } }
+        ],
+        foot: list.length > 1 ? { n: tot.n, open: tot.open, done: tot.done, rate: 0, week: tot.week, perWk: tot.n / weeks, last: null } : null,
+        onRow: function (x) { drill(x.name); }
       });
 
-      // CCC Change Event
-      cccFilter.addEventListener('change', (event) => {
-        currentCCCFilter = event.target.value;
-        processData();
+      var cats = {};
+      b.filter(STATUS.open).forEach(function (r) { cats[r.cat] = (cats[r.cat] || 0) + 1; });
+      UI.hist('catHist', Object.keys(cats).sort(function (a, c) { return cats[c] - cats[a]; }).map(function (k) { return { key: k, label: k, value: cats[k] }; }),
+        { active: $('catFilter').value, onClick: function (row) { $('catFilter').value = $('catFilter').value === row.key ? '' : row.key; UI.mark($('catFilter')); render(); } });
+
+      // Monthly: inspected (by entry date) and rectified (by rectification date), whole span
+      var w = {}, mk = function (d) { return d.getFullYear() * 100 + d.getMonth() + 1; };
+      b.forEach(function (r) {
+        if (r.entered) { var k1 = mk(r.entered); (w[k1] || (w[k1] = { i: 0, r: 0 })).i++; }
+        if (r.doneOn) { var k2 = mk(r.doneOn); (w[k2] || (w[k2] = { i: 0, r: 0 })).r++; }
+      });
+      var present = Object.keys(w).map(Number).sort(function (a, c) { return a - c; }), keys = [];
+      if (present.length) for (var k = present[0]; k <= present[present.length - 1]; k = k % 100 === 12 ? k + 89 : k + 1) { keys.push(k); if (!w[k]) w[k] = { i: 0, r: 0 }; }
+      var MN = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      var narrow = ($('weekChart').clientWidth || 900) < 560;
+      var lab = keys.map(function (k) { return MN[k % 100 - 1] + (narrow ? '' : ' ' + String(Math.floor(k / 100)).slice(2)); });
+      $('weekNote').textContent = keys.length ? keys.length + ' months' : '';
+      UI.line('weekChart', {
+        labels: narrow ? lab.map(function (l, i) { return i % 2 ? '' : l; }) : lab,
+        series: [{ label: 'Rectified', values: keys.map(function (k) { return w[k].r; }) }, { label: 'Inspected', values: keys.map(function (k) { return w[k].i; }), strong: true }],
+        fmt: UI.n, axis: function (v) { return UI.n(v); }, title: 'Monthly progress'
       });
 
-
-      // Initial state
-      divisionFilter.innerHTML = '<option value="all">All Divisions</option>';
-      divisionFilter.disabled = true;
-      cccFilter.innerHTML = '<option value="all">All CCCs</option>';
-      cccFilter.disabled = true;
+      $('listTitle').firstChild.textContent = (status === 'open' ? 'Pending items ' : status === 'done' ? 'Rectified items ' : 'All items ');
+      $('listCount').textContent = UI.n(view.length);
+      UI.table('listTable', { rows: view, sort: status === 'done' ? { key: 'doneOn', dir: 'desc' } : { key: 'days', dir: 'desc' }, limit: 50, resetPage: true, empty: 'Nothing here.', columns: status === 'open' ? COLS.slice(0, 6) : COLS, onRow: detail });
+      window.__view = view;
+      $('clearBtn').hidden = !($('q').value || $('catFilter').value || status !== 'open' || ['regionFilter', 'divisionFilter', 'cccFilter'].some(function (id) { return $(id).value && !$(id).disabled; }));
     }
 
-
-
-    function processData() {
-      let filteredData = inspectionData;
-      // NEW: Apply regional filter
-      if (currentRegionalFilter !== "all") {
-        filteredData = filteredData.filter(item => item.regionalOffice === currentRegionalFilter);
-      }
-
-      // NEW: Apply division filter
-      if (currentDivisionFilter !== "all") {
-        filteredData = filteredData.filter(item => item.division === currentDivisionFilter);
-      }
-
-      // NEW: Apply CCC filter
-      if (currentCCCFilter !== "all") {
-        filteredData = filteredData.filter(item => item.ccc === currentCCCFilter);
-      }
-
-      const totalInspected = filteredData.length;
-      const totalRectified = filteredData.filter(item => item.isRectified).length;
-      const totalPending = totalInspected - totalRectified;
-      const totalRectifiedPercent = totalInspected > 0 ? Math.round((totalRectified / totalInspected) * 100) : 0;
-
-      // NEW: Current Week Calculations
-      const today = new Date();
-      const lastMonday = getMonday(today);
-      const thisSunday = getSunday(lastMonday);
-      const currentWeekInspectedCount = filteredData.filter(item => {
-        return item.enteredOn >= lastMonday && item.enteredOn <= thisSunday;
-      }).length;
-
-      const avgInspected = (totalInspected / totalReportWeeks).toFixed(1);
-
-      // Update stat cards
-      document.getElementById('totalInspected').textContent = totalInspected;
-      document.getElementById('totalRectified').childNodes[0].nodeValue = `${totalRectified} `;
-      document.getElementById('totalRectifiedPercent').textContent = `(${totalRectifiedPercent}%)`;
-      document.getElementById('avgInspected').textContent = avgInspected;
-      document.getElementById('currentWeekInspectedCard').textContent = currentWeekInspectedCount;
-
-      // Update Current Week Card Label with date range
-      const formattedMonday = lastMonday.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit' });
-      const formattedSunday = thisSunday.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit' });
-      document.getElementById('currentWeekLabel').textContent = `Current Week (${formattedMonday} to ${formattedSunday})`;
-
-      // Update charts
-      updateMainTable(filteredData, totalReportWeeks);
-      createTimelineChart(filteredData);
-    }
-
-    function updateMainTable(data, weeks = 1) {
-      const tableHeaderContainer = document.getElementById('officeTableHeaderContainer');
-      const tableBody = document.getElementById('officeTableBody');
-      const tableTitle = document.getElementById('tableTitle');
-      const tableContainer = document.getElementById('tableContainer');
-      const chartContainer = document.getElementById('chartViewContainer');
-      let tableHtml = '';
-      const selectedView = document.querySelector('input[name="viewMode"]:checked').value;
-
-      // NEW: Toggle view based on checkboxes
-      tableContainer.style.display = 'block';
-      chartContainer.style.display = 'none';
-
-      if (selectedView === 'chart') {
-        tableContainer.style.display = 'none';
-        chartContainer.style.display = 'block';
-      }
-
-      // --- Aggregated Views ---
-      const stats = {};
-      let aggregationKey = currentTableLevel;
-      let headerLabel = currentTableLevel === 'regionalOffice' ? 'Region' : (currentTableLevel === 'division' ? 'Division' : 'CCC');
-
-      // Update title based on aggregation and filters
-      if (currentTableLevel === 'regionalOffice') {
-        tableTitle.textContent = 'Region-Wise Status';
-      } else if (currentTableLevel === 'division') {
-        tableTitle.textContent = currentRegionalFilter === 'all' ? 'All Divisions Status' : `Divisions in ${currentRegionalFilter}`;
-      } else {
-        tableTitle.textContent = currentDivisionFilter === 'all' ? 'All CCCs Status' : `CCCs in ${currentDivisionFilter}`;
-      }
-
-      // Handle weekly view separately
-      if (selectedView === 'weekly') {
-        tableTitle.textContent = 'Weekly Progress';
-
-        const weeklyStats = {};
-
-        data.forEach(item => {
-          // Process inspections based on 'enteredOn' date
-          if (item.enteredOn) {
-            const weekKey = getWeekKey(item.enteredOn);
-            if (!weeklyStats[weekKey]) {
-              const monday = getMonday(item.enteredOn);
-              const sunday = getSunday(monday);
-              weeklyStats[weekKey] = { monday, sunday, weekRange: formatWeekRange(monday, sunday), inspected: 0, rectified: 0 };
-            }
-            weeklyStats[weekKey].inspected++;
-          }
-          // Process rectifications based on 'rectificationDoneOn' date
-          if (item.isRectified && item.rectificationDoneOn) {
-            const weekKey = getWeekKey(item.rectificationDoneOn);
-            if (!weeklyStats[weekKey]) {
-              // If a week only has rectifications, it should still be in the list, but with 0 inspections.
-              const monday = getMonday(item.rectificationDoneOn);
-              const sunday = getSunday(monday);
-              weeklyStats[weekKey] = { monday, sunday, weekRange: formatWeekRange(monday, sunday), inspected: 0, rectified: 0 };
-            }
-            weeklyStats[weekKey].rectified++;
-          }
-        });
-
-        let weeklyArray = Object.entries(weeklyStats)
-          .map(([key, stats]) => ({
-            weekKey: key,
-            ...stats
-          }))
-          .sort((a, b) => a.monday.getTime() - b.monday.getTime()); // Sort oldest to newest for calculation
-
-        // Calculate cumulative pending
-        let cumulativeInspected = 0;
-        let cumulativeRectified = 0;
-        weeklyArray = weeklyArray.map(week => {
-          cumulativeInspected += week.inspected;
-          cumulativeRectified += week.rectified;
-          return {
-            ...week,
-            pending: cumulativeInspected - cumulativeRectified
-          };
-        });
-
-        // Sort back to latest week first for display
-        weeklyArray.sort((a, b) => b.monday.getTime() - a.monday.getTime());
-
-        tableHeaderContainer.innerHTML = `
-          <tr>
-            <th>#</th>
-            <th>Week</th>
-            <th class="sortable-header">Inspected</th>
-            <th class="sortable-header">Rectified</th>
-            <th class="sortable-header">Pending</th>
-          </tr>
-        `;
-
-        const totalWeeks = weeklyArray.length;
-        weeklyArray.forEach((week, index) => {
-          tableHtml += `
-            <tr>
-              <td>Week ${totalWeeks - index}</td>
-              <td>${week.weekRange}</td> 
-              <td>${week.inspected}</td>
-              <td>${week.rectified}</td>
-              <td>${week.pending}</td>
-            </tr>
-          `;
-        });
-        tableBody.innerHTML = tableHtml;
-        return; // Exit early for weekly view
-      }
-
-      // Regular aggregated views (CCC, Division, Region)
-      data.forEach(item => { // Use the filtered data directly
-        const key = item[aggregationKey];
-        // If the key (e.g., region, division) is missing for an item, we'll group it under "Uncategorized"
-        // This ensures it's still counted in the grand total.
-        const effectiveKey = key || 'Uncategorized';
-
-        if (!stats[effectiveKey]) {
-          stats[effectiveKey] = {
-            total: 0,
-            rectified: 0,
-            weekInspected: 0,
-            weekRectified: 0,
-            currentWeekInspected: 0, // Add this for the new column
-            lastInspectionDate: null
-          };
-        }
-        stats[effectiveKey].total++;
-        if (item.isRectified) stats[effectiveKey].rectified++;
-        if (isWithinLastWeek(item.enteredOn)) stats[effectiveKey].weekInspected++;
-        if (item.isRectified && isWithinLastWeek(item.rectificationDoneOn)) stats[effectiveKey].weekRectified++;
-        if (item.enteredOn) {
-          // Calculate current week inspections for the table
-          const today = new Date();
-          const lastMonday = getMonday(today);
-          const thisSunday = getSunday(lastMonday);
-          if (item.enteredOn >= lastMonday && item.enteredOn <= thisSunday) { // Corrected logic
-            stats[effectiveKey].currentWeekInspected++;
-          }
-          if (!stats[effectiveKey].lastInspectionDate || item.enteredOn > stats[effectiveKey].lastInspectionDate) {
-            stats[effectiveKey].lastInspectionDate = item.enteredOn;
-          }
-        }
-      });
-
-      tableHeaderContainer.innerHTML = `
-         <tr>
-            <th class="sortable-header" onclick="setSort('name')">#</th>
-            <th class="sortable-header" onclick="setSort('name')">${headerLabel}</th>
-            <th class="sortable-header" onclick="setSort('currentWeekInspected')">This Week</th>
-            <th class="sortable-header" onclick="setSort('lastInspectionDate')">Last Inspection</th>
-            <th class="sortable-header" onclick="setSort('total')">Total${getSortIcon('total')}</th>
-            <th class="sortable-header" onclick="setSort('rectified')">Rectified${getSortIcon('rectified')}</th>
-            <th class="sortable-header" onclick="setSort('pending')">Pending${getSortIcon('pending')}</th>
-            <th class="sortable-header" onclick="setSort('percentage')">% Complete${getSortIcon('percentage')}</th>
-            <th class="sortable-header" style="text-align:center;" onclick="setSort('avgInspected')">Insp/Wk${getSortIcon('avgInspected')}</th>
-            <th class="sortable-header" style="text-align:center;" onclick="setSort('avgRectified')">Rect/Wk${getSortIcon('avgRectified')}</th>
-         </tr>
-     `;
-
-      const itemsArray = Object.entries(stats).map(([name, s]) => {
-        const pending = s.total - s.rectified;
-        const percentage = s.total > 0 ? Math.round((s.rectified / s.total) * 100) : 0;
-        const avgInspected = parseFloat((s.total / weeks).toFixed(1));
-        const avgRectified = parseFloat((s.rectified / weeks).toFixed(1));
-        return {
-          name,
-          ...s,
-          pending,
-          percentage,
-          avgInspected,
-          avgRectified
-        };
-      });
-
-      itemsArray.sort((a, b) => {
-        let valA = a[sortColumn];
-        let valB = b[sortColumn];
-
-        // Handle nulls for dates: always at the bottom
-        if (sortColumn === 'lastInspectionDate') {
-          if (valA === null && valB === null) return 0;
-          if (valA === null) return 1;
-          if (valB === null) return -1;
-        }
-
-        // Handle different data types
-        if (valA instanceof Date) {
-          valA = valA.getTime();
-          valB = valB.getTime();
-        } else if (typeof valA === 'string') {
-          valA = valA.toLowerCase();
-          valB = valB.toLowerCase();
-        }
-
-        let comparison = 0;
-        if (valA > valB) {
-          comparison = 1;
-        } else if (valA < valB) {
-          comparison = -1;
-        }
-
-        return sortDirection === 'desc' ? comparison * -1 : comparison;
-      });
-
-      // NEW: Save for exports
-      currentTableData = itemsArray;
-      currentTableHeader = headerLabel;
-      document.getElementById('tableActionButtons').style.display = 'flex';
-
-      // NEW: Calculate totals for the footer row
-      const grandTotalInspected = itemsArray.reduce((sum, item) => sum + item.total, 0);
-      const grandTotalRectified = itemsArray.reduce((sum, item) => sum + item.rectified, 0);
-      const grandTotalPending = grandTotalInspected - grandTotalRectified;
-      const grandTotalPercentage = grandTotalInspected > 0 ? Math.round((grandTotalRectified / grandTotalInspected) * 100) : 0;
-      const grandTotalThisWeek = itemsArray.reduce((sum, item) => sum + item.currentWeekInspected, 0);
-      const grandTotalAvgInspected = (grandTotalInspected / weeks).toFixed(1);
-      const grandTotalAvgRectified = (grandTotalRectified / weeks).toFixed(1);
-
-      // NEW: Create the total row HTML
-      const totalRowHtml = `
-        <tr style="background-color: #e3f2fd; font-weight: bold; border-top: 2px solid #90caf9;">
-            <td></td>
-            <td>Grand Total</td> <!-- Corresponds to headerLabel -->
-            <td>${grandTotalThisWeek}</td>
-            <td></td> <!-- Corresponds to Last Inspection -->
-            <td>${grandTotalInspected}</td>
-            <td>${grandTotalRectified}</td>
-            <td>${grandTotalPending}</td>
-            <td>${grandTotalPercentage}%</td>
-            <td style="text-align:center;">${grandTotalAvgInspected}</td>
-            <td style="text-align:center;">${grandTotalAvgRectified}</td>
-        </tr>
-      `;
-
-      itemsArray
-        .filter(item => item.name !== 'Uncategorized')
-        .forEach((item, index) => {
-          const lastInspectionFormatted = item.lastInspectionDate ? item.lastInspectionDate.toLocaleDateString('en-GB') : 'N/A';
-          tableHtml += `
-            <tr class="clickable-row" onclick="handleRowClick('${item.name}', '${aggregationKey}')">
-                <td>${index + 1}</td>
-                <td>${item.name}</td>
-                <td>${item.currentWeekInspected}</td>
-                <td>${lastInspectionFormatted}</td>
-                 <td style="font-weight: bold;">${item.total}</td>
-                 <td>${item.rectified}</td>
-                <td>${item.pending}</td>
-                <td>${item.percentage}%</td>
-                 <td style="text-align:center;">${item.avgInspected.toFixed(1)}</td>
-                 <td style="text-align:center;">${item.avgRectified.toFixed(1)}</td>
-             </tr>
-        `;
-        });
-      tableBody.innerHTML = tableHtml + totalRowHtml; // Add total row at the end
-    }
-
-    function formatPendingDuration(startDate) {
-      if (!startDate) return 'N/A';
-      const now = new Date();
-      const diffTime = Math.abs(now - startDate);
-      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-
-      const months = Math.floor(diffDays / 30);
-      const weeks = Math.floor((diffDays % 30) / 7);
-      const days = diffDays % 7;
-
-      const isMobile = window.innerWidth <= 768;
-      let parts = [];
-      if (months > 0) parts.push(isMobile ? `${months} m` : `${months} month${months > 1 ? 's' : ''}`);
-      if (weeks > 0) parts.push(isMobile ? `${weeks} w` : `${weeks} week${weeks > 1 ? 's' : ''}`);
-      if (days > 0 || parts.length === 0) parts.push(isMobile ? `${days} d` : `${days} day${days !== 1 ? 's' : ''}`);
-
-      return parts.join(', ') + ' ago';
-    }
-
-    function handleRowClick(name, key) {
-      const modal = document.getElementById('pendingModal');
-      const modalTitle = document.getElementById('modalTitle');
-      const pendingList = document.getElementById('pendingList');
-
-      // Filter pending cases for this entity
-      const pendingCases = inspectionData.filter(item => {
-        const isEntityMatch = item[key] === name;
-        const isPending = !item.isRectified && !String(item.status).toUpperCase().startsWith('RECTIFIED');
-        return isEntityMatch && isPending;
-      });
-
-      // Sort cases by enteredOn date (earliest to latest)
-      pendingCases.sort((a, b) => {
-        if (!a.enteredOn) return 1;
-        if (!b.enteredOn) return -1;
-        return a.enteredOn - b.enteredOn;
-      });
-
-      modalTitle.textContent = `Pending Cases: ${name} (${pendingCases.length})`;
-      pendingList.innerHTML = '';
-
-      if (pendingCases.length === 0) {
-        pendingList.innerHTML = '<p style="text-align: center; color: var(--text-muted); padding: 20px;">No pending cases found for this selection.</p>';
-      } else {
-        pendingCases.forEach(item => {
-          const duration = formatPendingDuration(item.enteredOn);
-          const div = document.createElement('div');
-          div.className = 'pending-item';
-          div.innerHTML = `
-            <div class="pending-info">
-              <h4>${item.location || 'Unknown Location'}</h4>
-              <p>${item.description || 'No description provided'}</p>
-              <p style="margin-top: 4px; font-size: 11px; color: var(--primary); font-weight: 500;">
-                <i class="fas fa-user-check me-1"></i> Inspected By: ${item.inspectionBy || 'N/A'}
-              </p>
-              <p style="margin-top: 4px; font-size: 12px; font-style: italic;">Entered on: ${item.enteredOn ? item.enteredOn.toLocaleDateString('en-GB') : 'N/A'}</p>
-            </div>
-            <div class="duration-badge">${duration}</div>
-          `;
-          pendingList.appendChild(div);
-        });
-      }
-
-      modal.style.display = 'block';
-
-      // Setup actions
-      document.getElementById('downloadCsvBtn').onclick = () => downloadPendingCSV(name, pendingCases);
-      document.getElementById('shareWhatsappBtn').onclick = () => sharePendingWhatsApp(name, pendingCases);
-
-      // Close modal on button click
-      document.getElementById('closeModal').onclick = () => modal.style.display = 'none';
-
-      // Close modal on outside click
-      window.onclick = (event) => {
-        if (event.target == modal) modal.style.display = 'none';
-      };
-    }
-
-    function createTimelineChart(data) {
-      if (timelineChart) timelineChart.destroy();
-
-      const monthlyData = {};
-
-      data.forEach(item => {
-        const monthYearEntered = item.enteredOn ? `${item.enteredOn.getFullYear()}-${(item.enteredOn.getMonth() + 1).toString().padStart(2, '0')}` : null;
-        const monthYearRectified = item.rectificationDoneOn ? `${item.rectificationDoneOn.getFullYear()}-${(item.rectificationDoneOn.getMonth() + 1).toString().padStart(2, '0')}` : null;
-
-        if (monthYearEntered) {
-          if (!monthlyData[monthYearEntered]) {
-            monthlyData[monthYearEntered] = {
-              inspected: 0,
-              rectified: 0
-            };
-          }
-          monthlyData[monthYearEntered].inspected++;
-        }
-
-        if (monthYearRectified) {
-          if (!monthlyData[monthYearRectified]) {
-            monthlyData[monthYearRectified] = {
-              inspected: 0,
-              rectified: 0
-            };
-          }
-          monthlyData[monthYearRectified].rectified++;
-        }
-      });
-
-      const sortedMonths = Object.keys(monthlyData).sort();
-      const labels = sortedMonths.map(my => {
-        const [year, month] = my.split('-');
-        return new Date(year, month - 1, 1).toLocaleDateString('en-US', {
-          month: 'short',
-          year: '2-digit'
-        });
-      });
-      const inspectedCounts = sortedMonths.map(month => monthlyData[month].inspected);
-      const rectifiedCounts = sortedMonths.map(month => monthlyData[month].rectified);
-
-      const canvas = document.getElementById('timelineChart');
-      // Ensure canvas itself doesn't have conflicting height from previous renders
-      canvas.removeAttribute('style');
-      const ctx = canvas.getContext('2d');
-
-      timelineChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-          labels: labels,
-          datasets: [{
-            label: 'Inspected',
-            data: inspectedCounts,
-            borderColor: '#4CAF50',
-            backgroundColor: 'rgba(76, 175, 80, 0.2)',
-            fill: true,
-            tension: 0.3
-          }, {
-            label: 'Rectified',
-            data: rectifiedCounts,
-            borderColor: '#2196F3',
-            backgroundColor: 'rgba(33, 150, 243, 0.2)',
-            fill: true,
-            tension: 0.3
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          scales: {
-            y: {
-              beginAtZero: true
-            }
-          }
-        }
-      });
-
-    }
-
-
-    // Initialize
-    loadData();
-
-    function setSort(column) {
-      if (sortColumn === column) {
-        sortDirection = sortDirection === 'desc' ? 'asc' : 'desc';
-      } else {
-        sortColumn = column;
-        sortDirection = 'desc';
-      }
-      processData();
-    }
-
-    function getSortIcon(column) {
-      if (sortColumn === column) {
-        return sortDirection === 'desc' ? ' <span style="font-size: 10px;">▼</span>' : ' <span style="font-size: 10px;">▲</span>';
-      }
-      return '';
-    }
-
-    function downloadPendingCSV(name, data) {
-      if (!data || data.length === 0) return;
-
-      const headers = ['Location', 'Description', 'Inspection By', 'Entered On', 'Age'];
-      const rows = data.map(item => {
-        const loc = String(item.location || '').replace(/"/g, '""');
-        const desc = String(item.description || '').replace(/"/g, '""');
-        const inspector = String(item.inspectionBy || '').replace(/"/g, '""');
-        const date = item.enteredOn ? item.enteredOn.toLocaleDateString('en-GB') : 'N/A';
-        const age = formatPendingDuration(item.enteredOn);
-        return [`"${loc}"`, `"${desc}"`, `"${inspector}"`, date, age];
-      });
-
-      const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-      const link = document.createElement('a');
-      const url = URL.createObjectURL(blob);
-
-      link.setAttribute('href', url);
-      link.setAttribute('download', `pending_cases_${String(name).replace(/\s+/g, '_').toLowerCase()}.csv`);
-      link.style.visibility = 'hidden';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    }
-
-    function sharePendingWhatsApp(name, data) {
-      if (!data || data.length === 0) return;
-
-      let message = `*Pending Safety Cases: ${name}*\n\n`;
-      data.forEach((item, index) => {
-        const date = item.enteredOn ? item.enteredOn.toLocaleDateString('en-GB') : 'N/A';
-        const loc = String(item.location || 'Unknown Location');
-        const desc = String(item.description || 'No description provided');
-        const inspector = String(item.inspectionBy || 'N/A');
-        const age = formatPendingDuration(item.enteredOn);
-        message += `${index + 1}. *${loc}*\n   _${desc}_\n   *Inspected By:* ${inspector}\n   (Entered: ${date}, ${age})\n\n`;
-      });
-
-      const encodedMessage = encodeURIComponent(message);
-      window.open(`https://wa.me/?text=${encodedMessage}`, '_blank');
-    }
-
-    function downloadTableCSV() {
-      if (!currentTableData || currentTableData.length === 0) return;
-
-      const headers = [currentTableHeader, 'This Week', 'Total', 'Rectified', 'Pending', '% Complete', 'Insp/Wk', 'Rect/Wk'];
-      const rows = currentTableData.map(item => [
-        `"${String(item.name || '').replace(/"/g, '""')}"`,
-        item.currentWeekInspected,
-        item.total,
-        item.rectified,
-        item.pending,
-        `${item.percentage}%`,
-        item.avgInspected,
-        item.avgRectified
+    var COLS = [
+      { key: 'location', label: 'Location', fmt: function (v, r) { return '<span class="ui-strong">' + UI.esc(v || '—') + '</span><span class="sub">' + UI.esc(r.cat) + '</span>'; } },
+      { key: 'text', label: 'Issue', hideSm: true, fmt: function (v) { return '<div class="si-desc">' + UI.esc(v || '—') + '</div>'; } },
+      { key: 'office', label: 'Office', fmt: function (v, r) { return UI.esc(r._supp || v) + '<span class="sub">' + UI.esc(r._divn || r._region) + '</span>'; } },
+      { key: 'by', label: 'Inspected by', hideSm: true },
+      { key: 'entered', label: 'Entered', num: true, hideSm: true, sortVal: function (r) { return r.entered ? r.entered.getTime() : 0; }, fmt: function (v) { return v ? UI.fmtDate(v) : '—'; }, csv: function (r) { return r.entered ? UI.fmtDate(r.entered) : ''; } },
+      { key: 'days', label: 'Status', num: true, sortVal: function (r) { return r.done ? -1 : (r.days || 0); }, fmt: function (v, r) { return r.done ? '<span class="ui-badge ok">Rectified</span>' : '<span class="ui-badge ' + (v >= 30 ? 'bad' : 'warn') + '">' + UI.age(v) + '</span>'; }, csv: function (r) { return r.done ? 'Rectified' : 'Pending ' + r.days + ' days'; } },
+      { key: 'doneOn', label: 'Rectified on', num: true, hideSm: true, sortVal: function (r) { return r.doneOn ? r.doneOn.getTime() : 0; }, fmt: function (v) { return v ? UI.fmtDate(v) : '—'; }, csv: function (r) { return r.doneOn ? UI.fmtDate(r.doneOn) : ''; } }
+    ];
+
+    function detail(r) {
+      UI.drawer(r.location || 'Inspection', [r._supp || r.office, r._divn].filter(Boolean).join(' · '), [
+        ['Status', r.done ? 'Rectified' : 'Pending for ' + UI.age(r.days)], ['Issue', r.text], ['Issue type', r.cat],
+        ['Inspected by', r.by], ['Inspected on', r.inspected ? UI.fmtDate(r.inspected) : ''], ['Entered on', r.entered ? UI.fmtDate(r.entered) : ''],
+        ['Rectified by', r.doneBy], ['Rectified on', r.doneOn ? UI.fmtDate(r.doneOn) : ''], ['Remarks', r.remarks], ['App status', r.state],
+        ['Site ID', r.site], ['Inspection ID', r.insp], ['Photo', r.image], ['Office', r.office]
       ]);
-
-      const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-      const link = document.createElement('a');
-      const url = URL.createObjectURL(blob);
-
-      link.setAttribute('href', url);
-      link.setAttribute('download', `safety_status_${currentTableHeader.toLowerCase()}.csv`);
-      link.style.visibility = 'hidden';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
     }
 
-    function shareTableWhatsApp() {
-      if (!currentTableData || currentTableData.length === 0) return;
+    function drill(name) {
+      if (level === 'region') { if ($('regionFilter').disabled) return; $('regionFilter').value = name; $('divisionFilter').value = ''; $('cccFilter').value = ''; level = 'division'; }
+      else if (level === 'division') { if ($('divisionFilter').disabled) return; $('divisionFilter').value = name; $('cccFilter').value = ''; level = 'ccc'; }
+      else { if ($('cccFilter').disabled) return; $('cccFilter').value = $('cccFilter').value === name ? '' : name; }
+      fillFilters(); setLevel(level);
+    }
+    function setLevel(l) {
+      level = l;
+      [].forEach.call(document.querySelectorAll('#levelTabs .ui-tab'), function (t) { t.setAttribute('aria-selected', String(t.getAttribute('data-l') === l)); });
+      render();
+    }
 
-      let message = `*Safety Inspection Summary (${currentTableHeader})*\n\n`;
-      const top3 = [...currentTableData]
-        .filter(i => i.name !== 'Uncategorized')
-        .sort((a, b) => b.total - a.total)
-        .slice(0, 5);
-
-      top3.forEach((item, index) => {
-        message += `${index + 1}. *${item.name}*\n   Inspected: ${item.total}, Rectified: ${item.rectified}, Pending: ${item.pending} (${item.percentage}%)\n\n`;
+    ['regionFilter', 'divisionFilter', 'cccFilter'].forEach(function (id) {
+      $(id).addEventListener('change', function () {
+        if (id === 'regionFilter') { $('divisionFilter').value = ''; $('cccFilter').value = ''; }
+        if (id === 'divisionFilter') $('cccFilter').value = '';
+        fillFilters(); render();
       });
+    });
+    $('catFilter').addEventListener('change', function () { UI.mark(this); render(); });
+    $('q').addEventListener('input', UI.debounce(render, 160));
+    $('stats').addEventListener('click', function (e) { var s = e.target.closest('button.ui-stat'); if (s) { status = s.getAttribute('data-k'); render(); } });
+    $('levelTabs').addEventListener('click', function (e) { var t = e.target.closest('.ui-tab'); if (t) setLevel(t.getAttribute('data-l')); });
+    $('countBy').addEventListener('click', function (e) {
+      var bt = e.target.closest('button'); if (!bt) return;
+      groupBy = bt.getAttribute('data-g');
+      [].forEach.call(this.querySelectorAll('button'), function (x) { x.setAttribute('aria-pressed', String(x === bt)); });
+      build(); render();
+    });
+    $('clearBtn').addEventListener('click', function () {
+      $('q').value = ''; $('catFilter').value = ''; status = 'open';
+      ['regionFilter', 'divisionFilter', 'cccFilter'].forEach(function (id) { if (!$(id).disabled) $(id).value = ''; });
+      fillFilters(); setLevel('region');
+    });
+    $('exportBtn').addEventListener('click', function () {
+      UI.exportCsv('safety-inspection.csv', [{ key: 'location', label: 'Location' }, { key: 'text', label: 'Issue' }, { key: 'cat', label: 'Issue type' }, { key: '_region', label: 'Region' }, { key: '_divn', label: 'Division' }, { key: 'office', label: 'Office' }, { key: 'by', label: 'Inspected by' }]
+        .concat(COLS.slice(4)).concat([{ key: 'doneBy', label: 'Rectified by' }, { key: 'remarks', label: 'Remarks' }]), window.__view || []);
+    });
+    $('refreshBtn').addEventListener('click', function () {
+      var bt = this; bt.classList.add('spin');
+      Promise.resolve(window.mzoDataHub.waitForDataset('CACHE_SAFETY_v2', { forceCheck: true })).catch(function () {})
+        .then(function () { return window.mzoDataHub._peek('CACHE_SAFETY_v2'); }).then(function (t) { if (t) { raw = UI.csv(t); build(); render(); } })
+        .then(function () { bt.classList.remove('spin'); });
+    });
 
-      const grandTotal = currentTableData.reduce((acc, i) => acc + i.total, 0);
-      const grandRectified = currentTableData.reduce((acc, i) => acc + i.rectified, 0);
-      const grandPercent = grandTotal > 0 ? Math.round((grandRectified / grandTotal) * 100) : 0;
-
-      message += `*Total System Summary*\nInspected: ${grandTotal}\nRectified: ${grandRectified}\nPending: ${grandTotal - grandRectified}\nCompletion: ${grandPercent}%`;
-
-      const encodedMessage = encodeURIComponent(message);
-      window.open(`https://wa.me/?text=${encodedMessage}`, '_blank');
-    }
-
-    function showLeaderboard() {
-      const modal = document.getElementById('leaderboardModal');
-      const container = document.getElementById('leaderboardContainer');
-      const closeBtn = document.getElementById('closeLeaderboard');
-
-      // Aggregate data
-      const overallStats = {};
-      const regionStats = {};
-      const divisionStats = {};
-
-      inspectionData.forEach(item => {
-        const name = item.inspectionBy;
-        // Clean office name: remove leading digits and spaces
-        const rawOffice = item.office || 'Unknown';
-        const office = rawOffice.replace(/^\d+\s+/, '');
-        
-        if (!name || name === 'N/A') return;
-
-        const key = `${name}|${office}`;
-        
-        // Overall
-        overallStats[key] = (overallStats[key] || 0) + 1;
-
-        // By Region
-        if (item.regionalOffice) {
-          const region = item.regionalOffice.replace(/^\d+\s+/, '');
-          if (!regionStats[region]) regionStats[region] = {};
-          regionStats[region][key] = (regionStats[region][key] || 0) + 1;
-        }
-
-        // By Division
-        if (item.division) {
-          const division = item.division.replace(/^\d+\s+/, '');
-          if (!divisionStats[division]) divisionStats[division] = {};
-          divisionStats[division][key] = (divisionStats[division][key] || 0) + 1;
-        }
-      });
-
-      const getTop = (statsObj) => {
-        return Object.entries(statsObj)
-          .map(([key, count]) => {
-            const [name, office] = key.split('|');
-            return { name, office, count };
-          })
-          .sort((a, b) => b.count - a.count)
-          .slice(0, 3);
-      };
-
-      let html = '';
-
-      // Overall Section
-      const topOverall = getTop(overallStats);
-      html += `<div class="leaderboard-section-title"><i class="fas fa-globe"></i> Overall Highest</div>`;
-      html += renderLeaderboardTable(topOverall, 'badge-overall');
-
-      // Region Section
-      html += `<div class="leaderboard-section-title"><i class="fas fa-map-marker-alt"></i> Region-wise Highest</div>`;
-      html += renderTabbedLeaderboard(regionStats, 'region-tab', 'badge-region');
-
-      // Division Section
-      html += `<div class="leaderboard-section-title"><i class="fas fa-sitemap"></i> Division-wise Highest</div>`;
-      html += renderTabbedLeaderboard(divisionStats, 'division-tab', 'badge-division');
-
-      container.innerHTML = html;
-      modal.style.display = 'block';
-
-      closeBtn.onclick = () => modal.style.display = 'none';
-      window.onclick = (event) => {
-        if (event.target == modal) modal.style.display = 'none';
-      };
-    }
-
-    function renderTabbedLeaderboard(groupedStats, prefix, badgeClass) {
-      const units = Object.keys(groupedStats).sort();
-      if (units.length === 0) return '<p class="text-xs text-slate-400 p-2">No data recorded.</p>';
-
-      let navHtml = `<div class="tabs-nav">`;
-      let contentHtml = '';
-
-      units.forEach((unit, idx) => {
-        const isActive = idx === 0 ? 'active' : '';
-        const tabId = `${prefix}-${idx}`;
-        navHtml += `<div class="tab-btn ${isActive}" onclick="switchLeaderboardTab(event, '${tabId}')">${unit}</div>`;
-        
-        const top3 = Object.entries(groupedStats[unit])
-          .map(([key, count]) => {
-            const [name, office] = key.split('|');
-            return { name, office, count };
-          })
-          .sort((a, b) => b.count - a.count)
-          .slice(0, 3);
-
-        contentHtml += `
-          <div id="${tabId}" class="tab-content ${isActive}">
-            ${renderLeaderboardTable(top3, badgeClass)}
-          </div>
-        `;
-      });
-
-      navHtml += `</div>`;
-      return navHtml + contentHtml;
-    }
-
-    function switchLeaderboardTab(event, tabId) {
-      const nav = event.target.parentElement;
-      const section = nav.parentElement;
-      
-      // Update buttons in this nav only
-      nav.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-      event.target.classList.add('active');
-      
-      // Update content in this section only
-      const prefix = tabId.split('-')[0];
-      section.querySelectorAll('.tab-content').forEach(content => {
-        if (content.id.startsWith(prefix)) {
-          content.classList.remove('active');
-        }
-      });
-      document.getElementById(tabId).classList.add('active');
-    }
-
-    function renderLeaderboardTable(data, badgeClass) {
-      if (data.length === 0) return '<p class="text-xs text-slate-400 p-2">No achievements recorded yet.</p>';
-      
-      return `
-        <table class="leaderboard-table">
-          <thead>
-            <tr>
-              <th class="w-12">Rank</th>
-              <th>Inspector</th>
-              <th>Office</th>
-              <th class="text-right">Inspections</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${data.map((item, idx) => `
-              <tr>
-                <td class="leaderboard-rank">#${idx + 1}</td>
-                <td class="font-bold text-slate-700">${item.name}</td>
-                <td class="text-xs text-slate-500">${item.office}</td>
-                <td class="text-right font-bold text-blue-600">${item.count}</td>
-              </tr>
-            `).join('')}
-          </tbody>
-        </table>
-      `;
-    }
+    UI.load('CACHE_SAFETY_v2', function (text, info) {
+      if (!text) { if (info && info.error) { $('meta').textContent = 'Could not load data'; $('listTable').innerHTML = $('officeTable').innerHTML = '<div class="ui-empty">Could not load data.</div>'; } return; }
+      raw = UI.csv(text); build(); render();
+    });
+  });
   </script>
 </body>
-
 </html>

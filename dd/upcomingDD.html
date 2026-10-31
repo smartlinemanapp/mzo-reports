@@ -1,1857 +1,296 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html lang="en" class="ui">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>Upcoming DD Consumers - MZO Reports</title>
-
-  <!-- Google Fonts & FontAwesome -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-
-  <!-- PapaParse & Chart.js -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
-
-  <!-- MZO Scope & Presentation -->
-  <script src="../mzo_present.js" defer></script>
-  <script src="../mzo_scope.js"></script>
-
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Upcoming DD · MZO Reports</title>
+  <script src="/mzo_theme.js?v=3"></script>
+  <link rel="stylesheet" href="/mzo_theme.css?v=3" />
+  <script src="/mzo_ui.js?v=2" defer></script>
+  <script src="/mzo_scope.js?v=5" defer></script>
   <style>
-    :root {
-      --primary-color: #2563eb;
-      --primary-hover: #1d4ed8;
-      --bg-dark: #0f172a;
-      --card-bg-dark: #1e293b;
-      --border-dark: rgba(255, 255, 255, 0.1);
-      --text-primary: #f8fafc;
-      --text-secondary: #94a3b8;
-      --accent-gold: #f59e0b;
-      --success-color: #10b981;
-      --danger-color: #ef4444;
-      --warning-color: #f59e0b;
-      --info-color: #06b6d4;
-      --purple-color: #8b5cf6;
-
-      --bg-light: #f8fafc;
-      --card-bg-light: #ffffff;
-      --border-light: #e2e8f0;
-      --text-primary-light: #0f172a;
-      --text-secondary-light: #64748b;
-    }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    body {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-      background-color: var(--bg-dark);
-      color: var(--text-primary);
-      line-height: 1.5;
-      min-height: 100vh;
-      padding-bottom: calc(88px + env(safe-area-inset-bottom, 0px));
-      transition: background-color 0.2s ease, color 0.2s ease;
-    }
-
-    body.light-theme {
-      background-color: var(--bg-light);
-      color: var(--text-primary-light);
-    }
-
-    /* Header */
-    .header {
-      background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-      color: white;
-      padding: 12px 18px;
-      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      border-bottom: 1px solid var(--border-dark);
-    }
-
-    body.light-theme .header {
-      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-    }
-
-    .header-inner {
-      max-width: 1440px;
-      margin: 0 auto;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 10px;
-    }
-
-    .header-title-box h1 {
-      font-size: 1.25rem;
-      font-weight: 800;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      background: linear-gradient(to right, #60a5fa, #a855f7);
-      -webkit-background-clip: text;
-      background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-
-    .header-title-box p {
-      font-size: 0.75rem;
-      color: var(--text-secondary);
-      margin-top: 2px;
-    }
-
-    .header-badges {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-      flex-wrap: wrap;
-    }
-
-    .sync-badge,
-    .date-badge,
-    .osd-badge {
-      background: rgba(255, 255, 255, 0.12);
-      padding: 4px 10px;
-      border-radius: 20px;
-      font-size: 0.75rem;
-      font-weight: 600;
-      backdrop-filter: blur(4px);
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .sync-badge { color: #38bdf8; }
-    .date-badge { color: #fbbf24; }
-    .osd-badge { color: #4ade80; }
-
-    /* Layout Container */
-    .container {
-      max-width: 1440px;
-      margin: 0 auto;
-      padding: 14px 16px 40px;
-    }
-
-    /* KPI Grid Cards */
-    .kpi-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
-      gap: 10px;
-      margin-bottom: 14px;
-    }
-
-    .kpi-card {
-      background: var(--card-bg-dark);
-      border-radius: 12px;
-      padding: 10px 14px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-      border: 1px solid var(--border-dark);
-      border-left: 4px solid var(--primary-color);
-      cursor: pointer;
-      transition: all 0.2s ease;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-    }
-
-    body.light-theme .kpi-card {
-      background: var(--card-bg-light);
-      border-color: var(--border-light);
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-    }
-
-    .kpi-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
-    }
-
-    .kpi-card.active-kpi {
-      outline: 2px solid var(--primary-color);
-      background: rgba(37, 99, 235, 0.15);
-    }
-
-    body.light-theme .kpi-card.active-kpi {
-      background: #eff6ff;
-    }
-
-    .kpi-card h4 {
-      font-size: 0.72rem;
-      color: var(--text-secondary);
-      text-transform: uppercase;
-      font-weight: 700;
-      letter-spacing: 0.5px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      margin-bottom: 4px;
-    }
-
-    .kpi-card .value {
-      font-size: 1.35rem;
-      font-weight: 800;
-      color: var(--text-primary);
-    }
-
-    body.light-theme .kpi-card .value {
-      color: var(--text-primary-light);
-    }
-
-    .kpi-card .kpi-sub {
-      font-size: 0.72rem;
-      color: var(--text-secondary);
-      margin-top: 2px;
-      font-weight: 600;
-    }
-
-    .kpi-master { border-left-color: #3b82f6; }
-    .kpi-red { border-left-color: #ef4444; }
-    .kpi-amber { border-left-color: #f59e0b; }
-    .kpi-teal { border-left-color: #06b6d4; }
-    .kpi-blue { border-left-color: #2563eb; }
-    .kpi-purple { border-left-color: #8b5cf6; }
-    .kpi-green { border-left-color: #10b981; }
-
-    /* Control Panel */
-    .control-panel {
-      background: var(--card-bg-dark);
-      border-radius: 12px;
-      padding: 12px 14px;
-      margin-bottom: 14px;
-      border: 1px solid var(--border-dark);
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
-    }
-
-    body.light-theme .control-panel {
-      background: var(--card-bg-light);
-      border-color: var(--border-light);
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
-    }
-
-    .filter-header {
-      font-size: 0.82rem;
-      font-weight: 700;
-      color: var(--text-secondary);
-      margin-bottom: 10px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .filter-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-      gap: 8px;
-    }
-
-    .filter-group {
-      display: flex;
-      flex-direction: column;
-      gap: 3px;
-    }
-
-    .filter-group label {
-      font-size: 0.7rem;
-      font-weight: 700;
-      color: var(--text-secondary);
-      text-transform: uppercase;
-    }
-
-    .filter-group select,
-    .filter-group input {
-      padding: 6px 10px;
-      border: 1px solid var(--border-dark);
-      border-radius: 6px;
-      font-size: 0.8rem;
-      background-color: rgba(15, 23, 42, 0.6);
-      color: var(--text-primary);
-      outline: none;
-      transition: border-color 0.15s;
-    }
-
-    body.light-theme .filter-group select,
-    body.light-theme .filter-group input {
-      background-color: #ffffff;
-      border-color: var(--border-light);
-      color: var(--text-primary-light);
-    }
-
-    .filter-group select:focus,
-    .filter-group input:focus {
-      border-color: var(--primary-color);
-    }
-
-    .btn-small {
-      padding: 5px 12px;
-      font-size: 0.75rem;
-      font-weight: 600;
-      border-radius: 6px;
-      border: 1px solid var(--border-dark);
-      color: var(--text-primary);
-      background: rgba(255, 255, 255, 0.08);
-      cursor: pointer;
-      transition: all 0.15s;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    body.light-theme .btn-small {
-      background: #f1f5f9;
-      border-color: var(--border-light);
-      color: var(--text-primary-light);
-    }
-
-    .btn-small:hover {
-      background: var(--primary-color);
-      color: white;
-      border-color: var(--primary-color);
-    }
-
-    .btn-success {
-      border-color: var(--success-color);
-      color: var(--success-color);
-    }
-
-    .btn-success:hover {
-      background: var(--success-color);
-      color: white;
-    }
-
-    /* View Switcher Tabs */
-    .view-tabs {
-      display: flex;
-      gap: 6px;
-      margin-bottom: 12px;
-      border-bottom: 2px solid var(--border-dark);
-      padding-bottom: 4px;
-      overflow-x: auto;
-    }
-
-    body.light-theme .view-tabs {
-      border-bottom-color: var(--border-light);
-    }
-
-    .view-tab {
-      padding: 8px 16px;
-      font-size: 0.8rem;
-      font-weight: 700;
-      color: var(--text-secondary);
-      cursor: pointer;
-      border-radius: 8px 8px 0 0;
-      transition: all 0.2s;
-      white-space: nowrap;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .view-tab:hover {
-      color: var(--primary-color);
-      background: rgba(37, 99, 235, 0.1);
-    }
-
-    .view-tab.active {
-      color: #60a5fa;
-      border-bottom: 3px solid #3b82f6;
-      background: rgba(59, 130, 246, 0.15);
-    }
-
-    body.light-theme .view-tab.active {
-      color: var(--primary-color);
-      background: #eff6ff;
-    }
-
-    /* Content Panes */
-    .tab-pane {
-      display: none;
-    }
-
-    .tab-pane.active {
-      display: block;
-    }
-
-    /* Table Container */
-    .table-container {
-      background: var(--card-bg-dark);
-      border-radius: 12px;
-      border: 1px solid var(--border-dark);
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-      overflow-x: auto;
-      max-height: calc(100vh - 300px);
-    }
-
-    body.light-theme .table-container {
-      background: var(--card-bg-light);
-      border-color: var(--border-light);
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      text-align: left;
-      font-size: 0.8rem;
-    }
-
-    th {
-      background: rgba(15, 23, 42, 0.95);
-      padding: 9px 10px;
-      font-weight: 700;
-      color: #94a3b8;
-      position: sticky;
-      top: 0;
-      z-index: 10;
-      border-bottom: 1px solid var(--border-dark);
-      white-space: nowrap;
-      cursor: pointer;
-      user-select: none;
-    }
-
-    body.light-theme th {
-      background: #f1f5f9;
-      color: #334155;
-      border-bottom-color: var(--border-light);
-    }
-
-    th:hover {
-      color: var(--primary-color);
-    }
-
-    td {
-      padding: 7px 10px;
-      border-bottom: 1px solid var(--border-dark);
-      vertical-align: middle;
-    }
-
-    body.light-theme td {
-      border-bottom-color: var(--border-light);
-    }
-
-    tr:hover {
-      background-color: rgba(255, 255, 255, 0.04);
-    }
-
-    body.light-theme tr:hover {
-      background-color: #f8fafc;
-    }
-
-    /* Status Badges */
-    .badge {
-      display: inline-block;
-      padding: 3px 8px;
-      border-radius: 12px;
-      font-size: 0.7rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.3px;
-    }
-
-    .badge-overdue { background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4); }
-    .badge-today { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4); }
-    .badge-7d { background: rgba(6, 182, 212, 0.2); color: #22d3ee; border: 1px solid rgba(6, 182, 212, 0.4); }
-    .badge-15d { background: rgba(37, 99, 235, 0.2); color: #60a5fa; border: 1px solid rgba(37, 99, 235, 0.4); }
-    .badge-30d { background: rgba(139, 92, 246, 0.2); color: #c084fc; border: 1px solid rgba(139, 92, 246, 0.4); }
-    .badge-cleared { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); }
-
-    /* Action Buttons inside Table */
-    .action-btn-group {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .action-icon-btn {
-      width: 28px;
-      height: 28px;
-      border-radius: 6px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      text-decoration: none;
-      font-size: 0.75rem;
-      transition: transform 0.15s, opacity 0.15s;
-    }
-
-    .action-icon-btn:hover {
-      transform: scale(1.1);
-      opacity: 0.9;
-    }
-
-    .btn-call { background: #10b981; }
-    .btn-whatsapp { background: #25d366; }
-    .btn-detail { background: #3b82f6; }
-
-    /* Pagination */
-    .pagination-bar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 10px 14px;
-      background: var(--card-bg-dark);
-      border-top: 1px solid var(--border-dark);
-      border-radius: 0 0 12px 12px;
-      font-size: 0.78rem;
-    }
-
-    body.light-theme .pagination-bar {
-      background: var(--card-bg-light);
-      border-top-color: var(--border-light);
-    }
-
-    /* Charts Layout */
-    .charts-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-      gap: 14px;
-    }
-
-    .chart-card {
-      background: var(--card-bg-dark);
-      border-radius: 12px;
-      padding: 14px;
-      border: 1px solid var(--border-dark);
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-    }
-
-    body.light-theme .chart-card {
-      background: var(--card-bg-light);
-      border-color: var(--border-light);
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
-    }
-
-    .chart-card h3 {
-      font-size: 0.85rem;
-      font-weight: 700;
-      color: var(--text-secondary);
-      margin-bottom: 10px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .chart-wrapper {
-      position: relative;
-      height: 260px;
-      width: 100%;
-    }
-
-    /* Modal Overlay & Details */
-    .modal {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(15, 23, 42, 0.75);
-      backdrop-filter: blur(5px);
-      z-index: 1000;
-      align-items: center;
-      justify-content: center;
-      padding: 16px;
-    }
-
-    .modal.open {
-      display: flex;
-    }
-
-    .modal-content {
-      background: var(--card-bg-dark);
-      border-radius: 14px;
-      width: 100%;
-      max-width: 620px;
-      max-height: 90vh;
-      display: flex;
-      flex-direction: column;
-      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-      border: 1px solid var(--border-dark);
-      overflow: hidden;
-    }
-
-    body.light-theme .modal-content {
-      background: var(--card-bg-light);
-      border-color: var(--border-light);
-    }
-
-    .modal-header {
-      padding: 14px 18px;
-      background: rgba(15, 23, 42, 0.6);
-      border-bottom: 1px solid var(--border-dark);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    body.light-theme .modal-header {
-      background: #f8fafc;
-      border-bottom-color: var(--border-light);
-    }
-
-    .modal-header h3 {
-      font-size: 1rem;
-      font-weight: 700;
-    }
-
-    .modal-body {
-      padding: 16px 18px;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-    }
-
-    .consumer-summary-box {
-      background: rgba(30, 41, 59, 0.7);
-      border-left: 4px solid var(--primary-color);
-      padding: 12px 14px;
-      border-radius: 8px;
-      font-size: 0.8rem;
-    }
-
-    body.light-theme .consumer-summary-box {
-      background: #f1f5f9;
-    }
-
-    .consumer-grid-details {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 8px;
-      font-size: 0.78rem;
-      margin-top: 6px;
-    }
-
-    .timeline-container {
-      max-height: 200px;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .timeline-card {
-      background: rgba(15, 23, 42, 0.6);
-      border: 1px solid var(--border-dark);
-      border-left: 4px solid var(--primary-color);
-      border-radius: 8px;
-      padding: 8px 12px;
-      font-size: 0.78rem;
-    }
-
-    body.light-theme .timeline-card {
-      background: #f8fafc;
-      border-color: var(--border-light);
-    }
-
-    /* Loading Overlay */
-    .loading-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(15, 23, 42, 0.8);
-      backdrop-filter: blur(4px);
-      z-index: 2000;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      font-weight: 600;
-    }
-
-    .spinner {
-      border: 4px solid rgba(255, 255, 255, 0.1);
-      width: 44px;
-      height: 44px;
-      border-radius: 50%;
-      border-left-color: #38bdf8;
-      animation: spin 0.8s linear indefinite;
-      margin-bottom: 12px;
-    }
-
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-
-    @media (max-width: 768px) {
-      .container { padding: 10px 8px 24px; }
-      .kpi-grid { grid-template-columns: repeat(2, 1fr); gap: 6px; }
-      .filter-grid { grid-template-columns: repeat(2, 1fr); }
-      .table-container { max-height: calc(100vh - 260px); }
-      th, td { padding: 6px 6px; font-size: 10px; }
-    }
+    .dd-notes { padding: 4px 20px 24px; }
+    .dd-notes h4 { margin: 8px 0 10px; font-size: 13px; font-weight: 600; }
+    .dd-notes form { display: grid; gap: 8px; margin-bottom: 14px; }
+    .dd-notes .row2 { display: grid; grid-template-columns: 140px minmax(0, 1fr); gap: 8px; }
+    .dd-notes select, .dd-notes input, .dd-notes textarea { width: 100%; }
+    .dd-notes textarea { height: 64px; padding: 8px 10px; resize: vertical; }
+    .dd-notes .ui-input { padding: 0 10px; }
+    .dd-note { padding: 10px 0; border-top: 1px solid var(--mzo-border); font-size: 13px; }
+    .dd-note .h { display: flex; justify-content: space-between; gap: 8px; font-weight: 500; }
+    .dd-note .h span { color: var(--mzo-muted); font-weight: 400; font-size: 12px; white-space: nowrap; }
+    .dd-note p { margin: 3px 0 0; color: var(--mzo-text-2); }
   </style>
 </head>
-
 <body>
+  <main class="ui-page">
+    <header class="ui-head">
+      <div>
+        <h1>Upcoming DD</h1>
+        <p id="meta">Loading…</p>
+      </div>
+      <div class="ui-actions">
+        <button type="button" class="ui-btn icon" id="refreshBtn" aria-label="Refresh" title="Refresh"><svg class="ui-i"><use href="#ui-refresh"/></svg></button>
+      </div>
+    </header>
 
-  <!-- Loading Overlay -->
-  <div class="loading-overlay" id="loadingOverlay">
-    <div style="text-align: center;">
-      <div class="spinner"></div>
-      <div>Loading Upcoming DD Dataset...</div>
-    </div>
-  </div>
-
-  <!-- Header -->
-  <header class="header">
-    <div class="header-inner">
-      <div class="header-title-box">
-        <h1><i class="fas fa-bolt"></i> Upcoming DD Consumers Dashboard</h1>
-        <p id="dateRangeSubtitle">Fetching latest disconnection & due date schedules...</p>
-      </div>
-      <div class="header-badges">
-        <div class="sync-badge" id="syncBadge"><i class="fas fa-sync-alt fa-spin"></i> Syncing...</div>
-        <div class="date-badge" id="dateBadge"><i class="far fa-calendar-alt"></i> Range: --</div>
-        <div class="osd-badge" id="osdBadge"><i class="fas fa-rupee-sign"></i> Total OSD: --</div>
-      </div>
-    </div>
-  </header>
-
-  <div class="container">
-
-    <!-- KPI Summary Grid (Interactive Click Filters) -->
-    <div class="kpi-grid">
-      <div class="kpi-card kpi-master" id="kpiCardAll" onclick="filterByKpiBucket('ALL')">
-        <h4><i class="fas fa-users"></i> Total Upcoming DD</h4>
-        <div class="value" id="kpiValTotal">0</div>
-        <div class="kpi-sub" id="kpiSubTotal">₹ 0 OSD</div>
-      </div>
-      <div class="kpi-card kpi-red" id="kpiCardOverdue" onclick="filterByKpiBucket('OVERDUE')">
-        <h4><i class="fas fa-exclamation-triangle"></i> Already Overdue</h4>
-        <div class="value" id="kpiValOverdue">0</div>
-        <div class="kpi-sub" id="kpiSubOverdue">Passed 180 Days</div>
-      </div>
-      <div class="kpi-card kpi-amber" id="kpiCardToday" onclick="filterByKpiBucket('TODAY')">
-        <h4><i class="fas fa-calendar-day"></i> Due Today</h4>
-        <div class="value" id="kpiValToday">0</div>
-        <div class="kpi-sub" id="kpiSubToday">180th Day Today</div>
-      </div>
-      <div class="kpi-card kpi-teal" id="kpiCard7D" onclick="filterByKpiBucket('7D')">
-        <h4><i class="fas fa-clock"></i> Due in 7 Days</h4>
-        <div class="value" id="kpiVal7D">0</div>
-        <div class="kpi-sub" id="kpiSub7D">Next 1 to 7 Days</div>
-      </div>
-      <div class="kpi-card kpi-blue" id="kpiCard15D" onclick="filterByKpiBucket('15D')">
-        <h4><i class="fas fa-calendar-alt"></i> Due in 15 Days</h4>
-        <div class="value" id="kpiVal15D">0</div>
-        <div class="kpi-sub" id="kpiSub15D">Next 8 to 15 Days</div>
-      </div>
-      <div class="kpi-card kpi-purple" id="kpiCard30D" onclick="filterByKpiBucket('30D')">
-        <h4><i class="fas fa-calendar-check"></i> Due in 30 Days</h4>
-        <div class="value" id="kpiVal30D">0</div>
-        <div class="kpi-sub" id="kpiSub30D">Next 16 to 30 Days</div>
-      </div>
-      <div class="kpi-card kpi-green" id="kpiCardCleared" onclick="filterByKpiBucket('CLEARED')">
-        <h4><i class="fas fa-check-circle"></i> Zero OSD / Cleared</h4>
-        <div class="value" id="kpiValCleared">0</div>
-        <div class="kpi-sub" id="kpiSubCleared">Arrears ₹ 0</div>
-      </div>
+    <div class="ui-filters">
+      <label class="ui-search"><svg class="ui-i"><use href="#ui-search"/></svg><input class="ui-input" id="q" type="search" placeholder="Consumer ID, name or mobile" autocomplete="off" /></label>
+      <span class="ui-select"><select id="regionFilter" aria-label="Region"><option value="">All regions</option></select></span>
+      <span class="ui-select"><select id="divisionFilter" aria-label="Division"><option value="">All divisions</option></select></span>
+      <span class="ui-select"><select id="cccFilter" aria-label="CCC"><option value="">All CCCs</option></select></span>
+      <span class="ui-select"><select id="classFilter" aria-label="Class"><option value="">All classes</option></select></span>
+      <span class="ui-select"><select id="phaseFilter" aria-label="Phase"><option value="">Any phase</option><option value="1">Single phase</option><option value="3">Three phase</option></select></span>
+      <span class="ui-select"><select id="govtFilter" aria-label="Government"><option value="">Govt and non-govt</option><option value="Y">Government</option><option value="N">Non-government</option></select></span>
+      <span class="ui-select"><select id="osdFilter" aria-label="Outstanding"><option value="">Any outstanding</option><option value="25000">Over ₹25,000</option><option value="50000">Over ₹50,000</option><option value="100000">Over ₹1 lakh</option><option value="200000">Over ₹2 lakh</option></select></span>
+      <button type="button" class="ui-btn ghost" id="clearBtn" hidden><svg class="ui-i"><use href="#ui-x"/></svg>Clear</button>
     </div>
 
-    <!-- Hierarchy & Filters Control Panel -->
-    <div class="control-panel">
-      <div class="filter-header">
-        <span><i class="fas fa-sliders-h"></i> Scoped Filters & Universal Search</span>
-        <button class="btn-small" onclick="resetAllFilters()"><i class="fas fa-undo"></i> Reset Filters</button>
-      </div>
-      <div class="filter-grid">
-        <div class="filter-group" style="grid-column: span 2;">
-          <label>Search Consumer / Name / Mobile / Class</label>
-          <input type="text" id="searchInput" placeholder="Search Con ID, Name, Phone, Class, CCC..." oninput="onSearchInput()" />
-        </div>
-        <div class="filter-group">
-          <label>Region</label>
-          <select id="regionFilter" onchange="onRegionChange()">
-            <option value="">All Regions</option>
-          </select>
-        </div>
-        <div class="filter-group">
-          <label>Division</label>
-          <select id="divisionFilter" onchange="onDivisionChange()">
-            <option value="">All Divisions</option>
-          </select>
-        </div>
-        <div class="filter-group">
-          <label>CCC / Sub-Div Office</label>
-          <select id="cccFilter" onchange="applyAllFilters()">
-            <option value="">All CCC Offices</option>
-          </select>
-        </div>
-        <div class="filter-group">
-          <label>Consumer Class</label>
-          <select id="classFilter" onchange="applyAllFilters()">
-            <option value="">All Classes</option>
-          </select>
-        </div>
-        <div class="filter-group">
-          <label>Phase</label>
-          <select id="phaseFilter" onchange="applyAllFilters()">
-            <option value="">All Phases</option>
-            <option value="1">1 Phase</option>
-            <option value="3">3 Phase</option>
-          </select>
-        </div>
-        <div class="filter-group">
-          <label>Govt Status</label>
-          <select id="govtFilter" onchange="applyAllFilters()">
-            <option value="">All Statuses</option>
-            <option value="GOVT">Government</option>
-            <option value="NON-GOVT">Non-Government</option>
-          </select>
-        </div>
-        <div class="filter-group">
-          <label>Min OSD Arrears (₹)</label>
-          <select id="osdFilter" onchange="applyAllFilters()">
-            <option value="0">All Amounts</option>
-            <option value="25000">> ₹ 25,000</option>
-            <option value="50000">> ₹ 50,000</option>
-            <option value="100000">> ₹ 1,00,000</option>
-            <option value="200000">> ₹ 2,00,000</option>
-          </select>
-        </div>
-      </div>
-    </div>
+    <section class="ui-stats" style="--n:5" id="stats" aria-label="Summary">
+      <button type="button" class="ui-stat" data-k=""><div class="k">Consumers</div><div class="v"><span class="ui-skel"></span></div><div class="s">&nbsp;</div></button>
+      <button type="button" class="ui-stat" data-k="over"><div class="k"><span class="ui-dot bad"></span>DD overdue</div><div class="v"><span class="ui-skel"></span></div><div class="s">&nbsp;</div></button>
+      <button type="button" class="ui-stat" data-k="week"><div class="k"><span class="ui-dot warn"></span>Due in 7 days</div><div class="v"><span class="ui-skel"></span></div><div class="s">&nbsp;</div></button>
+      <button type="button" class="ui-stat" data-k="month"><div class="k">Due in 8–30 days</div><div class="v"><span class="ui-skel"></span></div><div class="s">&nbsp;</div></button>
+      <button type="button" class="ui-stat" data-k="clear"><div class="k"><span class="ui-dot ok"></span>Arrears cleared</div><div class="v"><span class="ui-skel"></span></div><div class="s">&nbsp;</div></button>
+    </section>
 
-    <!-- View Switcher Tabs -->
-    <div class="view-tabs">
-      <div class="view-tab active" id="tabSheet" onclick="switchViewTab('sheet')">
-        <i class="fas fa-table"></i> Consumer Data Sheet (<span id="tabCountSheet">0</span>)
-      </div>
-      <div class="view-tab" id="tabOffice" onclick="switchViewTab('office')">
-        <i class="fas fa-sitemap"></i> Office Breakdown Summary
-      </div>
-      <div class="view-tab" id="tabTimeline" onclick="switchViewTab('timeline')">
-        <i class="fas fa-hourglass-half"></i> DD Due Timeline Analysis
-      </div>
-      <div class="view-tab" id="tabCategory" onclick="switchViewTab('category')">
-        <i class="fas fa-layer-group"></i> Class & Category Matrix
-      </div>
-      <div class="view-tab" id="tabCharts" onclick="switchViewTab('charts')">
-        <i class="fas fa-chart-pie"></i> Visual Charts & Analytics
-      </div>
-      <button class="btn-small btn-success" style="margin-left: auto;" onclick="exportFilteredDataCSV()">
-        <i class="fas fa-file-excel"></i> Export CSV
-      </button>
-    </div>
-
-    <!-- TAB 1: Main Consumer Data Sheet -->
-    <div class="tab-pane active" id="paneSheet">
-      <div class="table-container">
-        <table>
-          <thead>
-            <tr>
-              <th>SL</th>
-              <th onclick="toggleSort('CON_ID')">CON ID <span id="sort_CON_ID"></span></th>
-              <th onclick="toggleSort('NAME')">Name & Address <span id="sort_NAME"></span></th>
-              <th onclick="toggleSort('CCC_NAME')">CCC Office <span id="sort_CCC_NAME"></span></th>
-              <th onclick="toggleSort('BASE_CLASS')">Class <span id="sort_BASE_CLASS"></span></th>
-              <th onclick="toggleSort('CONN_PHASE')">Ph <span id="sort_CONN_PHASE"></span></th>
-              <th onclick="toggleSort('discon_dt_iso')">Discon Date <span id="sort_discon_dt_iso"></span></th>
-              <th onclick="toggleSort('dd_due_date')">DD Due Date <span id="sort_dd_due_date"></span></th>
-              <th onclick="toggleSort('OUTSTANDING')">OSD Arrears (₹) <span id="sort_OUTSTANDING"></span></th>
-              <th>Status</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody id="sheetTableBody">
-            <!-- Dynamic rows -->
-          </tbody>
-        </table>
-      </div>
-      <div class="pagination-bar">
-        <span id="pageRangeInfo">Showing 0 to 0 of 0 entries</span>
-        <div style="display: flex; align-items: center; gap: 8px;">
-          <button class="btn-small" id="btnPagePrev" onclick="changePage(-1)" disabled><i class="fas fa-chevron-left"></i> Prev</button>
-          <span id="pageCurrentNumber" style="font-weight: 700;">1</span>
-          <button class="btn-small" id="btnPageNext" onclick="changePage(1)" disabled>Next <i class="fas fa-chevron-right"></i></button>
-        </div>
-      </div>
-    </div>
-
-    <!-- TAB 2: Office Breakdown Summary -->
-    <div class="tab-pane" id="paneOffice">
-      <div class="table-container">
-        <table>
-          <thead>
-            <tr>
-              <th>Office / Unit</th>
-              <th>Level</th>
-              <th>Total Consumers</th>
-              <th>Total OSD (₹)</th>
-              <th>Already Overdue</th>
-              <th>Due in 7 Days</th>
-              <th>Due in 30 Days</th>
-              <th>Zero OSD / Cleared</th>
-            </tr>
-          </thead>
-          <tbody id="officeTableBody">
-            <!-- Dynamic office rows -->
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- TAB 3: DD Due Timeline & Buckets Analysis -->
-    <div class="tab-pane" id="paneTimeline">
-      <div class="table-container">
-        <table>
-          <thead>
-            <tr>
-              <th>Timeline Bucket</th>
-              <th>Consumer Count</th>
-              <th>Total Arrears OSD (₹)</th>
-              <th>% Share of Total OSD</th>
-              <th>Action Filter</th>
-            </tr>
-          </thead>
-          <tbody id="timelineTableBody">
-            <!-- Dynamic timeline bucket rows -->
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- TAB 4: Class & Category Matrix -->
-    <div class="tab-pane" id="paneCategory">
-      <div class="table-container">
-        <table>
-          <thead>
-            <tr>
-              <th>Consumer Class</th>
-              <th>Total Consumers</th>
-              <th>Total OSD Arrears (₹)</th>
-              <th>1-Phase Count</th>
-              <th>3-Phase Count</th>
-              <th>Govt Count</th>
-            </tr>
-          </thead>
-          <tbody id="categoryTableBody">
-            <!-- Dynamic category rows -->
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- TAB 5: Visual Analytics Charts -->
-    <div class="tab-pane" id="paneCharts">
-      <div class="charts-grid">
-        <div class="chart-card">
-          <h3><i class="fas fa-chart-bar text-primary"></i> OSD Arrears by Division (₹ Lakhs)</h3>
-          <div class="chart-wrapper">
-            <canvas id="divnOsdChart"></canvas>
+    <div class="ui-grid">
+      <section class="ui-panel">
+        <div class="ui-panel-h">
+          <h2>By office</h2>
+          <div class="ui-tabs" role="tablist" id="levelTabs">
+            <button type="button" class="ui-tab" role="tab" data-l="region" aria-selected="true">Region</button>
+            <button type="button" class="ui-tab" role="tab" data-l="division">Division</button>
+            <button type="button" class="ui-tab" role="tab" data-l="ccc">CCC</button>
           </div>
         </div>
-        <div class="chart-card">
-          <h3><i class="fas fa-chart-pie text-primary"></i> Consumer Due Date Bucket Distribution</h3>
-          <div class="chart-wrapper">
-            <canvas id="bucketPieChart"></canvas>
-          </div>
-        </div>
-        <div class="chart-card" style="grid-column: 1 / -1;">
-          <h3><i class="fas fa-list-ol text-primary"></i> Top 10 High-OSD Upcoming DD Defaulters</h3>
-          <div class="table-container" style="max-height: 240px;">
-            <table>
-              <thead>
-                <tr>
-                  <th>Rank</th>
-                  <th>CON ID</th>
-                  <th>Consumer Name</th>
-                  <th>Office</th>
-                  <th>Class</th>
-                  <th>Discon Date</th>
-                  <th>DD Due Date</th>
-                  <th>OSD Arrears (₹)</th>
-                </tr>
-              </thead>
-              <tbody id="topDefaultersBody">
-                <!-- Top 10 rows -->
-              </tbody>
-            </table>
-          </div>
-        </div>
+        <div id="officeTable" style="--max-h:520px"><div class="ui-empty">Loading…</div></div>
+      </section>
+      <div>
+        <section class="ui-panel">
+          <div class="ui-panel-h"><h2>DD due</h2></div>
+          <div class="ui-panel-b"><div id="dueHist"></div></div>
+        </section>
+        <section class="ui-panel">
+          <div class="ui-panel-h"><h2>By class</h2></div>
+          <div class="ui-panel-b"><div id="classHist"></div></div>
+        </section>
       </div>
     </div>
 
-  </div>
-
-  <!-- Consumer Details & Visit Note Modal -->
-  <div class="modal" id="consumerModal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h3><i class="fas fa-user-circle text-primary"></i> Consumer Overview & Follow-Up Log</h3>
-        <button style="background:none; border:none; color:inherit; font-size:22px; cursor:pointer;" onclick="closeModal()">&times;</button>
+    <section class="ui-panel">
+      <div class="ui-panel-h">
+        <h2>Consumers <small id="listCount"></small></h2>
+        <button type="button" class="ui-btn sm" id="exportBtn"><svg class="ui-i"><use href="#ui-download"/></svg>Export CSV</button>
       </div>
-      <div class="modal-body">
-        <div class="consumer-summary-box" id="modalConsumerBanner">
-          <!-- Filled dynamically -->
-        </div>
-
-        <div class="consumer-grid-details" id="modalConsumerGrid">
-          <!-- Grid details -->
-        </div>
-
-        <div style="font-weight:700; font-size:0.82rem; color:var(--text-secondary); margin-top:6px;">
-          <i class="fas fa-history text-primary"></i> Saved Follow-Up & Visit History
-        </div>
-        <div class="timeline-container" id="modalTimelineHistory">
-          <!-- Rendered dynamically -->
-        </div>
-
-        <!-- Add Follow-Up Entry Form -->
-        <form id="visitForm" onsubmit="saveConsumerVisitNote(event)" style="border-top:1px solid var(--border-dark); padding-top:10px;">
-          <input type="hidden" id="modalConIdInput" />
-          <div style="font-weight:700; font-size:0.82rem; color:#60a5fa; margin-bottom:8px;">
-            <i class="fas fa-plus-circle"></i> Add New Field Visit / Call Remark
-          </div>
-          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-bottom:8px;">
-            <div class="filter-group">
-              <label>Visit / Call Date *</label>
-              <input type="date" id="modalNoteDate" required />
-            </div>
-            <div class="filter-group">
-              <label>Outcome Status *</label>
-              <select id="modalNoteStatus" required>
-                <option value="Visited - Promised Payment">Visited - Promised Payment</option>
-                <option value="Visited - Found Disconnected">Visited - Found Disconnected</option>
-                <option value="Visited - Found Live (Unauthorized)">Visited - Found Live (Unauthorized)</option>
-                <option value="Visited - Premises Closed/Not Found">Visited - Premises Closed/Not Found</option>
-                <option value="Call Connected - Promised Payment">Call Connected - Promised Payment</option>
-                <option value="Call Connected - Disputed Bill">Call Connected - Disputed Bill</option>
-                <option value="Paid / Cleared Arrears">Paid / Cleared Arrears</option>
-              </select>
-            </div>
-          </div>
-          <div class="filter-group" style="margin-bottom:10px;">
-            <label>Field Remarks / Notes</label>
-            <input type="text" id="modalNoteRemarks" placeholder="Enter visit remarks, contact details, payment promise date..." />
-          </div>
-          <div style="display:flex; justify-content:flex-end; gap:8px;">
-            <button type="button" class="btn-small" onclick="closeModal()">Cancel</button>
-            <button type="submit" class="btn-small btn-success"><i class="fas fa-save"></i> Save Log Entry</button>
-          </div>
-        </form>
-      </div>
-    </div>
-  </div>
+      <div id="listTable"><div class="ui-empty">Loading…</div></div>
+    </section>
+  </main>
 
   <script>
-    // --- Data Source URL ---
-    const CSV_URL = 'https://docs.google.com/spreadsheets/d/1aUeVnSc-OmFqqrUdoZxv8v8659u52zlIWddnpJgU9Uk/gviz/tq?tqx=out:csv&gid=487034861';
+  document.addEventListener('DOMContentLoaded', function () {
+    'use strict';
+    var $ = function (id) { return document.getElementById(id); };
+    var CSV_URL = 'https://docs.google.com/spreadsheets/d/1aUeVnSc-OmFqqrUdoZxv8v8659u52zlIWddnpJgU9Uk/gviz/tq?tqx=out:csv&gid=487034861';
+    var NOTES_KEY = 'mzo_upcoming_dd_notes';
+    var CLASS = { D: 'Domestic', C: 'Commercial', A: 'Agriculture', I: 'Industrial', W: 'Water works', P: 'Public' };
+    var BUCKET = [
+      { key: 'OVERDUE', label: 'Overdue' }, { key: 'TODAY', label: 'Today' }, { key: '7D', label: 'In 1–7 days' },
+      { key: '15D', label: 'In 8–15 days' }, { key: '30D', label: 'In 16–30 days' }, { key: 'FUTURE', label: 'Later' }, { key: 'CLEARED', label: 'Arrears cleared' }
+    ];
+    var STATUS = ['Visited - Promised Payment', 'Visited - Found Disconnected', 'Visited - Found Live (Unauthorized)', 'Visited - Premises Closed/Not Found',
+      'Call Connected - Promised Payment', 'Call Connected - Disputed Bill', 'Paid / Cleared Arrears'];
+    var all = [], stat = '', bucket = '', level = 'region', scope = null;
 
-    // Global Dataset State
-    let allRawData = [];
-    let activeFilteredData = [];
-    let currentKpiFilter = 'ALL';
-    let currentTab = 'sheet';
+    function ymd(s) { s = String(s || '').trim(); if (!/^\d{8}$/.test(s)) return null; var d = new Date(+s.slice(0, 4), +s.slice(4, 6) - 1, +s.slice(6, 8)); return isNaN(d) ? null : d; }
 
-    // Pagination State
-    let currentPage = 1;
-    const pageSize = 20;
+    // Only the fields this page shows are kept (the sheet also carries Aadhaar, PAN, email).
+    function prepare(text) {
+      var today = new Date(); today.setHours(0, 0, 0, 0);
+      all = UI.csv(text).map(function (r) {
+        var code = String(r.CCC_CODE || r.OFFICE_CODE || '').trim(), o = UI.office(code), osd = parseFloat(r.OUTSTANDING) || 0;
+        var dis = ymd(r.DISCON_DT), due = dis ? new Date(dis.getTime() + 180 * 864e5) : null, days = due ? Math.ceil((due - today) / 864e5) : null;
+        var b = 'CLEARED';
+        if (osd > 0) b = days == null || days < 0 ? 'OVERDUE' : days === 0 ? 'TODAY' : days <= 7 ? '7D' : days <= 15 ? '15D' : days <= 30 ? '30D' : 'FUTURE';
+        return {
+          con: String(r.CON_ID || r.CONSUMER_ID || '').trim(), name: UI.title(r.NAME || r.CONSUMER_NAME || ''), mobile: UI.blank(r.REG_MOB_NO) ? '' : String(r.REG_MOB_NO).trim(),
+          address: r.ADDRESS, cls: String(r.BASE_CLASS || '').trim() || 'Other', phase: String(r.CONN_PHASE || '1').trim(),
+          govt: /^(y|yes|govt)/i.test(String(r.GOVT_STAT || '')) ? 'Y' : 'N', load: r.CONN_LOAD, meter: r.METER_NO,
+          code: code, CCC_CODE: code, _region: o.region, _divn: o.division, _supp: o.ccc, osd: osd, dis: dis, due: due, days: days, bucket: b
+        };
+      }).filter(function (r) { return r.con; });
+      all.forEach(function (r) { r.search = (r.con + ' ' + r.name + ' ' + r.mobile + ' ' + r._supp).toLowerCase(); });
+      if (window.MzoScope) all = MzoScope.filterRows(all);
+      var dues = all.filter(function (r) { return r.due; }).map(function (r) { return r.due.getTime(); });
+      $('meta').textContent = 'Disconnection date + 180 days' + (dues.length ? ' · ' + UI.fmtDate(new Date(Math.min.apply(null, dues))) + ' – ' + UI.fmtDate(new Date(Math.max.apply(null, dues))) : '') + ' · ' + UI.n(all.length) + ' consumers';
+      UI.fill('classFilter', uniq(all, 'cls').map(function (c) { return { value: c, label: CLASS[c] || c }; }), 'All classes');
+      fillFilters();
+    }
 
-    // Sorting State
-    let sortCol = 'OUTSTANDING';
-    let sortDir = 'desc';
+    function uniq(rows, k) { var s = {}; rows.forEach(function (r) { if (r[k]) s[r[k]] = 1; }); return Object.keys(s).sort(); }
+    function fillFilters() {
+      var reg = $('regionFilter').value, div = $('divisionFilter').value;
+      UI.fill('regionFilter', uniq(all, '_region'), 'All regions');
+      var r1 = all.filter(function (r) { return !reg || r._region === reg; });
+      UI.fill('divisionFilter', uniq(r1, '_divn'), 'All divisions');
+      var r2 = r1.filter(function (r) { return !div || r._divn === div; });
+      UI.fill('cccFilter', uniq(r2, '_supp'), 'All CCCs');
+      if (!scope) scope = UI.lockScope();
+      ['regionFilter', 'divisionFilter', 'cccFilter', 'classFilter', 'phaseFilter', 'govtFilter', 'osdFilter'].forEach(function (id) { UI.mark($(id)); });
+    }
 
-    // Local Storage Key for Follow-up Notes
-    const NOTES_STORAGE_KEY = 'mzo_upcoming_dd_notes';
+    var STAT = {
+      '': function () { return true; },
+      over: function (r) { return r.bucket === 'OVERDUE'; },
+      week: function (r) { return r.bucket === 'TODAY' || r.bucket === '7D'; },
+      month: function (r) { return r.bucket === '15D' || r.bucket === '30D'; },
+      clear: function (r) { return r.bucket === 'CLEARED'; }
+    };
+    function base() {
+      var q = $('q').value.trim().toLowerCase(), reg = $('regionFilter').value, div = $('divisionFilter').value, ccc = $('cccFilter').value,
+        cls = $('classFilter').value, ph = $('phaseFilter').value, gv = $('govtFilter').value, min = +$('osdFilter').value || 0;
+      return all.filter(function (r) {
+        return (!reg || r._region === reg) && (!div || r._divn === div) && (!ccc || r._supp === ccc) && (!cls || r.cls === cls) &&
+          (!ph || r.phase === ph) && (!gv || r.govt === gv) && r.osd >= min && (!q || r.search.indexOf(q) !== -1);
+      });
+    }
+    var sum = function (rows) { return rows.reduce(function (a, r) { return a + r.osd; }, 0); };
 
-    // Chart Instances
-    let chartDivnOsd = null;
-    let chartBucketPie = null;
+    function render() {
+      var b = base(), view = b.filter(function (r) { return STAT[stat](r) && (!bucket || r.bucket === bucket); });
+      [].forEach.call(document.querySelectorAll('#stats .ui-stat'), function (el) {
+        var k = el.getAttribute('data-k'), rows = b.filter(STAT[k]);
+        el.querySelector('.v').textContent = UI.n(rows.length);
+        el.querySelector('.s').textContent = k === 'clear' ? UI.pct(rows.length, b.length) + ' of consumers' : UI.inr(sum(rows)) + ' outstanding';
+        el.setAttribute('aria-pressed', String(stat === k));
+      });
 
-    // Initialize Page
-    document.addEventListener('DOMContentLoaded', () => {
-      loadUpcomingDdData();
+      var key = level === 'region' ? '_region' : level === 'division' ? '_divn' : '_supp', g = {};
+      view.forEach(function (r) {
+        var name = r[key] || 'Unmapped';
+        var x = g[name] || (g[name] = { name: name, parent: level === 'ccc' ? r._divn : level === 'division' ? r._region : '', n: 0, over: 0, soon: 0, osd: 0 });
+        x.n++; x.osd += r.osd; if (r.bucket === 'OVERDUE') x.over++; if (STAT.week(r) || STAT.month(r)) x.soon++;
+      });
+      var list = Object.keys(g).map(function (k) { return g[k]; }), max = Math.max.apply(null, list.map(function (x) { return x.osd; }).concat([0]));
+      UI.table('officeTable', {
+        rows: list, sort: { key: 'osd', dir: 'desc' }, count: false, empty: 'No consumers for these filters.',
+        columns: [
+          { key: 'name', label: { region: 'Region', division: 'Division', ccc: 'CCC' }[level], fmt: function (v, x) { return '<span class="ui-strong">' + UI.esc(v) + '</span>' + (x.parent ? '<span class="sub">' + UI.esc(x.parent) + '</span>' : ''); } },
+          { key: 'n', label: 'Consumers', num: true, fmt: UI.n },
+          { key: 'over', label: 'Overdue', num: true, fmt: UI.n },
+          { key: 'soon', label: 'Due ≤30 days', num: true, fmt: UI.n, hideSm: true },
+          { key: 'osd', label: 'Outstanding', num: true, fmt: UI.inr },
+          { key: 'share', label: 'Share', sortVal: function (x) { return x.osd; }, fmt: function (_, x) { return UI.bar(x.osd, max, UI.pct(x.osd, sum(view))); }, hideSm: true, width: '22%' }
+        ],
+        foot: list.length > 1 ? { n: view.length, over: view.filter(STAT.over).length, soon: view.filter(function (r) { return STAT.week(r) || STAT.month(r); }).length, osd: sum(view), share: 0 } : null,
+        onRow: level === 'ccc' ? null : function (x) { drill(x.name); }
+      });
+
+      var sb = b.filter(STAT[stat]);
+      UI.hist('dueHist', BUCKET.map(function (bk) { return { key: bk.key, label: bk.label, value: sb.filter(function (r) { return r.bucket === bk.key; }).length }; }),
+        { active: bucket, onClick: function (row) { bucket = bucket === row.key ? '' : row.key; render(); } });
+      var cc = {}; view.forEach(function (r) { cc[r.cls] = (cc[r.cls] || 0) + 1; });
+      UI.hist('classHist', Object.keys(cc).sort(function (a, c) { return cc[c] - cc[a]; }).slice(0, 6).map(function (k) { return { key: k, label: CLASS[k] || k, value: cc[k] }; }),
+        { active: $('classFilter').value, onClick: function (row) { $('classFilter').value = $('classFilter').value === row.key ? '' : row.key; UI.mark($('classFilter')); render(); } });
+
+      $('listCount').textContent = UI.n(view.length);
+      UI.table('listTable', { rows: view, sort: { key: 'osd', dir: 'desc' }, limit: 50, resetPage: true, empty: 'No consumers match these filters.', columns: COLS, onRow: detail });
+      window.__view = view;
+      $('clearBtn').hidden = !($('q').value || stat || bucket || ['classFilter', 'phaseFilter', 'govtFilter'].some(function (id) { return $(id).value; }) || +$('osdFilter').value ||
+        ['regionFilter', 'divisionFilter', 'cccFilter'].some(function (id) { return $(id).value && !$(id).disabled; }));
+    }
+
+    function dueCell(r) {
+      if (r.bucket === 'CLEARED') return '<span class="ui-badge ok">Cleared</span>';
+      if (r.days == null) return '<span class="ui-badge bad">No date</span>';
+      if (r.days < 0) return '<span class="ui-badge bad">' + UI.n(-r.days) + 'd overdue</span>';
+      if (r.days === 0) return '<span class="ui-badge warn">Today</span>';
+      return '<span class="ui-badge' + (r.days <= 7 ? ' warn' : '') + '">in ' + r.days + 'd</span>';
+    }
+    var COLS = [
+      { key: 'name', label: 'Consumer', fmt: function (v, r) { return '<span class="ui-strong">' + UI.esc(v || r.con) + '</span><span class="sub">' + UI.esc(r.con) + '</span>'; } },
+      { key: 'mobile', label: 'Mobile', hideSm: true },
+      { key: '_supp', label: 'CCC', fmt: function (v, r) { return UI.esc(v || r.code) + '<span class="sub">' + UI.esc(r._divn) + '</span>'; } },
+      { key: 'cls', label: 'Class', hideSm: true, fmt: function (v, r) { return UI.esc(CLASS[v] || v) + '<span class="sub">' + (r.phase === '3' ? 'Three phase' : 'Single phase') + (r.govt === 'Y' ? ' · Govt' : '') + '</span>'; }, csv: function (r) { return CLASS[r.cls] || r.cls; } },
+      { key: 'dis', label: 'Disconnected', num: true, hideSm: true, sortVal: function (r) { return r.dis ? r.dis.getTime() : 0; }, fmt: function (v) { return v ? UI.fmtDate(v) : '—'; }, csv: function (r) { return r.dis ? UI.fmtDate(r.dis) : ''; } },
+      { key: 'due', label: 'DD due', num: true, sortVal: function (r) { return r.due ? r.due.getTime() : 0; }, fmt: function (v, r) { return (v ? UI.fmtDate(v) : '—') + '<span class="sub">' + dueCell(r) + '</span>'; }, csv: function (r) { return r.due ? UI.fmtDate(r.due) : ''; } },
+      { key: 'osd', label: 'Outstanding', num: true, fmt: function (v) { return '₹' + UI.n(Math.round(v)); }, csv: function (r) { return r.osd; } }
+    ];
+
+    /* Visit notes: kept on this device only (same store as before). */
+    function notes() { try { return JSON.parse(localStorage.getItem(NOTES_KEY)) || {}; } catch (e) { return {}; } }
+    function detail(r) {
+      UI.drawer(r.name || r.con, [r._supp, r._divn].filter(Boolean).join(' · '), [
+        ['Consumer ID', r.con], ['Mobile', r.mobile], ['Address', r.address], ['Class', (CLASS[r.cls] || r.cls) + ' · ' + (r.phase === '3' ? 'Three phase' : 'Single phase')],
+        ['Government', r.govt === 'Y' ? 'Yes' : 'No'], ['Load', r.load], ['Meter', r.meter],
+        ['Disconnected on', r.dis ? UI.fmtDate(r.dis) : ''], ['DD due (180 days)', r.due ? UI.fmtDate(r.due) : ''], ['Outstanding', '₹' + UI.n(Math.round(r.osd))]
+      ]);
+      var sec = document.querySelector('#ui-drawer section'), old = sec.querySelector('.dd-notes');
+      if (old) old.remove();
+      var box = document.createElement('div');
+      box.className = 'dd-notes';
+      box.innerHTML = '<h4>Visit notes</h4><form><div class="row2"><input class="ui-input" type="date" name="date" required /><span class="ui-select"><select name="status">' +
+        STATUS.map(function (s) { return '<option>' + UI.esc(s) + '</option>'; }).join('') + '</select></span></div>' +
+        '<textarea class="ui-input" name="remarks" placeholder="Details (optional)"></textarea><div><button type="submit" class="ui-btn primary sm">Save note</button> <span class="ui-note">Saved on this device</span></div></form><div class="list"></div>';
+      sec.appendChild(box);
+      var f = box.querySelector('form');
+      f.date.value = new Date().toISOString().slice(0, 10);
+      var paint = function () {
+        var list = notes()[r.con] || [];
+        box.querySelector('.list').innerHTML = list.map(function (n) { return '<div class="dd-note"><div class="h">' + UI.esc(n.status) + '<span>' + UI.fmtDate(n.date) + '</span></div>' + (n.remarks ? '<p>' + UI.esc(n.remarks) + '</p>' : '') + '</div>'; }).join('') || '<p class="ui-note">No visit notes yet.</p>';
+      };
+      paint();
+      f.addEventListener('submit', function (e) {
+        e.preventDefault();
+        var m = notes(); (m[r.con] || (m[r.con] = [])).unshift({ date: f.date.value, status: f.status.value, remarks: f.remarks.value.trim(), createdAt: new Date().toISOString() });
+        try { localStorage.setItem(NOTES_KEY, JSON.stringify(m)); } catch (err) {}
+        f.remarks.value = ''; paint(); UI.toast('Note saved');
+      });
+    }
+
+    function drill(name) {
+      if (level === 'region') { if ($('regionFilter').disabled) return; $('regionFilter').value = name; $('divisionFilter').value = ''; $('cccFilter').value = ''; level = 'division'; }
+      else { if ($('divisionFilter').disabled) return; $('divisionFilter').value = name; $('cccFilter').value = ''; level = 'ccc'; }
+      fillFilters(); setLevel(level);
+    }
+    function setLevel(l) {
+      level = l;
+      [].forEach.call(document.querySelectorAll('#levelTabs .ui-tab'), function (t) { t.setAttribute('aria-selected', String(t.getAttribute('data-l') === l)); });
+      render();
+    }
+
+    ['regionFilter', 'divisionFilter', 'cccFilter'].forEach(function (id) {
+      $(id).addEventListener('change', function () {
+        if (id === 'regionFilter') { $('divisionFilter').value = ''; $('cccFilter').value = ''; }
+        if (id === 'divisionFilter') $('cccFilter').value = '';
+        fillFilters(); render();
+      });
+    });
+    ['classFilter', 'phaseFilter', 'govtFilter', 'osdFilter'].forEach(function (id) { $(id).addEventListener('change', function () { UI.mark(this); render(); }); });
+    $('q').addEventListener('input', UI.debounce(render, 180));
+    $('stats').addEventListener('click', function (e) { var s = e.target.closest('.ui-stat'); if (!s) return; var k = s.getAttribute('data-k'); stat = stat === k ? '' : k; bucket = ''; render(); });
+    $('levelTabs').addEventListener('click', function (e) { var t = e.target.closest('.ui-tab'); if (t) setLevel(t.getAttribute('data-l')); });
+    $('clearBtn').addEventListener('click', function () {
+      $('q').value = ''; stat = ''; bucket = ''; ['classFilter', 'phaseFilter', 'govtFilter'].forEach(function (id) { $(id).value = ''; }); $('osdFilter').value = '';
+      ['regionFilter', 'divisionFilter', 'cccFilter'].forEach(function (id) { if (!$(id).disabled) $(id).value = ''; });
+      fillFilters(); setLevel('region');
+    });
+    $('exportBtn').addEventListener('click', function () {
+      UI.exportCsv('upcoming-dd-' + new Date().toISOString().slice(0, 10) + '.csv', [{ key: 'con', label: 'Consumer ID' }, { key: 'name', label: 'Name' }, { key: 'mobile', label: 'Mobile' },
+        { key: '_region', label: 'Region' }, { key: '_divn', label: 'Division' }, { key: '_supp', label: 'CCC' }, COLS[3], { key: 'phase', label: 'Phase' },
+        { key: 'govt', label: 'Govt', csv: function (r) { return r.govt === 'Y' ? 'Yes' : 'No'; } }, COLS[4], COLS[5], COLS[6], { key: 'bucket', label: 'Bucket' }], window.__view || []);
     });
 
-    // Helper: Parse YYYYMMDD date string
-    function parseYYYYMMDD(str) {
-      if (!str || String(str).length !== 8) return null;
-      str = String(str);
-      const y = parseInt(str.substring(0, 4), 10);
-      const m = parseInt(str.substring(4, 6), 10) - 1;
-      const d = parseInt(str.substring(6, 8), 10);
-      const date = new Date(y, m, d);
-      return isNaN(date.getTime()) ? null : date;
+    function load() {
+      var b = $('refreshBtn'); b.classList.add('spin');
+      fetch(CSV_URL, { cache: 'no-store' }).then(function (r) { if (!r.ok) throw new Error(r.status); return r.text(); })
+        .then(function (t) { prepare(t); render(); })
+        .catch(function () { $('meta').textContent = 'Could not load the DD sheet'; $('listTable').innerHTML = $('officeTable').innerHTML = '<div class="ui-empty">Could not load data.</div>'; })
+        .then(function () { b.classList.remove('spin'); });
     }
-
-    // Helper: Format ISO date string to DD-MM-YYYY
-    function formatDateIso(isoStr) {
-      if (!isoStr) return '--';
-      const parts = isoStr.split('-');
-      if (parts.length !== 3) return isoStr;
-      return `${parts[2]}-${parts[1]}-${parts[0]}`;
-    }
-
-    // Helper: Format Arrears Currency Amount
-    function formatArrearsAmount(num) {
-      num = Number(num);
-      if (isNaN(num) || num === 0) return '0';
-      if (num >= 1e7) return (num / 1e7).toFixed(2) + ' Cr';
-      if (num >= 1e5) return (num / 1e5).toFixed(2) + ' Lakh';
-      if (num >= 1e3) return (num / 1e3).toFixed(1) + 'k';
-      return num.toLocaleString('en-IN');
-    }
-
-    // Fetch and Process Data
-    async function loadUpcomingDdData() {
-      const loadingOverlay = document.getElementById('loadingOverlay');
-      loadingOverlay.style.display = 'flex';
-
-      try {
-        const response = await fetch(CSV_URL);
-        const csvText = await response.text();
-
-        const parseResult = Papa.parse(csvText, { header: true, skipEmptyLines: true });
-        const rawRows = parseResult.data || [];
-
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-
-        allRawData = rawRows.map(row => {
-          const conId = row.CON_ID || row.CONSUMER_ID || row.CON_NO || '';
-          const cccCode = String(row.CCC_CODE || row.OFFICE_CODE || '');
-          const osd = parseFloat(row.OUTSTANDING) || 0;
-          const disconDate = parseYYYYMMDD(row.DISCON_DT);
-          
-          let disconIso = '';
-          let ddDueIso = '';
-          let daysUntilDue = null;
-          let bucket = 'CLEARED';
-
-          if (disconDate) {
-            disconIso = disconDate.toISOString().slice(0, 10);
-            const dueDate = new Date(disconDate);
-            dueDate.setDate(dueDate.getDate() + 180);
-            ddDueIso = dueDate.toISOString().slice(0, 10);
-
-            const timeDiff = dueDate.getTime() - today.getTime();
-            daysUntilDue = Math.ceil(timeDiff / (1000 * 3600 * 24));
-          }
-
-          if (osd > 0) {
-            if (daysUntilDue !== null) {
-              if (daysUntilDue < 0) bucket = 'OVERDUE';
-              else if (daysUntilDue === 0) bucket = 'TODAY';
-              else if (daysUntilDue <= 7) bucket = '7D';
-              else if (daysUntilDue <= 15) bucket = '15D';
-              else if (daysUntilDue <= 30) bucket = '30D';
-              else bucket = 'FUTURE';
-            } else {
-              bucket = 'OVERDUE';
-            }
-          } else {
-            bucket = 'CLEARED';
-          }
-
-          // Use MzoScope helper or default hierarchy lookup
-          let cccName = cccCode;
-          let divName = '';
-          let regName = '';
-
-          if (typeof MzoScope !== 'undefined' && MzoScope.getCodeInfo) {
-            const info = MzoScope.getCodeInfo(cccCode);
-            if (info) {
-              cccName = info.ccc || cccCode;
-              divName = info.division || '';
-              regName = info.region || '';
-            }
-          }
-
-          return {
-            ...row,
-            CON_ID: conId,
-            NAME: row.NAME || row.CONSUMER_NAME || 'Unknown Consumer',
-            REG_MOB_NO: row.REG_MOB_NO || row.PHONE || row.MOBILE || '',
-            BASE_CLASS: row.BASE_CLASS || row.CLASS || 'OTHERS',
-            CONN_PHASE: String(row.CONN_PHASE || row.PHASE || '1'),
-            GOVT_STAT: String(row.GOVT_STAT || row.GOVT || 'NON-GOVT').toUpperCase(),
-            CCC_CODE: cccCode,
-            CCC_NAME: cccName,
-            DIVN_NAME: divName,
-            REGION_NAME: regName,
-            OUTSTANDING: osd,
-            discon_dt_iso: disconIso,
-            dd_due_date: ddDueIso,
-            daysUntilDue: daysUntilDue,
-            bucket: bucket
-          };
-        });
-
-        // Filter through MzoScope if available
-        if (typeof MzoScope !== 'undefined' && MzoScope.filterRows) {
-          allRawData = MzoScope.filterRows(allRawData);
-        }
-
-        // Calculate Header Date Range
-        const sortedDueDates = allRawData.map(r => r.dd_due_date).filter(d => d).sort();
-        if (sortedDueDates.length > 0) {
-          const firstDate = formatDateIso(sortedDueDates[0]);
-          const lastDate = formatDateIso(sortedDueDates[sortedDueDates.length - 1]);
-          document.getElementById('dateRangeSubtitle').innerText = `Scheduled Disconnections: ${firstDate} to ${lastDate}`;
-          document.getElementById('dateBadge').innerHTML = `<i class="far fa-calendar-alt"></i> ${firstDate} to ${lastDate}`;
-        }
-
-        document.getElementById('syncBadge').innerHTML = `<i class="fas fa-check-circle"></i> Live Synced (${allRawData.length} records)`;
-
-        populateOfficeFilters();
-        populateClassFilter();
-        applyAllFilters();
-
-      } catch (err) {
-        console.error('Error loading Upcoming DD dataset:', err);
-        document.getElementById('syncBadge').innerHTML = `<i class="fas fa-exclamation-triangle text-red-400"></i> Sync Failed`;
-      } finally {
-        loadingOverlay.style.display = 'none';
-      }
-    }
-
-    // Populate Filter Dropdowns
-    function populateOfficeFilters() {
-      const regSelect = document.getElementById('regionFilter');
-      const divSelect = document.getElementById('divisionFilter');
-      const cccSelect = document.getElementById('cccFilter');
-
-      const regions = [...new Set(allRawData.map(r => r.REGION_NAME).filter(Boolean))].sort();
-      regSelect.innerHTML = '<option value="">All Regions</option>' + regions.map(r => `<option value="${r}">${r}</option>`).join('');
-
-      onRegionChange();
-    }
-
-    function onRegionChange() {
-      const selectedReg = document.getElementById('regionFilter').value;
-      const divSelect = document.getElementById('divisionFilter');
-
-      let filtered = allRawData;
-      if (selectedReg) filtered = filtered.filter(r => r.REGION_NAME === selectedReg);
-
-      const divs = [...new Set(filtered.map(r => r.DIVN_NAME).filter(Boolean))].sort();
-      divSelect.innerHTML = '<option value="">All Divisions</option>' + divs.map(d => `<option value="${d}">${d}</option>`).join('');
-
-      onDivisionChange();
-    }
-
-    function onDivisionChange() {
-      const selectedReg = document.getElementById('regionFilter').value;
-      const selectedDiv = document.getElementById('divisionFilter').value;
-      const cccSelect = document.getElementById('cccFilter');
-
-      let filtered = allRawData;
-      if (selectedReg) filtered = filtered.filter(r => r.REGION_NAME === selectedReg);
-      if (selectedDiv) filtered = filtered.filter(r => r.DIVN_NAME === selectedDiv);
-
-      const cccs = [...new Set(filtered.map(r => r.CCC_NAME).filter(Boolean))].sort();
-      cccSelect.innerHTML = '<option value="">All CCC Offices</option>' + cccs.map(c => `<option value="${c}">${c}</option>`).join('');
-
-      applyAllFilters();
-    }
-
-    function populateClassFilter() {
-      const classSelect = document.getElementById('classFilter');
-      const classes = [...new Set(allRawData.map(r => r.BASE_CLASS).filter(Boolean))].sort();
-      classSelect.innerHTML = '<option value="">All Classes</option>' + classes.map(c => `<option value="${c}">${c}</option>`).join('');
-    }
-
-    // Filter Triggering
-    function filterByKpiBucket(bucketKey) {
-      currentKpiFilter = bucketKey;
-
-      document.querySelectorAll('.kpi-card').forEach(card => card.classList.remove('active-kpi'));
-      if (bucketKey === 'ALL') document.getElementById('kpiCardAll').classList.add('active-kpi');
-      else if (bucketKey === 'OVERDUE') document.getElementById('kpiCardOverdue').classList.add('active-kpi');
-      else if (bucketKey === 'TODAY') document.getElementById('kpiCardToday').classList.add('active-kpi');
-      else if (bucketKey === '7D') document.getElementById('kpiCard7D').classList.add('active-kpi');
-      else if (bucketKey === '15D') document.getElementById('kpiCard15D').classList.add('active-kpi');
-      else if (bucketKey === '30D') document.getElementById('kpiCard30D').classList.add('active-kpi');
-      else if (bucketKey === 'CLEARED') document.getElementById('kpiCardCleared').classList.add('active-kpi');
-
-      applyAllFilters();
-    }
-
-    function onSearchInput() {
-      currentPage = 1;
-      applyAllFilters();
-    }
-
-    function resetAllFilters() {
-      document.getElementById('searchInput').value = '';
-      document.getElementById('regionFilter').value = '';
-      document.getElementById('classFilter').value = '';
-      document.getElementById('phaseFilter').value = '';
-      document.getElementById('govtFilter').value = '';
-      document.getElementById('osdFilter').value = '0';
-      currentKpiFilter = 'ALL';
-      filterByKpiBucket('ALL');
-    }
-
-    // Apply All Combined Filters
-    function applyAllFilters() {
-      const searchVal = document.getElementById('searchInput').value.trim().toLowerCase();
-      const regVal = document.getElementById('regionFilter').value;
-      const divVal = document.getElementById('divisionFilter').value;
-      const cccVal = document.getElementById('cccFilter').value;
-      const classVal = document.getElementById('classFilter').value;
-      const phaseVal = document.getElementById('phaseFilter').value;
-      const govtVal = document.getElementById('govtFilter').value;
-      const minOsd = parseFloat(document.getElementById('osdFilter').value) || 0;
-
-      activeFilteredData = allRawData.filter(row => {
-        // KPI Filter
-        if (currentKpiFilter !== 'ALL') {
-          if (currentKpiFilter === 'OVERDUE' && row.bucket !== 'OVERDUE') return false;
-          if (currentKpiFilter === 'TODAY' && row.bucket !== 'TODAY') return false;
-          if (currentKpiFilter === '7D' && row.bucket !== '7D') return false;
-          if (currentKpiFilter === '15D' && row.bucket !== '15D') return false;
-          if (currentKpiFilter === '30D' && row.bucket !== '30D') return false;
-          if (currentKpiFilter === 'CLEARED' && row.bucket !== 'CLEARED') return false;
-        }
-
-        // Hierarchy Filters
-        if (regVal && row.REGION_NAME !== regVal) return false;
-        if (divVal && row.DIVN_NAME !== divVal) return false;
-        if (cccVal && row.CCC_NAME !== cccVal) return false;
-
-        // Class & Attribute Filters
-        if (classVal && row.BASE_CLASS !== classVal) return false;
-        if (phaseVal && row.CONN_PHASE !== phaseVal) return false;
-        if (govtVal) {
-          if (govtVal === 'GOVT' && !row.GOVT_STAT.includes('GOVT')) return false;
-          if (govtVal === 'NON-GOVT' && row.GOVT_STAT.includes('GOVT')) return false;
-        }
-
-        // Min OSD
-        if (row.OUTSTANDING < minOsd) return false;
-
-        // Universal Search
-        if (searchVal) {
-          const matchString = `${row.CON_ID} ${row.NAME} ${row.REG_MOB_NO} ${row.CCC_NAME} ${row.BASE_CLASS}`.toLowerCase();
-          if (!matchString.includes(searchVal)) return false;
-        }
-
-        return true;
-      });
-
-      updateKpiCards();
-      renderActiveTabContent();
-    }
-
-    // Update KPI Card Numbers
-    function updateKpiCards() {
-      const totalCount = activeFilteredData.length;
-      const totalOsd = activeFilteredData.reduce((acc, r) => acc + r.OUTSTANDING, 0);
-
-      const overdueRows = activeFilteredData.filter(r => r.bucket === 'OVERDUE');
-      const todayRows = activeFilteredData.filter(r => r.bucket === 'TODAY');
-      const rows7D = activeFilteredData.filter(r => r.bucket === '7D');
-      const rows15D = activeFilteredData.filter(r => r.bucket === '15D');
-      const rows30D = activeFilteredData.filter(r => r.bucket === '30D');
-      const clearedRows = activeFilteredData.filter(r => r.bucket === 'CLEARED');
-
-      document.getElementById('kpiValTotal').innerText = totalCount.toLocaleString('en-IN');
-      document.getElementById('kpiSubTotal').innerText = `₹ ${formatArrearsAmount(totalOsd)} OSD`;
-
-      document.getElementById('kpiValOverdue').innerText = overdueRows.length.toLocaleString('en-IN');
-      document.getElementById('kpiSubOverdue').innerText = `₹ ${formatArrearsAmount(overdueRows.reduce((a, b) => a + b.OUTSTANDING, 0))}`;
-
-      document.getElementById('kpiValToday').innerText = todayRows.length.toLocaleString('en-IN');
-      document.getElementById('kpiSubToday').innerText = `₹ ${formatArrearsAmount(todayRows.reduce((a, b) => a + b.OUTSTANDING, 0))}`;
-
-      document.getElementById('kpiVal7D').innerText = rows7D.length.toLocaleString('en-IN');
-      document.getElementById('kpiSub7D').innerText = `₹ ${formatArrearsAmount(rows7D.reduce((a, b) => a + b.OUTSTANDING, 0))}`;
-
-      document.getElementById('kpiVal15D').innerText = rows15D.length.toLocaleString('en-IN');
-      document.getElementById('kpiSub15D').innerText = `₹ ${formatArrearsAmount(rows15D.reduce((a, b) => a + b.OUTSTANDING, 0))}`;
-
-      document.getElementById('kpiVal30D').innerText = rows30D.length.toLocaleString('en-IN');
-      document.getElementById('kpiSub30D').innerText = `₹ ${formatArrearsAmount(rows30D.reduce((a, b) => a + b.OUTSTANDING, 0))}`;
-
-      document.getElementById('kpiValCleared').innerText = clearedRows.length.toLocaleString('en-IN');
-      document.getElementById('kpiSubCleared').innerText = `Clears Arrears`;
-
-      document.getElementById('osdBadge').innerHTML = `<i class="fas fa-rupee-sign"></i> Total OSD: ₹ ${formatArrearsAmount(totalOsd)}`;
-      document.getElementById('tabCountSheet').innerText = totalCount.toLocaleString('en-IN');
-    }
-
-    // Switch Active View Tab
-    function switchViewTab(tabKey) {
-      currentTab = tabKey;
-      document.querySelectorAll('.view-tab').forEach(tab => tab.classList.remove('active'));
-      document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
-
-      if (tabKey === 'sheet') {
-        document.getElementById('tabSheet').classList.add('active');
-        document.getElementById('paneSheet').classList.add('active');
-      } else if (tabKey === 'office') {
-        document.getElementById('tabOffice').classList.add('active');
-        document.getElementById('paneOffice').classList.add('active');
-      } else if (tabKey === 'timeline') {
-        document.getElementById('tabTimeline').classList.add('active');
-        document.getElementById('paneTimeline').classList.add('active');
-      } else if (tabKey === 'category') {
-        document.getElementById('tabCategory').classList.add('active');
-        document.getElementById('paneCategory').classList.add('active');
-      } else if (tabKey === 'charts') {
-        document.getElementById('tabCharts').classList.add('active');
-        document.getElementById('paneCharts').classList.add('active');
-      }
-
-      renderActiveTabContent();
-    }
-
-    // Render Content Based on Active Tab
-    function renderActiveTabContent() {
-      if (currentTab === 'sheet') renderSheetTable();
-      else if (currentTab === 'office') renderOfficeSummary();
-      else if (currentTab === 'timeline') renderTimelineAnalysis();
-      else if (currentTab === 'category') renderCategoryMatrix();
-      else if (currentTab === 'charts') renderVisualCharts();
-    }
-
-    // --- TAB 1: Render Sheet Table ---
-    function renderSheetTable() {
-      const tbody = document.getElementById('sheetTableBody');
-      tbody.innerHTML = '';
-
-      // Sort Data
-      let sorted = [...activeFilteredData].sort((a, b) => {
-        let valA = a[sortCol];
-        let valB = b[sortCol];
-
-        if (typeof valA === 'string') valA = valA.toLowerCase();
-        if (typeof valB === 'string') valB = valB.toLowerCase();
-
-        if (valA < valB) return sortDir === 'asc' ? -1 : 1;
-        if (valA > valB) return sortDir === 'asc' ? 1 : -1;
-        return 0;
-      });
-
-      const totalEntries = sorted.length;
-      const startIdx = (currentPage - 1) * pageSize;
-      const endIdx = Math.min(startIdx + pageSize, totalEntries);
-      const pageRows = sorted.slice(startIdx, endIdx);
-
-      if (pageRows.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="11" style="text-align:center; padding: 24px; color: var(--text-secondary);">No upcoming DD records found for the selected filter criteria.</td></tr>`;
-        document.getElementById('pageRangeInfo').innerText = 'Showing 0 to 0 of 0 entries';
-        document.getElementById('btnPagePrev').disabled = true;
-        document.getElementById('btnPageNext').disabled = true;
-        return;
-      }
-
-      pageRows.forEach((row, idx) => {
-        const sl = startIdx + idx + 1;
-        const phone = row.REG_MOB_NO ? row.REG_MOB_NO : '--';
-        const osdText = row.OUTSTANDING > 0 ? `₹ ${row.OUTSTANDING.toLocaleString('en-IN')}` : '<span style="color:#10b981;">₹ 0</span>';
-
-        let badgeHtml = '';
-        if (row.bucket === 'OVERDUE') badgeHtml = '<span class="badge badge-overdue"><i class="fas fa-exclamation-circle"></i> Overdue</span>';
-        else if (row.bucket === 'TODAY') badgeHtml = '<span class="badge badge-today"><i class="fas fa-calendar-day"></i> Today</span>';
-        else if (row.bucket === '7D') badgeHtml = '<span class="badge badge-7d">7 Days</span>';
-        else if (row.bucket === '15D') badgeHtml = '<span class="badge badge-15d">15 Days</span>';
-        else if (row.bucket === '30D') badgeHtml = '<span class="badge badge-30d">30 Days</span>';
-        else badgeHtml = '<span class="badge badge-cleared">Cleared</span>';
-
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td style="font-weight:700;">${sl}</td>
-          <td style="font-weight:700; color:#60a5fa;">${row.CON_ID}</td>
-          <td>
-            <div style="font-weight:700;">${row.NAME}</div>
-            <div style="font-size:0.72rem; color:var(--text-secondary);">${phone}</div>
-          </td>
-          <td>${row.CCC_NAME}</td>
-          <td><span style="font-weight:600;">${row.BASE_CLASS}</span></td>
-          <td>${row.CONN_PHASE} Ph</td>
-          <td>${formatDateIso(row.discon_dt_iso)}</td>
-          <td style="font-weight:700; color:#fbbf24;">${formatDateIso(row.dd_due_date)}</td>
-          <td style="font-weight:800;">${osdText}</td>
-          <td>${badgeHtml}</td>
-          <td>
-            <div class="action-btn-group">
-              ${row.REG_MOB_NO ? `<a href="tel:${row.REG_MOB_NO}" class="action-icon-btn btn-call" title="Call Consumer"><i class="fas fa-phone"></i></a>` : ''}
-              ${row.REG_MOB_NO ? `<a href="https://wa.me/91${row.REG_MOB_NO}?text=Dear%20Consumer%20(${row.CON_ID}),%20your%20disconnection%20due%20date%20is%20approaching.%20Outstanding%20Arrears:%20Rs%20${row.OUTSTANDING}." target="_blank" class="action-icon-btn btn-whatsapp" title="WhatsApp Message"><i class="fab fa-whatsapp"></i></a>` : ''}
-              <button class="action-icon-btn btn-detail" onclick="openConsumerModal('${row.CON_ID}')" title="View Details & Notes"><i class="fas fa-edit"></i></button>
-            </div>
-          </td>
-        `;
-        tbody.appendChild(tr);
-      });
-
-      document.getElementById('pageRangeInfo').innerText = `Showing ${startIdx + 1} to ${endIdx} of ${totalEntries} entries`;
-      document.getElementById('pageCurrentNumber').innerText = currentPage;
-      document.getElementById('btnPagePrev').disabled = currentPage === 1;
-      document.getElementById('btnPageNext').disabled = endIdx >= totalEntries;
-    }
-
-    function toggleSort(columnKey) {
-      if (sortCol === columnKey) {
-        sortDir = sortDir === 'asc' ? 'desc' : 'asc';
-      } else {
-        sortCol = columnKey;
-        sortDir = 'desc';
-      }
-      renderSheetTable();
-    }
-
-    function changePage(delta) {
-      currentPage += delta;
-      renderSheetTable();
-    }
-
-    // --- TAB 2: Office Summary Breakdown ---
-    function renderOfficeSummary() {
-      const tbody = document.getElementById('officeTableBody');
-      tbody.innerHTML = '';
-
-      const officeMap = {};
-
-      activeFilteredData.forEach(r => {
-        const div = r.DIVN_NAME || 'Other Division';
-        const ccc = r.CCC_NAME || r.CCC_CODE;
-
-        if (!officeMap[div]) {
-          officeMap[div] = {
-            name: div,
-            level: 'Division',
-            totalRows: 0,
-            totalOsd: 0,
-            overdue: 0,
-            due7D: 0,
-            due30D: 0,
-            cleared: 0
-          };
-        }
-
-        officeMap[div].totalRows++;
-        officeMap[div].totalOsd += r.OUTSTANDING;
-        if (r.bucket === 'OVERDUE') officeMap[div].overdue++;
-        if (r.bucket === '7D' || r.bucket === 'TODAY') officeMap[div].due7D++;
-        if (r.bucket === '15D' || r.bucket === '30D') officeMap[div].due30D++;
-        if (r.bucket === 'CLEARED') officeMap[div].cleared++;
-      });
-
-      const officeList = Object.values(officeMap).sort((a, b) => b.totalOsd - a.totalOsd);
-
-      if (officeList.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:20px; color:var(--text-secondary);">No office data available.</td></tr>`;
-        return;
-      }
-
-      officeList.forEach(off => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td style="font-weight:700; color:#60a5fa;">${off.name}</td>
-          <td><span class="badge" style="background:rgba(255,255,255,0.1);">${off.level}</span></td>
-          <td style="font-weight:700;">${off.totalRows.toLocaleString('en-IN')}</td>
-          <td style="font-weight:800; color:#34d399;">₹ ${formatArrearsAmount(off.totalOsd)}</td>
-          <td style="color:#f87171; font-weight:700;">${off.overdue}</td>
-          <td style="color:#22d3ee; font-weight:700;">${off.due7D}</td>
-          <td style="color:#c084fc; font-weight:700;">${off.due30D}</td>
-          <td style="color:#10b981; font-weight:700;">${off.cleared}</td>
-        `;
-        tbody.appendChild(tr);
-      });
-    }
-
-    // --- TAB 3: DD Due Timeline Analysis ---
-    function renderTimelineAnalysis() {
-      const tbody = document.getElementById('timelineTableBody');
-      tbody.innerHTML = '';
-
-      const bucketsDef = [
-        { key: 'OVERDUE', title: 'Already Overdue (Passed 180 Days)', badgeClass: 'badge-overdue' },
-        { key: 'TODAY', title: 'Due Today (180th Day)', badgeClass: 'badge-today' },
-        { key: '7D', title: 'Due in 1 to 7 Days', badgeClass: 'badge-7d' },
-        { key: '15D', title: 'Due in 8 to 15 Days', badgeClass: 'badge-15d' },
-        { key: '30D', title: 'Due in 16 to 30 Days', badgeClass: 'badge-30d' },
-        { key: 'FUTURE', title: 'Future (30+ Days)', badgeClass: 'badge-cleared' },
-        { key: 'CLEARED', title: 'Zero OSD / Cleared Arrears', badgeClass: 'badge-cleared' }
-      ];
-
-      const grandTotalOsd = activeFilteredData.reduce((acc, r) => acc + r.OUTSTANDING, 0) || 1;
-
-      bucketsDef.forEach(b => {
-        const rows = activeFilteredData.filter(r => r.bucket === b.key);
-        const count = rows.length;
-        const osdSum = rows.reduce((acc, r) => acc + r.OUTSTANDING, 0);
-        const sharePct = ((osdSum / grandTotalOsd) * 100).toFixed(1);
-
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td><span class="badge ${b.badgeClass}" style="font-size:0.75rem;">${b.title}</span></td>
-          <td style="font-weight:700;">${count.toLocaleString('en-IN')}</td>
-          <td style="font-weight:800; color:#34d399;">₹ ${formatArrearsAmount(osdSum)}</td>
-          <td>
-            <div style="display:flex; align-items:center; gap:8px;">
-              <div style="flex:1; background:rgba(255,255,255,0.1); height:8px; border-radius:4px; overflow:hidden;">
-                <div style="width:${sharePct}%; background:#3b82f6; height:100%;"></div>
-              </div>
-              <span style="font-weight:700; font-size:0.75rem;">${sharePct}%</span>
-            </div>
-          </td>
-          <td>
-            <button class="btn-small" onclick="filterByKpiBucket('${b.key}')"><i class="fas fa-filter"></i> View Records</button>
-          </td>
-        `;
-        tbody.appendChild(tr);
-      });
-    }
-
-    // --- TAB 4: Category & Class Matrix ---
-    function renderCategoryMatrix() {
-      const tbody = document.getElementById('categoryTableBody');
-      tbody.innerHTML = '';
-
-      const classMap = {};
-
-      activeFilteredData.forEach(r => {
-        const cls = r.BASE_CLASS || 'OTHERS';
-        if (!classMap[cls]) {
-          classMap[cls] = { class: cls, count: 0, osd: 0, ph1: 0, ph3: 0, govt: 0 };
-        }
-        classMap[cls].count++;
-        classMap[cls].osd += r.OUTSTANDING;
-        if (r.CONN_PHASE === '1') classMap[cls].ph1++;
-        if (r.CONN_PHASE === '3') classMap[cls].ph3++;
-        if (r.GOVT_STAT.includes('GOVT')) classMap[cls].govt++;
-      });
-
-      const list = Object.values(classMap).sort((a, b) => b.osd - a.osd);
-
-      list.forEach(c => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td style="font-weight:700; color:#60a5fa;">${c.class}</td>
-          <td style="font-weight:700;">${c.count.toLocaleString('en-IN')}</td>
-          <td style="font-weight:800; color:#34d399;">₹ ${formatArrearsAmount(c.osd)}</td>
-          <td>${c.ph1}</td>
-          <td>${c.ph3}</td>
-          <td>${c.govt}</td>
-        `;
-        tbody.appendChild(tr);
-      });
-    }
-
-    // --- TAB 5: Render Visual Charts ---
-    function renderVisualCharts() {
-      // 1. Division Bar Chart
-      const divMap = {};
-      activeFilteredData.forEach(r => {
-        const div = r.DIVN_NAME || 'Other';
-        divMap[div] = (divMap[div] || 0) + (r.OUTSTANDING / 1e5); // Lakhs
-      });
-
-      const divLabels = Object.keys(divMap);
-      const divValues = Object.values(divMap).map(v => parseFloat(v.toFixed(2)));
-
-      const ctxDivn = document.getElementById('divnOsdChart').getContext('2d');
-      if (chartDivnOsd) chartDivnOsd.destroy();
-
-      chartDivnOsd = new Chart(ctxDivn, {
-        type: 'bar',
-        data: {
-          labels: divLabels,
-          datasets: [{
-            label: 'OSD Arrears (₹ Lakhs)',
-            data: divValues,
-            backgroundColor: 'rgba(59, 130, 246, 0.7)',
-            borderColor: '#3b82f6',
-            borderWidth: 1,
-            borderRadius: 6
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { display: false },
-            tooltip: { callbacks: { label: ctx => `${ctx.raw} Lakhs` } }
-          },
-          scales: {
-            y: { grid: { color: 'rgba(255,255,255,0.08)' }, ticks: { color: '#94a3b8' } },
-            x: { grid: { display: false }, ticks: { color: '#94a3b8' } }
-          }
-        }
-      });
-
-      // 2. Bucket Pie Chart
-      const bucketCounts = {
-        'Overdue': activeFilteredData.filter(r => r.bucket === 'OVERDUE').length,
-        'Due Today': activeFilteredData.filter(r => r.bucket === 'TODAY').length,
-        'Due 7 Days': activeFilteredData.filter(r => r.bucket === '7D').length,
-        'Due 15 Days': activeFilteredData.filter(r => r.bucket === '15D').length,
-        'Due 30 Days': activeFilteredData.filter(r => r.bucket === '30D').length,
-        'Cleared': activeFilteredData.filter(r => r.bucket === 'CLEARED').length
-      };
-
-      const ctxPie = document.getElementById('bucketPieChart').getContext('2d');
-      if (chartBucketPie) chartBucketPie.destroy();
-
-      chartBucketPie = new Chart(ctxPie, {
-        type: 'doughnut',
-        data: {
-          labels: Object.keys(bucketCounts),
-          datasets: [{
-            data: Object.values(bucketCounts),
-            backgroundColor: ['#ef4444', '#f59e0b', '#06b6d4', '#2563eb', '#8b5cf6', '#10b981']
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { position: 'right', labels: { color: '#94a3b8', font: { size: 11 } } }
-          }
-        }
-      });
-
-      // 3. Top 10 Defaulters
-      const topBody = document.getElementById('topDefaultersBody');
-      topBody.innerHTML = '';
-      const top10 = [...activeFilteredData].sort((a, b) => b.OUTSTANDING - a.OUTSTANDING).slice(0, 10);
-
-      top10.forEach((r, i) => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td style="font-weight:800; color:#fbbf24;">#${i + 1}</td>
-          <td style="font-weight:700; color:#60a5fa;">${r.CON_ID}</td>
-          <td style="font-weight:700;">${r.NAME}</td>
-          <td>${r.CCC_NAME}</td>
-          <td>${r.BASE_CLASS}</td>
-          <td>${formatDateIso(r.discon_dt_iso)}</td>
-          <td>${formatDateIso(r.dd_due_date)}</td>
-          <td style="font-weight:800; color:#ef4444;">₹ ${r.OUTSTANDING.toLocaleString('en-IN')}</td>
-        `;
-        topBody.appendChild(tr);
-      });
-    }
-
-    // --- Modal & Follow-Up Notes Logic ---
-    function openConsumerModal(conId) {
-      const consumer = allRawData.find(r => r.CON_ID === conId);
-      if (!consumer) return;
-
-      document.getElementById('modalConIdInput').value = conId;
-      document.getElementById('modalNoteDate').value = new Date().toISOString().slice(0, 10);
-
-      document.getElementById('modalConsumerBanner').innerHTML = `
-        <div style="font-size:1rem; font-weight:800; color:#60a5fa;">${consumer.NAME} (CON ID: ${consumer.CON_ID})</div>
-        <div style="color:var(--text-secondary); margin-top:2px;">
-          <strong>CCC:</strong> ${consumer.CCC_NAME} | <strong>Class:</strong> ${consumer.BASE_CLASS} (${consumer.CONN_PHASE} Ph) | <strong>Phone:</strong> ${consumer.REG_MOB_NO || 'N/A'}
-        </div>
-      `;
-
-      document.getElementById('modalConsumerGrid').innerHTML = `
-        <div><strong>Disconnection Date:</strong> ${formatDateIso(consumer.discon_dt_iso)}</div>
-        <div><strong>DD Due Date (180D):</strong> <span style="color:#fbbf24; font-weight:700;">${formatDateIso(consumer.dd_due_date)}</span></div>
-        <div><strong>OSD Arrears:</strong> <span style="color:#ef4444; font-weight:800;">₹ ${consumer.OUTSTANDING.toLocaleString('en-IN')}</span></div>
-        <div><strong>Govt Status:</strong> ${consumer.GOVT_STAT}</div>
-      `;
-
-      renderModalNotes(conId);
-      document.getElementById('consumerModal').classList.add('open');
-    }
-
-    function closeModal() {
-      document.getElementById('consumerModal').classList.remove('open');
-    }
-
-    function getSavedNotes() {
-      try {
-        return JSON.parse(localStorage.getItem(NOTES_STORAGE_KEY)) || {};
-      } catch (e) {
-        return {};
-      }
-    }
-
-    function renderModalNotes(conId) {
-      const notesMap = getSavedNotes();
-      const list = notesMap[conId] || [];
-
-      const container = document.getElementById('modalTimelineHistory');
-      container.innerHTML = '';
-
-      if (list.length === 0) {
-        container.innerHTML = `<div style="font-size:0.75rem; color:var(--text-secondary); padding:8px 0;">No past visit entries recorded for this consumer.</div>`;
-        return;
-      }
-
-      list.forEach(entry => {
-        const card = document.createElement('div');
-        card.className = 'timeline-card';
-        card.innerHTML = `
-          <div style="display:flex; justify-content:space-between; font-weight:700; color:#3b82f6;">
-            <span>${entry.status}</span>
-            <span>${formatDateIso(entry.date)}</span>
-          </div>
-          <div style="margin-top:4px; color:var(--text-primary);">${entry.remarks || 'No details specified.'}</div>
-        `;
-        container.appendChild(card);
-      });
-    }
-
-    function saveConsumerVisitNote(e) {
-      e.preventDefault();
-      const conId = document.getElementById('modalConIdInput').value;
-      const date = document.getElementById('modalNoteDate').value;
-      const status = document.getElementById('modalNoteStatus').value;
-      const remarks = document.getElementById('modalNoteRemarks').value.trim();
-
-      if (!conId || !date || !status) return;
-
-      const notesMap = getSavedNotes();
-      if (!notesMap[conId]) notesMap[conId] = [];
-
-      notesMap[conId].unshift({
-        date: date,
-        status: status,
-        remarks: remarks,
-        createdAt: new Date().toISOString()
-      });
-
-      localStorage.setItem(NOTES_STORAGE_KEY, JSON.stringify(notesMap));
-      document.getElementById('modalNoteRemarks').value = '';
-      renderModalNotes(conId);
-    }
-
-    // Export Filtered CSV
-    function exportFilteredDataCSV() {
-      if (activeFilteredData.length === 0) {
-        alert('No records available to export.');
-        return;
-      }
-
-      const exportRows = activeFilteredData.map(r => ({
-        CON_ID: r.CON_ID,
-        NAME: r.NAME,
-        PHONE: r.REG_MOB_NO,
-        CLASS: r.BASE_CLASS,
-        PHASE: r.CONN_PHASE,
-        GOVT_STATUS: r.GOVT_STAT,
-        CCC_NAME: r.CCC_NAME,
-        DIVISION: r.DIVN_NAME,
-        REGION: r.REGION_NAME,
-        DISCON_DATE: r.discon_dt_iso,
-        DD_DUE_DATE: r.dd_due_date,
-        OSD_ARREARS: r.OUTSTANDING,
-        TIMELINE_BUCKET: r.bucket
-      }));
-
-      const csv = Papa.unparse(exportRows);
-      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.setAttribute('href', url);
-      link.setAttribute('download', `Upcoming_DD_Consumers_${new Date().toISOString().slice(0, 10)}.csv`);
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    }
+    $('refreshBtn').addEventListener('click', load);
+    load();
+  });
   </script>
 </body>
-
 </html>

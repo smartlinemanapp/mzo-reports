@@ -1,984 +1,217 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="ui">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Docket Closure Data Visualization</title>
-    <!-- D3.js CDN for data processing (still used for aggregation) -->
-    <script src="https://d3js.org/d3.v7.min.js"></script>
-    <!-- Google Fonts - Inter -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-    <!-- Tailwind CSS CDN -->
-    <!-- Tailwind CSS (Static) -->
-    <link rel="stylesheet" href="../tailwind_dist.css">
-    <style>
-        /* Custom styles to override or extend Tailwind for dark theme and specific elements */
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #1a202c; /* Dark background */
-            color: #e2e8f0; /* Light text color */
-            padding: 0.5rem;
-        }
-        @media (min-width: 768px) {
-            body {
-                padding: 2rem;
-            }
-        }
-
-        /* General text colors for dark theme - Adjusted for much better visibility */
-.text-gray-800 { color: #ffffff !important; } /* Main heading */
-.text-gray-700 { color: #f5f5f5 !important; } /* Checkbox labels */
-.text-gray-600 { color: #f0f0f0 !important; } /* Card headings */
-.text-gray-500 { color: #d0d0d0 !important; } /* Nested card headings */
-        .text-emerald-600 { color: #48bb78; } /* Green for positive metrics (slightly brighter) */
-        .text-emerald-700 { color: #38a169; }
-        .text-blue-600 { color: #e7e56d !important;; } /* Blue for tech dockets */
-        .text-red-600 { color: #fc8181 !important;; } /* Red for non-tech dockets */
-
-        /* Summary Card specific styles for dark theme */
-        .summary-card {
-            background-color: #2d3748; /* Darker card background */
-            padding: 0.75rem; /* Adjusted for mobile */
-            border-radius: 0.75rem; /* More rounded corners */
-        }
-        @media (min-width: 768px) {
-            .summary-card {
-                padding: 1rem; /* Adjusted for desktop */
-            }
-        }
-        .nested-card {
-            background-color: #4a5568; /* Even darker nested card background */
-            padding: 0.5rem; /* Adjusted for mobile */
-            border-radius: 0.5rem;
-        }
-        @media (min-width: 768px) {
-            .nested-card {
-                padding: 0.75rem; /* Adjusted for desktop */
-            }
-        }
-
-        /* Consistent Font Sizes for compactness */
-        .text-xs { font-size: 0.75rem; line-height: 1rem; } /* 12px */
-        .text-sm { font-size: 0.875rem; line-height: 1.25rem; } /* 14px */
-        .text-base { font-size: 1rem; line-height: 1.5rem; } /* 16px */
-        .text-lg { font-size: 1.125rem; line-height: 1.75rem; } /* 18px */
-        .text-xl { font-size: 1.25rem; line-height: 1.75rem; } /* 20px */
-        .text-2xl { font-size: 1.5rem; line-height: 2rem; } /* 24px */
-        .text-3xl { font-size: 1.875rem; line-height: 2.25rem; } /* 30px */
-        .text-4xl { font-size: 2.25rem; line-height: 2.5rem; } /* 36px */
-
-        .summary-card h2 { font-size: 0.875rem; } /* text-sm */
-        .summary-card p { font-size: 2.25rem; line-height: 2.5rem; } /* text-4xl */
-        .nested-card h3 { font-size: 0.75rem; } /* text-xs */
-        .nested-card p { font-size: 1rem; line-height: 1.5rem; } /* text-base */
-
-        @media (min-width: 768px) {
-            .summary-card h2 { font-size: 1rem; } /* md:text-base */
-            .summary-card p { font-size: 3rem; line-height: 1; } /* md:text-5xl */
-            .nested-card h3 { font-size: 0.875rem; } /* md:text-sm */
-            .nested-card p { font-size: 1.125rem; line-height: 1.75rem; } /* md:text-lg */
-        }
-
-        /* Toggle Button styles for dark theme */
-        .toggle-btn {
-            padding: 0.25rem 0.75rem;
-            font-size: 0.875rem;
-            cursor: pointer;
-            border-radius: 0.375rem;
-            transition: all 0.2s ease-in-out;
-        }
-        .toggle-btn.active-toggle-btn {
-            background-color: #38a169; /* emerald-600 */
-            color: #ffffff;
-            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-        }
-        .toggle-btn.inactive-toggle-btn {
-            background-color: #4a5568; /* gray-700 */
-            color: #f0f4f8; /* Lighter gray for inactive button text */
-        }
-
-        /* Tabs styles for dark theme */
-        .tab-button {
-            flex-shrink: 0;
-            transition: all 0.2s ease-in-out;
-            border-bottom: 3px solid transparent;
-            padding: 0.5rem 0.75rem;
-            font-size: 0.875rem;
-            cursor: pointer;
-            color: #cbd5e0; /* gray-300 for inactive tabs */
-        }
-        .tab-button.active {
-            border-bottom: 3px solid #38a169; /* emerald-600 */
-            font-weight: 600;
-            color: #ffffff;
-        }
-        .tabs-container {
-            border-bottom: 1px solid #4a5568; /* gray-700 */
-            margin-bottom: 0.5rem;
-            padding-bottom: 0.5rem;
-            overflow-x: auto;
-            white-space: nowrap;
-            -webkit-overflow-scrolling: touch;
-            scrollbar-width: thin;
-            scrollbar-color: #4a5568 #2d3748; /* Darker scrollbar colors */
-        }
-        .tabs-container::-webkit-scrollbar {
-            height: 8px;
-        }
-        .tabs-container::-webkit-scrollbar-track {
-            background: #2d3748; /* Darker track */
-            border-radius: 10px;
-        }
-        .tabs-container::-webkit-scrollbar-thumb {
-            background-color: #4a5568; /* Darker thumb */
-            border-radius: 10px;
-            border: 2px solid #2d3748;
-        }
-
-        /* Table specific styles for dark theme */
-        .table-container {
-            background-color: #2d3748; /* Darker table container */
-            border-radius: 0.75rem;
-            padding: 1rem;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-            margin-bottom: 1.5rem;
-            overflow-x: auto;
-        }
-        table {
-            border-collapse: collapse;
-        }
-        .table-header-cell {
-            padding: 0.75rem 1rem;
-            text-align: left;
-            font-size: 0.875rem;
-            font-weight: 600;
-            color: #a0aec0; /* gray-400 */
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            border: 1px solid #4a5568; /* Darker border */
-        }
-        .table-data-cell {
-            padding: 0.75rem 1rem;
-            white-space: nowrap;
-            font-size: 0.875rem;
-            color: #e2e8f0; /* Light text */
-            border: 1px solid #4a5568; /* Darker border */
-        }
-        tbody tr:nth-child(even) {
-            background-color: #2d3748; /* Even darker row */
-        }
-        tbody tr:nth-child(odd) {
-            background-color: #1a202c; /* Original dark background for odd rows */
-        }
-        .above-mean {
-            background-color: #4a1e1e !important; /* Dark red for above mean */
-        }
-        .sorted-column {
-            background-color: #2a4365 !important; /* Dark blue for sorted column */
-            color: #63b3ed !important; /* Light blue text */
-        }
-        .sort-icon {
-            border-left: 5px solid transparent;
-            border-right: 5px solid transparent;
-            vertical-align: middle;
-            opacity: 0.6;
-        }
-        .sort-icon.asc {
-            border-bottom: 5px solid #cbd5e0; /* Light gray for icon */
-        }
-        .sort-icon.desc {
-            border-top: 5px solid #cbd5e0; /* Light gray for icon */
-        }
-        .sort-icon.visible {
-            opacity: 1;
-        }
-
-        /* Tooltip Styles for dark theme */
-        .tooltip {
-            background: rgba(0, 0, 0, 0.9);
-            color: white;
-            border-radius: 0.375rem;
-            font-size: 0.875rem;
-            padding: 0.5rem 0.75rem;
-        }
-
-        /* Loading Spinner Styles for dark theme */
-        .spinner-container {
-            background-color: rgba(26, 32, 44, 0.9); /* Darker overlay */
-        }
-        .spinner {
-            border: 4px solid rgba(255, 255, 255, 0.2);
-            border-left-color: #38a169; /* emerald-600 */
-        }
-
-        /* Modal Styles for dark theme */
-        .modal-content {
-            background-color: #2d3748; /* Darker modal background */
-            color: #e2e8f0;
-            border-radius: 0.75rem;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.1);
-        }
-        .modal-content h3 {
-            color: #e2e8f0;
-        }
-        .modal-content p {
-            color: #cbd5e0;
-        }
-        .modal-button {
-            background-color: #38a169; /* emerald-600 */
-            color: white;
-            padding: 0.6rem 1.2rem;
-            border-radius: 0.5rem;
-            font-weight: 600;
-        }
-        .modal-button:hover {
-            background-color: #2f855a; /* emerald-700 */
-        }
-    </style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Docket closure KPI · MZO Reports</title>
+  <script src="/mzo_theme.js?v=3"></script>
+  <link rel="stylesheet" href="/mzo_theme.css?v=3" />
+  <script src="/mzo_ui.js?v=2" defer></script>
+  <script src="/mzo_scope.js?v=5" defer></script>
+  <style>.ui-grid > .ui-panel { margin-top: 0; }</style>
 </head>
 <body>
+  <main class="ui-page">
+    <header class="ui-head">
+      <div>
+        <h1>Docket closure KPI</h1>
+        <p id="meta">Closed dockets, Jan 2023 – Jun 2025</p>
+      </div>
+      <div class="ui-actions">
+        <div class="ui-seg" id="bulk" role="group" aria-label="Bulk dockets">
+          <button type="button" data-b="" aria-pressed="true">All</button>
+          <button type="button" data-b="ex" aria-pressed="false">Excluding bulk</button>
+          <button type="button" data-b="only" aria-pressed="false">Bulk only</button>
+        </div>
+        <button type="button" class="ui-btn icon" id="refreshBtn" aria-label="Refresh" title="Refresh"><svg class="ui-i"><use href="#ui-refresh"/></svg></button>
+      </div>
+    </header>
 
-    <!-- Loading Spinner -->
-    <div id="loading-spinner-container" class="spinner-container hidden fixed inset-0 flex flex-col justify-center items-center z-50">
-        <div class="spinner w-10 h-10 mb-4"></div>
-        <div id="loading-message" class="text-center text-lg text-gray-400">Loading data...</div>
+    <div class="ui-filters">
+      <span class="ui-select"><select id="regionFilter" aria-label="Region"><option value="">All regions</option></select></span>
+      <span class="ui-select"><select id="divisionFilter" aria-label="Division"><option value="">All divisions</option></select></span>
+      <span class="ui-select"><select id="cccFilter" aria-label="CCC"><option value="">All CCCs</option></select></span>
+      <span class="ui-select"><select id="probFilter" aria-label="Problem"><option value="">All problems</option></select></span>
+      <button type="button" class="ui-btn ghost" id="clearBtn" hidden><svg class="ui-i"><use href="#ui-x"/></svg>Clear</button>
     </div>
 
-    <!-- Lowest Closure Time Modal -->
-    <div id="lowest-closure-time-modal" class="modal-overlay hidden fixed inset-0 flex justify-center items-center z-40">
-        <div class="modal-content p-6 rounded-lg shadow-lg max-w-sm w-full text-center">
-            <h3 class="text-xl font-semibold mb-4">Key Performance Insights</h3>
-            <p id="lowest-division-text" class="text-base mb-2"></p>
-            <p id="lowest-ccc-text" class="text-base mb-4"></p>
-            <button id="modal-ok-button" class="modal-button focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-opacity-50">OK</button>
+    <section class="ui-stats" style="--n:5" aria-label="Summary">
+      <div class="ui-stat"><div class="k">Closed dockets</div><div class="v" id="sN"><span class="ui-skel"></span></div><div class="s" id="sNS">&nbsp;</div></div>
+      <div class="ui-stat"><div class="k">Average closure</div><div class="v" id="sAvg"><span class="ui-skel"></span></div><div class="s">All dockets</div></div>
+      <div class="ui-stat"><div class="k">Technical</div><div class="v" id="sTech"><span class="ui-skel"></span></div><div class="s" id="sTechS">&nbsp;</div></div>
+      <div class="ui-stat"><div class="k">Non-technical</div><div class="v" id="sNon"><span class="ui-skel"></span></div><div class="s" id="sNonS">&nbsp;</div></div>
+      <div class="ui-stat"><div class="k">Fastest CCC</div><div class="v" id="sBest" style="font-size:18px;line-height:1.5"><span class="ui-skel"></span></div><div class="s" id="sBestS">&nbsp;</div></div>
+    </section>
+
+    <div class="ui-grid">
+      <section class="ui-panel">
+        <div class="ui-panel-h">
+          <h2>By office</h2>
+          <div class="ui-tabs" role="tablist" id="levelTabs">
+            <button type="button" class="ui-tab" role="tab" data-l="region" aria-selected="true">Region</button>
+            <button type="button" class="ui-tab" role="tab" data-l="division">Division</button>
+            <button type="button" class="ui-tab" role="tab" data-l="ccc">CCC</button>
+          </div>
         </div>
+        <div id="officeTable" style="--max-h:600px"><div class="ui-empty">Loading…</div></div>
+      </section>
+      <section class="ui-panel">
+        <div class="ui-panel-h">
+          <h2>By problem</h2>
+          <button type="button" class="ui-btn sm icon" id="exportBtn" aria-label="Export CSV" title="Export CSV"><svg class="ui-i"><use href="#ui-download"/></svg></button>
+        </div>
+        <div id="probTable" style="--max-h:600px"><div class="ui-empty">Loading…</div></div>
+      </section>
     </div>
+  </main>
 
+  <script>
+  document.addEventListener('DOMContentLoaded', function () {
+    'use strict';
+    var $ = function (id) { return document.getElementById(id); };
+    var URL_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vThi-zr48XGYbnQO7YR8xmhVQZV2Wb3t05wTN2kqM254DXNOr5wfeBWNIhywNk2egvpYeSte2EWLLvD/pub?gid=0&single=true&output=csv';
+    var BULK = { '6610000': 1, '6620000': 1, '6630000': 1 };
+    var all = [], bulk = '', level = 'region', scope = null;
 
-    <div class="max-w-7xl mx-auto py-4">
-        <h1 class="text-2xl md:text-3xl font-bold text-gray-800 mb-0">Docket Closure KPI</h1>
-        <p class="text-xs md:text-sm text-gray-500 mb-4">(from Jan, 2023 - June -2025)</p>
+    // Closure time in days → "35h 39m" or "4d 6h"
+    function dur(days) {
+      if (days == null || !isFinite(days)) return '—';
+      var m = Math.round(days * 1440);
+      if (m < 60 * 48) return Math.floor(m / 60) + 'h ' + String(m % 60).padStart(2, '0') + 'm';
+      var h = Math.round(m / 60);
+      return Math.floor(h / 24) + 'd ' + (h % 24) + 'h';
+    }
+    function agg(rows) { var n = 0, s = 0; rows.forEach(function (r) { n += r.n; s += r.sum; }); return { n: n, avg: n ? s / n : null }; }
 
-        <!-- Bulk Filter Checkboxes -->
-        <div class="flex items-center space-x-4 mb-6">
-            <label class="flex items-center text-sm text-gray-700 cursor-pointer">
-                <input type="checkbox" id="bulk-only-checkbox" class="mr-2 h-4 w-4 text-emerald-600 rounded focus:ring-emerald-500">
-                Bulk Only
-            </label>
-            <label class="flex items-center text-sm text-gray-700 cursor-pointer">
-                <input type="checkbox" id="excluding-bulk-checkbox" class="mr-2 h-4 w-4 text-emerald-600 rounded focus:ring-emerald-500">
-                Excluding Bulk
-            </label>
-        </div>
-
-        <!-- Summary Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-            <div class="summary-card rounded-lg shadow-md text-center">
-                <h2 id="total-dockets-header" class="text-sm md:text-base font-semibold text-gray-600 mb-1">Total Dockets (Overall)</h2>
-                <p id="total-dockets-card" class="text-4xl md:text-5xl font-bold text-emerald-600 mb-2">0</p>
-                <!-- Nested Cards for Total Tech/Non-Tech Dockets -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div class="nested-card rounded-lg shadow-sm">
-                        <h3 class="text-xs md:text-sm font-medium text-gray-500 mb-1">Total Tech Dockets</h3>
-                        <p id="total-tech-dockets-card" class="text-base md:text-lg font-bold text-blue-600">0</p>
-                    </div>
-                    <div class="nested-card rounded-lg shadow-sm">
-                        <h3 class="text-xs md:text-sm font-medium text-gray-500 mb-1">Total Non-Tech Dockets</h3>
-                        <p id="total-nontech-dockets-card" class="text-base md:text-lg font-bold text-red-600">0</p>
-                    </div>
-                </div>
-            </div>
-            <div class="summary-card rounded-lg shadow-md text-center">
-                <h2 id="avg-closure-time-header" class="text-sm md:text-base font-semibold text-gray-600 mb-1">Avg. Closure Time (Overall)</h2>
-                <p id="avg-closure-time-card" class="text-4xl md:text-5xl font-bold text-emerald-600 mb-2">00:00</p>
-                <!-- Nested Cards for Avg Tech/Non-Tech Closure Time -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div class="nested-card rounded-lg shadow-sm">
-                        <h3 class="text-xs md:text-sm font-medium text-gray-500 mb-1">Tech Avg. Time</h3>
-                        <p id="avg-tech-closure-time-card" class="text-base md:text-lg font-bold text-blue-600">00:00</p>
-                    </div>
-                    <div class="nested-card rounded-lg shadow-sm">
-                        <h3 class="text-xs md:text-sm font-medium text-gray-500 mb-1">Non-Tech Avg. Time</h3>
-                        <p id="avg-nontech-closure-time-card" class="text-base md:text-lg font-bold text-red-600">00:00</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Three-Layer Tabs Navigation -->
-        <div class="mb-4">
-            <div id="region-tabs-container" class="tabs-container flex space-x-2">
-                <!-- Region tabs will be dynamically loaded here -->
-            </div>
-
-            <div id="division-tabs-container" class="tabs-container flex space-x-2">
-                <!-- Division tabs will be dynamically loaded here -->
-            </div>
-
-            <div id="ccc-tabs-container" class="tabs-container flex space-x-2">
-                <!-- CCC tabs will be dynamically loaded here -->
-            </div>
-        </div>
-
-        <!-- Data Table Container -->
-        <div id="data-table-section" class="table-container">
-            <div class="flex flex-col sm:flex-row items-center justify-between mb-4">
-                <h2 class="text-xl md:text-2xl font-semibold text-gray-700 mb-2 sm:mb-0">KPI Comparison</h2>
-                <div id="table-toggle-container" class="flex items-center space-x-3">
-                    <span class="text-gray-600 text-sm">Group by:</span>
-                    <button id="toggle-division-btn" class="toggle-btn active-toggle-btn focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-opacity-50">Division</button>
-                    <button id="toggle-ccc-btn" class="toggle-btn inactive-toggle-btn focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-opacity-50">CCC</button>
-                </div>
-            </div>
-            <!-- The table will be rendered here by JavaScript -->
-        </div>
-
-        <!-- Loading and Error Messages -->
-        <div id="error-message" class="text-center text-lg text-red-500 mt-4 hidden"></div>
-    </div>
-
-    <!-- Tooltip Element -->
-    <div id="table-tooltip" class="tooltip hidden absolute z-50"></div>
-
-    <script>
-        // URL for the CSV data source
-        const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vThi-zr48XGYbnQO7YR8xmhVQZV2Wb3t05wTN2kqM254DXNOr5wfeBWNIhywNk2egvpYeSte2EWLLvD/pub?gid=0&single=true&output=csv";
-
-        // Provided mapping object to link CCC codes to Region and Division
-        const mapping = {
-            "MALDA REGION": {
-                "MALDA DIVISIOIN": {"MANIKCHAK CCC": "6611101", "GOLAPGANJ CCC": "6611102", "BAISHNABNAGAR CCC": "6611103", "KALIACHAK CCC": "6611104", "MOTHABARI CCC": "6611105", "SUJAPUR CCC": "6611106", "RATHBARI CCC": "6611107", "FULBARI CCC": "6611108", "MOKDUMPUR CCC": "6611109"},
-                "CHANCHAL DIVISION": {"BHALUKA CCC": "6612101", "SAMSI CCC": "6612102", "PARANPUR CCC": "6612103", "CHANCHAL CCC": "6612104", "MALATIPUR CCC": "6612105", "HARISHCHANDRAPUR CCC": "6612106", "KUSHIDA CCC": "6612107"},
-                "GAZOLE DIVISION": {"GAZOL CCC": "6613101", "AIHO. CCC": "6613102", "PANDUA CCC": "6613103", "BAMONGOLA CCC": "6613104", "OLD MALDA CCC": "6613105"},
-                // New Bulk mapping for MALDA REGION
-                "BULK DIVISION": {"BULK CCC": "6610000"}
-            },
-            "UTTAR DINAJPUR REGION": {
-                "RAIGANJ DIVISION": {"ITAHAR CCC": "6621101", "HEMTABAD CCC": "6621102", "KALIYAGANJ CCC": "6621103", "RAIGANJ CCC": "6621104", "BIRNAGAR CCC": "6621105", "KARANDIGHI CCC": "6621106"},
-                "ISLAMPUR DIVISION": {"ISLAMPUR CCC": "6622101", "CHOPRA CCC": "6622102", "DALKHOLA CCC": "6622103", "GOALPOKHER CCC": "6622104", "KANKI CCC": "6622105"},
-                // New Bulk mapping for UTTAR DINAJPUR REGION
-                "BULK DIVISION": {"BULK CCC": "6620000"}
-            },
-            "DAKSHIN DINAJPUR REGION": {
-                "BALURGHAT DIVISION": {"BALURGHAT CCC": "6631101", "TAPAN CCC": "6631102", "KUMARGANJ CCC": "6631103", "HILI CCC": "6631104", "PATIRAM CCC": "6631105"},
-                "BUNIADPUR DIVISION": {"BUNIADPUR CCC": "6632101", "KUSMANDI CCC": "6632102", "HARIRAMPUR CCC": "6632103", "GANGARAMPUR CCC": "6632104"},
-                // New Bulk mapping for DAKSHIN DINAJPUR REGION
-                "BULK DIVISION": {"BULK CCC": "6630000"}
-            }
+    function prepare(text) {
+      all = UI.csv(text).filter(function (d) { return d.ccc_code; }).map(function (d) {
+        var code = String(d.ccc_code).trim(), o = UI.office(code), isBulk = !!BULK[code];
+        return {
+          tech: d.DESCRIPTION === 'B', prob: String(d.prob_type || '').trim(), code: code, bulk: isBulk,
+          n: Number(d['Count of doc_no']) || 0, sum: Number(d['Sum of Diff']) || 0,
+          _region: o.region, _divn: isBulk ? 'Bulk' : o.division, _supp: isBulk ? 'Bulk · ' + o.region : o.ccc, CCC_CODE: code
         };
-
-        // Create a reverse mapping for efficient lookup of region and division by ccc_code
-        const reverseMapping = {};
-        for (const regionName in mapping) {
-            for (const divisionName in mapping[regionName]) {
-                for (const cccName in mapping[regionName][divisionName]) {
-                    const cccCode = mapping[regionName][divisionName][cccName];
-                    reverseMapping[cccCode] = {
-                        region: regionName,
-                        division: divisionName,
-                        cccName: cccName
-                    };
-                }
-            }
-        }
-
-        let rawData = []; // Stores the initial fetched and processed data
-        let filteredData = []; // Stores the data after applying tab filters
-
-        // State variables for current selections
-        let selectedRegion = 'All';
-        let selectedDivision = 'All';
-        let selectedCCC = 'All';
-
-        // Global state for sorting
-        let currentSortColumn = 'Avg. Closure Time (Overall)'; // Default sort column
-        let currentSortDirection = 'asc'; // Default sort direction
-
-        // Global state for table grouping mode, only relevant when a Region is selected
-        let tableGroupingMode = 'division'; // 'division' or 'ccc_name'
-
-        // New state variables for bulk filtering
-        let showBulkOnly = false;
-        let excludeBulk = false;
-        const bulkCCCodes = new Set(["6610000", "6620000", "6630000"]);
-
-        // Loading messages for the spinner
-        const loadingMessages = [
-            "Loading data..",
-            "Analyzing data..",
-            "Generating dashboard.."
-        ];
-        let messageIndex = 0;
-        let messageInterval;
-
-
-        /**
-         * Fetches CSV data from the provided URL, processes it by adding Region and Division
-         * based on ccc_code, and converts relevant columns to numbers.
-         * Displays loading and error messages as needed.
-         * @returns {Promise<Array>} A promise that resolves with the processed data array.
-         */
-        async function fetchAndProcessData() {
-            const loadingSpinnerContainer = document.getElementById('loading-spinner-container');
-            const loadingMessageElement = document.getElementById('loading-message');
-            const errorMessageElement = document.getElementById('error-message');
-
-            loadingSpinnerContainer.classList.remove('hidden'); // Show spinner
-            loadingMessageElement.classList.remove('hidden'); // Show loading message
-            errorMessageElement.classList.add('hidden'); // Hide error message
-
-            // Start cycling through loading messages
-            messageIndex = 0;
-            loadingMessageElement.textContent = loadingMessages[messageIndex];
-            messageInterval = setInterval(() => {
-                messageIndex = (messageIndex + 1) % loadingMessages.length;
-                loadingMessageElement.textContent = loadingMessages[messageIndex];
-            }, 1000); // Change message every 1 second
-
-            try {
-                const data = await d3.csv(csvUrl);
-                const processedData = data.map(d => {
-                    const cccInfo = reverseMapping[d.ccc_code];
-                    return {
-                        ...d,
-                        region: cccInfo ? cccInfo.region : 'Unknown Region',
-                        division: cccInfo ? cccInfo.division : 'Unknown Division',
-                        ccc_name: cccInfo ? cccInfo.cccName : 'Unknown CCC',
-                        'Count of doc_no': +d['Count of doc_no'],
-                        'Sum of Diff': +d['Sum of Diff'],
-                        'Average of Diff': +d['Average of Diff']
-                    };
-                });
-
-                rawData = processedData;
-                return processedData;
-
-            } catch (error) {
-                console.error("Error fetching or processing data:", error);
-                errorMessageElement.classList.remove('hidden');
-                errorMessageElement.textContent = `Failed to load data. Please check the data source and try again. Error: ${error.message}`;
-                return [];
-            } finally {
-                // Ensure spinner and messages are hidden regardless of success or failure
-                clearInterval(messageInterval); // Stop message cycling
-                loadingSpinnerContainer.classList.add('hidden');
-                loadingMessageElement.classList.add('hidden');
-            }
-        }
-
-        /**
-         * Converts a total number of days into a formatted H:M string.
-         * @param {number} totalDays - The total duration in days.
-         * @returns {string} The formatted duration string (H:M).
-         */
-        function formatDuration(totalDays) {
-            if (isNaN(totalDays) || totalDays < 0) return "N/A";
-
-            const totalMinutes = Math.floor(totalDays * 24 * 60);
-
-            const hours = Math.floor(totalMinutes / 60);
-            const minutes = totalMinutes % 60;
-
-            const pad = (num) => String(num).padStart(2, '0');
-
-            return `${hours}H ${pad(minutes)}M`; // Changed to H:M format
-        }
-
-        /**
-         * Updates the summary cards with calculated total dockets and average closure time.
-         * @param {Array} data - The data array to use for calculations.
-         */
-        function updateSummaryCards(data) {
-            let totalDockets = 0;
-            let totalSumOfDiff = 0;
-
-            data.forEach(d => {
-                totalDockets += d['Count of doc_no'];
-                totalSumOfDiff += d['Sum of Diff'];
-            });
-
-            const overallAvgClosureDays = totalDockets > 0 ? totalSumOfDiff / totalDockets : 0;
-
-            document.getElementById('total-dockets-card').textContent = totalDockets.toLocaleString();
-            document.getElementById('avg-closure-time-card').textContent = formatDuration(overallAvgClosureDays);
-
-            const techData = data.filter(d => d.DESCRIPTION === 'B');
-            const nonTechData = data.filter(d => d.DESCRIPTION === 'A');
-
-            let totalTechDockets = 0;
-            let totalTechSumOfDiff = 0;
-            techData.forEach(d => {
-                totalTechDockets += d['Count of doc_no'];
-                totalTechSumOfDiff += d['Sum of Diff'];
-            });
-            const avgTechClosureDays = totalTechDockets > 0 ? totalTechSumOfDiff / totalTechDockets : 0;
-            document.getElementById('avg-tech-closure-time-card').textContent = formatDuration(avgTechClosureDays);
-            document.getElementById('total-tech-dockets-card').textContent = totalTechDockets.toLocaleString();
-
-            let totalNonTechDockets = 0;
-            let totalNonTechSumOfDiff = 0;
-            nonTechData.forEach(d => {
-                totalNonTechDockets += d['Count of doc_no'];
-                totalNonTechSumOfDiff += d['Sum of Diff'];
-            });
-            const avgNonTechClosureDays = totalNonTechDockets > 0 ? totalNonTechSumOfDiff / totalNonTechDockets : 0;
-            document.getElementById('avg-nontech-closure-time-card').textContent = formatDuration(avgNonTechClosureDays);
-            document.getElementById('total-nontech-dockets-card').textContent = totalNonTechDockets.toLocaleString();
-
-            // Update the "Overall" text based on selections with prefixes
-            let scopeText = '';
-            if (selectedRegion === 'All') {
-                scopeText = 'Zone';
-            } else if (selectedCCC !== 'All') {
-                scopeText = `CCC: ${selectedCCC.replace(/ REGION| DIVISION| DIVISIOIN| CCC/g, '').trim()}`;
-            } else if (selectedDivision !== 'All') {
-                scopeText = `Division: ${selectedDivision.replace(/ REGION| DIVISION| DIVISIOIN| CCC/g, '').trim()}`;
-            } else {
-                scopeText = `Region: ${selectedRegion.replace(/ REGION| DIVISION| DIVISIOIN| CCC/g, '').trim()}`;
-            }
-
-            document.getElementById('total-dockets-header').textContent = `Total Dockets (${scopeText})`;
-            document.getElementById('avg-closure-time-header').textContent = `Avg. Closure Time (${scopeText})`;
-        }
-
-        /**
-         * Renders the data into an HTML table based on the current filtering and grouping.
-         * Includes sorting functionality and visible triangular sorting icons.
-         * @param {Array} data - The data array to display (already filtered).
-         */
-        function renderDataTable(data) {
-            const tableContainer = document.getElementById('data-table-section');
-            // Get the header div, then clear the container and re-append the header
-            const headerDiv = tableContainer.querySelector('.flex.flex-col.sm\\:flex-row.items-center.justify-between');
-            tableContainer.innerHTML = ''; // Clear everything
-            tableContainer.appendChild(headerDiv); // Re-append the header
-
-            const toggleDivisionBtn = document.getElementById('toggle-division-btn');
-            const toggleCCCBtn = document.getElementById('toggle-ccc-btn');
-
-            // Determine the grouping level based on active filters and toggle state
-            let effectiveGroupByField;
-            if (selectedCCC !== 'All') {
-                effectiveGroupByField = 'ccc_name';
-                // When a specific CCC is selected, the grouping is fixed to CCC
-                // Visually indicate this by deactivating both toggle buttons
-                toggleDivisionBtn.classList.remove('active-toggle-btn');
-                toggleDivisionBtn.classList.add('inactive-toggle-btn');
-                toggleCCCBtn.classList.remove('active-toggle-btn');
-                toggleCCCBtn.classList.add('inactive-toggle-btn');
-            } else if (selectedDivision !== 'All') {
-                effectiveGroupByField = 'ccc_name'; // Fixed to CCC-wise for Division selection
-                // When a specific Division is selected, the grouping is fixed to CCC
-                // Visually indicate this by deactivating both toggle buttons
-                toggleDivisionBtn.classList.remove('active-toggle-btn');
-                toggleDivisionBtn.classList.add('inactive-toggle-btn');
-                toggleCCCBtn.classList.remove('active-toggle-btn');
-                toggleCCCBtn.classList.add('inactive-toggle-btn');
-            } else { // selectedRegion is 'All' or a specific region, and selectedDivision/CCC are 'All'
-                effectiveGroupByField = tableGroupingMode; // Use the toggle state
-                // Set active class for toggle buttons based on tableGroupingMode
-                if (tableGroupingMode === 'division') {
-                    toggleDivisionBtn.classList.add('active-toggle-btn');
-                    toggleDivisionBtn.classList.remove('inactive-toggle-btn');
-                    toggleCCCBtn.classList.remove('active-toggle-btn');
-                    toggleCCCBtn.classList.add('inactive-toggle-btn');
-                } else { // tableGroupingMode === 'ccc_name'
-                    toggleCCCBtn.classList.add('active-toggle-btn');
-                    toggleCCCBtn.classList.remove('inactive-toggle-btn');
-                    toggleDivisionBtn.classList.remove('active-toggle-btn');
-                    toggleDivisionBtn.classList.add('inactive-toggle-btn');
-                }
-            }
-
-            // Ensure event listeners are correctly attached to the buttons
-            // It's safer to re-attach them here after the DOM is potentially manipulated by innerHTML
-            toggleDivisionBtn.onclick = () => {
-                tableGroupingMode = 'division';
-                filterDataAndRedrawCharts();
-            };
-            toggleCCCBtn.onclick = () => {
-                tableGroupingMode = 'ccc_name';
-                filterDataAndRedrawCharts();
-            };
-
-            if (data.length === 0) {
-                const noDataMessage = document.createElement('p');
-                noDataMessage.classList.add('text-gray-500', 'text-center', 'py-4');
-                noDataMessage.textContent = "No data available for this table with current filters.";
-                tableContainer.appendChild(noDataMessage);
-                return;
-            }
-
-            // Aggregate data for the table based on effectiveGroupByField
-            const aggregatedTableData = [];
-            const groupedData = d3.group(data, d => d[effectiveGroupByField]);
-
-            groupedData.forEach((group, key) => {
-                let totalDockets = 0;
-                let totalSumOfDiff = 0;
-                let techDockets = 0;
-                let techSumOfDiff = 0;
-                let nonTechDockets = 0;
-                let nonTechSumOfDiff = 0;
-
-                group.forEach(d => {
-                    totalDockets += d['Count of doc_no'];
-                    totalSumOfDiff += d['Sum of Diff'];
-
-                    if (d.DESCRIPTION === 'B') { // Tech
-                        techDockets += d['Count of doc_no'];
-                        techSumOfDiff += d['Sum of Diff'];
-                    } else if (d.DESCRIPTION === 'A') { // Non-Tech
-                        nonTechDockets += d['Count of doc_no'];
-                        nonTechSumOfDiff += d['Sum of Diff'];
-                    }
-                });
-
-                const avgOverallTime = totalDockets > 0 ? totalSumOfDiff / totalDockets : 0;
-                const avgTechTime = techDockets > 0 ? techSumOfDiff / techDockets : 0;
-                const avgNonTechTime = nonTechDockets > 0 ? nonTechSumOfDiff / nonTechDockets : 0;
-
-                aggregatedTableData.push({
-                    [effectiveGroupByField]: key, // Use the dynamic grouping field as the first column
-                    'Total Dockets': totalDockets,
-                    'Tech Dockets': techDockets,
-                    'Non-Tech Dockets': nonTechDockets,
-                    'Avg. Closure Time (Overall)': avgOverallTime,
-                    'Avg. Closure Time (Tech)': avgTechTime,
-                    'Avg. Closure Time (Non-Tech)': avgNonTechTime
-                });
-            });
-
-            // Calculate the mean of 'Avg. Closure Time (Overall)' for highlighting
-            const overallAvgTimes = aggregatedTableData.map(d => d['Avg. Closure Time (Overall)']);
-            const meanOverallAvgTime = overallAvgTimes.length > 0
-                ? overallAvgTimes.reduce((sum, val) => sum + val, 0) / overallAvgTimes.length
-                : 0;
-
-
-            // Apply sorting if a column is selected
-            if (currentSortColumn) {
-                aggregatedTableData.sort((a, b) => {
-                    const valA = a[currentSortColumn];
-                    const valB = b[currentSortColumn];
-
-                    let comparison = 0;
-                    // Handle numeric sorting for time and count values
-                    if (typeof valA === 'number' && typeof valB === 'number') {
-                        comparison = valA - valB;
-                    } else {
-                        // For string values (like Region/Division/CCC names), use localeCompare
-                        comparison = String(valA).localeCompare(String(valB));
-                    }
-
-                    return currentSortDirection === 'asc' ? comparison : -comparison;
-                });
-            }
-
-            const table = document.createElement('table');
-            table.classList.add('min-w-full', 'divide-y', 'divide-gray-700', 'bg-gray-800', 'rounded-lg', 'overflow-hidden');
-
-            const thead = table.createTHead();
-            const headerRow = thead.insertRow();
-            
-            // Add Sl. No. header
-            let slNoTh = document.createElement('th');
-            slNoTh.classList.add('table-header-cell');
-            slNoTh.textContent = 'Sl. No.';
-            headerRow.appendChild(slNoTh);
-
-            const headers = Object.keys(aggregatedTableData[0]);
-
-            headers.forEach(key => {
-                const th = document.createElement('th');
-                th.classList.add('table-header-cell', 'cursor-pointer', 'relative');
-
-                // Add sorted-column class if this is the currently sorted column
-                if (currentSortColumn === key) {
-                    th.classList.add('sorted-column');
-                }
-
-                // Create a container for text and icon to allow for flexible layout
-                const headerContent = document.createElement('div');
-                headerContent.classList.add('flex', 'items-center', 'justify-between', 'group'); // Added 'group' for hover effects
-
-                const textSpan = document.createElement('span');
-                textSpan.textContent = key;
-                headerContent.appendChild(textSpan);
-
-                const sortIcon = document.createElement('span');
-                sortIcon.classList.add('sort-icon');
-                sortIcon.dataset.column = key; // Store column name for easy lookup
-
-                // Initially, hide or set neutral state for icons
-                if (currentSortColumn === key) {
-                    sortIcon.classList.add('visible', currentSortDirection);
-                } else {
-                    // Default to asc icon shape, will be hidden
-                    sortIcon.classList.add('asc'); 
-                    sortIcon.style.opacity = '0.4'; // Dim by default
-                }
-                
-                headerContent.appendChild(sortIcon);
-                th.appendChild(headerContent);
-
-
-                th.onclick = () => {
-                    if (currentSortColumn === key) {
-                        currentSortDirection = currentSortDirection === 'asc' ? 'desc' : 'asc';
-                    } else {
-                        currentSortColumn = key;
-                        currentSortDirection = 'asc';
-                    }
-                    renderDataTable(data); // Re-render table with new sort
-                };
-                headerRow.appendChild(th);
-            });
-
-            const tbody = table.createTBody();
-            const tooltip = document.getElementById('table-tooltip');
-
-            aggregatedTableData.forEach((rowData, index) => {
-                const row = tbody.insertRow();
-                // Add class for highlighting if Avg. Closure Time (Overall) is above the mean
-                if (rowData['Avg. Closure Time (Overall)'] > meanOverallAvgTime) {
-                    row.classList.add('above-mean');
-                }
-
-                // Add Sl. No. cell
-                let slNoCell = row.insertCell();
-                slNoCell.textContent = index + 1;
-                slNoCell.classList.add('table-data-cell');
-
-
-                headers.forEach(key => {
-                    const cell = row.insertCell();
-                    if (key.includes('Avg. Closure Time')) {
-                        cell.textContent = formatDuration(rowData[key]);
-                    } else {
-                        cell.textContent = rowData[key].toLocaleString();
-                    }
-                    cell.classList.add('table-data-cell');
-                });
-
-                row.addEventListener('mouseover', (event) => {
-                    if (row.classList.contains('above-mean')) {
-                        tooltip.textContent = 'RED: Docket closure time is higher than average.'; // Updated text
-                        tooltip.style.left = (event.pageX + 10) + 'px';
-                        tooltip.style.top = (event.pageY + 10) + 'px';
-                        tooltip.classList.remove('hidden');
-                    }
-                });
-
-                row.addEventListener('mouseout', () => {
-                    tooltip.classList.add('hidden');
-                });
-            });
-
-            tableContainer.appendChild(table);
-        }
-
-        /**
-         * Renders the tab buttons for a specific level (Region, Division, or CCC).
-         * @param {string} level - The level of tabs to render ('region', 'division', or 'ccc_name').
-         * @param {string} selectedValue - The currently selected value for this level.
-         */
-        function renderTabs(level, selectedValue) {
-            let containerId;
-            if (level === 'ccc_name') {
-                containerId = 'ccc-tabs-container';
-            } else {
-                containerId = `${level}-tabs-container`;
-            }
-            
-            const container = document.getElementById(containerId);
-            
-            if (container) {
-                container.innerHTML = ''; // Clear existing buttons
-
-                let options = [];
-                let dataForOptions = rawData;
-
-                // Apply bulk filtering before determining tab options
-                if (showBulkOnly) {
-                    dataForOptions = dataForOptions.filter(d => bulkCCCodes.has(d.ccc_code));
-                } else if (excludeBulk) {
-                    dataForOptions = dataForOptions.filter(d => !bulkCCCodes.has(d.ccc_code));
-                }
-
-                if (level === 'division' && selectedRegion !== 'All') {
-                    dataForOptions = dataForOptions.filter(d => d.region === selectedRegion);
-                } else if (level === 'ccc_name') {
-                    if (selectedRegion !== 'All') {
-                        dataForOptions = dataForOptions.filter(d => d.region === selectedRegion);
-                    }
-                    if (selectedDivision !== 'All') {
-                        dataForOptions = dataForOptions.filter(d => d.division === selectedDivision);
-                    }
-                }
-
-                // Get unique options for the current level, excluding 'All' initially
-                options = [...new Set(dataForOptions.map(d => d[level]))].sort();
-                // Always place 'All' at the beginning
-                options.unshift('All');
-
-
-                options.forEach(option => {
-                    const button = document.createElement('button');
-                    // Remove " REGION", " DIVISION", " DIVISIOIN| CCC" from the option text
-                    let buttonText = option.replace(/ REGION| DIVISION| DIVISIOIN| CCC/g, '').trim();
-                    button.textContent = buttonText;
-                    button.classList.add('tab-button', 'rounded-md');
-                    if (option === selectedValue) {
-                        button.classList.add('active');
-                    }
-
-                    button.onclick = () => {
-                        if (level === 'region') {
-                            selectedRegion = option;
-                            selectedDivision = 'All';
-                            selectedCCC = 'All';
-                            // Reset table grouping mode to default when region changes
-                            tableGroupingMode = 'division';
-                        } else if (level === 'division') {
-                            selectedDivision = option;
-                            selectedCCC = 'All';
-                        } else if (level === 'ccc_name') {
-                            selectedCCC = option;
-                        }
-                        filterDataAndRedrawCharts();
-                    };
-                    container.appendChild(button);
-                });
-            } else {
-                console.error(`Error: Tab container with ID '${containerId}' not found.`);
-            }
-        }
-
-        /**
-         * Filters the raw data based on current selections and redraws the data table and tabs.
-         */
-        function filterDataAndRedrawCharts() {
-            filteredData = rawData.filter(d => {
-                const matchesRegion = selectedRegion === 'All' || d.region === selectedRegion;
-                const matchesDivision = selectedDivision === 'All' || d.division === selectedDivision;
-                const matchesCCC = selectedCCC === 'All' || d.ccc_name === selectedCCC;
-
-                // Apply bulk filtering
-                const isBulk = bulkCCCodes.has(d.ccc_code);
-                if (showBulkOnly) {
-                    return matchesRegion && matchesDivision && matchesCCC && isBulk;
-                } else if (excludeBulk) {
-                    return matchesRegion && matchesDivision && matchesCCC && !isBulk;
-                }
-                return matchesRegion && matchesDivision && matchesCCC;
-            });
-
-            updateSummaryCards(filteredData);
-            renderDataTable(filteredData); // Call renderDataTable
-
-            // Re-render tabs to show only relevant options based on current filters
-            renderTabs('region', selectedRegion);
-            renderTabs('division', selectedDivision);
-            renderTabs('ccc_name', selectedCCC);
-        }
-
-        /**
-         * Calculates the division and CCC with the lowest average closure time.
-         * @param {Array} data - The raw data to analyze.
-         * @returns {Object} An object containing the lowest division and CCC with their times.
-         */
-        function getLowestClosureTimes(data) {
-            let lowestDivision = { name: 'N/A', time: Infinity };
-            let lowestCCC = { name: 'N/A', time: Infinity };
-
-            // Calculate lowest division
-            const divisions = d3.group(data, d => d.division);
-            divisions.forEach((group, divisionName) => {
-                let totalDockets = 0;
-                let totalSumOfDiff = 0;
-                group.forEach(d => {
-                    totalDockets += d['Count of doc_no'];
-                    totalSumOfDiff += d['Sum of Diff'];
-                });
-                const avgTime = totalDockets > 0 ? totalSumOfDiff / totalDockets : Infinity;
-
-                if (avgTime < lowestDivision.time) {
-                    lowestDivision = { name: divisionName.replace(/ DIVISION/g, '').trim(), time: avgTime };
-                }
-            });
-
-            // Calculate lowest CCC
-            const cccs = d3.group(data, d => d.ccc_name);
-            cccs.forEach((group, cccName) => {
-                let totalDockets = 0;
-                let totalSumOfDiff = 0;
-                group.forEach(d => {
-                    totalDockets += d['Count of doc_no'];
-                    totalSumOfDiff += d['Sum of Diff'];
-                });
-                const avgTime = totalDockets > 0 ? totalSumOfDiff / totalDockets : Infinity;
-
-                if (avgTime < lowestCCC.time) {
-                    lowestCCC = { name: cccName.replace(/ CCC/g, '').trim(), time: avgTime };
-                }
-            });
-
-            return { lowestDivision, lowestCCC };
-        }
-
-
-        // Initialize the dashboard when the DOM content is fully loaded
-        document.addEventListener('DOMContentLoaded', async () => {
-            const data = await fetchAndProcessData();
-            if (data.length > 0) {
-                filteredData = rawData;
-                updateSummaryCards(filteredData);
-                renderDataTable(filteredData); // Initial render of the table
-
-                renderTabs('region', selectedRegion);
-                renderTabs('division', selectedDivision);
-                renderTabs('ccc_name', selectedCCC);
-
-                // Add event listeners for new bulk filter checkboxes
-                document.getElementById('bulk-only-checkbox').addEventListener('change', (event) => {
-                    showBulkOnly = event.target.checked;
-                    if (showBulkOnly) {
-                        document.getElementById('excluding-bulk-checkbox').checked = false;
-                        excludeBulk = false;
-                    }
-                    filterDataAndRedrawCharts();
-                });
-
-                document.getElementById('excluding-bulk-checkbox').addEventListener('change', (event) => {
-                    excludeBulk = event.target.checked;
-                    if (excludeBulk) {
-                        document.getElementById('bulk-only-checkbox').checked = false;
-                        showBulkOnly = false;
-                    }
-                    filterDataAndRedrawCharts();
-                });
-
-                // Show the modal with lowest closure times
-                const { lowestDivision, lowestCCC } = getLowestClosureTimes(rawData);
-                document.getElementById('lowest-division-text').textContent = `Lowest Avg. Docket Closure Time (Div): ${lowestDivision.name} (${formatDuration(lowestDivision.time)})`;
-                document.getElementById('lowest-ccc-text').textContent = `Lowest Avg. Docket Closure Time (CCC): ${lowestCCC.name} (${formatDuration(lowestCCC.time)})`;
-                document.getElementById('lowest-closure-time-modal').classList.remove('hidden');
-
-                // Add event listener for modal OK button
-                document.getElementById('modal-ok-button').addEventListener('click', () => {
-                    document.getElementById('lowest-closure-time-modal').classList.add('hidden');
-                });
-
-            } else {
-                // If data loading fails, ensure the spinner is hidden
-                document.getElementById('loading-spinner-container').classList.add('hidden');
-                document.getElementById('error-message').classList.remove('hidden');
-                if(!document.getElementById('error-message').textContent){
-                    document.getElementById('error-message').textContent = 'No data available to render dashboard.';
-                }
-            }
-        });
-    </script>
+      });
+      if (window.MzoScope) all = window.MzoScope.filterRows(all);
+      var probs = {}; all.forEach(function (r) { if (r.prob) probs[r.prob] = 1; });
+      UI.fill('probFilter', Object.keys(probs).sort(), 'All problems');
+      fillOffices();
+    }
+    function uniq(rows, k) { var s = {}; rows.forEach(function (r) { if (r[k]) s[r[k]] = 1; }); return Object.keys(s).sort(); }
+    function fillOffices() {
+      var reg = $('regionFilter').value, div = $('divisionFilter').value;
+      UI.fill('regionFilter', uniq(all, '_region'), 'All regions');
+      var r1 = all.filter(function (r) { return !reg || r._region === reg; });
+      UI.fill('divisionFilter', uniq(r1, '_divn'), 'All divisions');
+      var r2 = r1.filter(function (r) { return !div || r._divn === div; });
+      UI.fill('cccFilter', uniq(r2, '_supp'), 'All CCCs');
+      if (!scope) scope = UI.lockScope();
+    }
+    function base(skipProb) {
+      var reg = $('regionFilter').value, div = $('divisionFilter').value, ccc = $('cccFilter').value, prob = $('probFilter').value;
+      return all.filter(function (r) {
+        return (!reg || r._region === reg) && (!div || r._divn === div) && (!ccc || r._supp === ccc) && (skipProb || !prob || r.prob === prob) &&
+          (!bulk || (bulk === 'only' ? r.bulk : !r.bulk));
+      });
+    }
+
+    function render() {
+      var b = base(false), t = agg(b), te = agg(b.filter(function (r) { return r.tech; })), nt = agg(b.filter(function (r) { return !r.tech; }));
+      $('sN').textContent = UI.n(t.n); $('sNS').textContent = UI.n(te.n) + ' technical · ' + UI.n(nt.n) + ' other';
+      $('sAvg').textContent = dur(t.avg);
+      $('sTech').textContent = dur(te.avg); $('sTechS').textContent = UI.n(te.n) + ' dockets';
+      $('sNon').textContent = dur(nt.avg); $('sNonS').textContent = UI.n(nt.n) + ' dockets';
+      var byCcc = {}; b.forEach(function (r) { if (r.bulk || !r._supp) return; var o = byCcc[r._supp] || (byCcc[r._supp] = []); o.push(r); });
+      var best = null; Object.keys(byCcc).forEach(function (k) { var a = agg(byCcc[k]); if (a.n >= 20 && (!best || a.avg < best.avg)) best = { name: k, avg: a.avg, n: a.n }; });
+      $('sBest').textContent = best ? best.name : '—'; $('sBestS').textContent = best ? dur(best.avg) + ' average' : ' ';
+
+      var key = level === 'region' ? '_region' : level === 'division' ? '_divn' : '_supp', g = {};
+      b.forEach(function (r) { var name = r[key] || 'Unmapped'; (g[name] || (g[name] = { name: name, parent: level === 'ccc' ? r._divn : level === 'division' ? r._region : '', rows: [] })).rows.push(r); });
+      var list = Object.keys(g).map(function (k) {
+        var o = g[k], a = agg(o.rows), at = agg(o.rows.filter(function (r) { return r.tech; })), an = agg(o.rows.filter(function (r) { return !r.tech; }));
+        return { name: o.name, parent: o.parent, n: a.n, avg: a.avg, tech: at.avg, non: an.avg };
+      });
+      var dcol = function (key, label, hide) { return { key: key, label: label, num: true, hideSm: hide, sortVal: function (x) { return x[key] == null ? 1e9 : x[key]; }, fmt: dur }; };
+      UI.table('officeTable', {
+        rows: list, sort: { key: 'avg', dir: 'asc' }, count: false, empty: 'No dockets for these filters.',
+        columns: [
+          { key: 'name', label: level === 'ccc' ? 'CCC' : level === 'division' ? 'Division' : 'Region', fmt: function (v, x) { return '<span class="ui-strong">' + UI.esc(v) + '</span>' + (x.parent ? '<span class="sub">' + UI.esc(x.parent) + '</span>' : ''); } },
+          { key: 'n', label: 'Dockets', num: true, fmt: UI.n },
+          dcol('avg', 'Average'), dcol('tech', 'Technical', true), dcol('non', 'Non-technical', true)
+        ],
+        foot: list.length > 1 ? { n: t.n, avg: t.avg, tech: te.avg, non: nt.avg } : null,
+        onRow: level === 'ccc' ? null : function (x) { drill(x.name); }
+      });
+
+      var pb = base(true), pg = {};
+      pb.forEach(function (r) { (pg[r.prob || '—'] || (pg[r.prob || '—'] = [])).push(r); });
+      var plist = Object.keys(pg).map(function (k) { var a = agg(pg[k]); return { prob: k, n: a.n, avg: a.avg, tech: pg[k][0].tech }; });
+      window.__probs = plist;
+      UI.table('probTable', {
+        rows: plist, sort: { key: 'n', dir: 'desc' }, count: false, empty: 'No dockets.',
+        selected: function (x) { return x.prob === $('probFilter').value; },
+        columns: [
+          { key: 'prob', label: 'Problem', cls: 'wrap', fmt: function (v, x) { return UI.esc(v) + '<span class="sub">' + (x.tech ? 'Technical' : 'Non-technical') + '</span>'; } },
+          { key: 'n', label: 'Dockets', num: true, fmt: UI.n },
+          dcol('avg', 'Average')
+        ],
+        onRow: function (x) { $('probFilter').value = $('probFilter').value === x.prob ? '' : x.prob; UI.mark($('probFilter')); render(); }
+      });
+      $('clearBtn').hidden = !(bulk || $('probFilter').value || ['regionFilter', 'divisionFilter', 'cccFilter'].some(function (id) { return $(id).value && !$(id).disabled; }));
+    }
+
+    function setLevel(l) {
+      level = l;
+      [].forEach.call(document.querySelectorAll('#levelTabs .ui-tab'), function (t) { t.setAttribute('aria-selected', String(t.getAttribute('data-l') === l)); });
+      render();
+    }
+    function drill(name) {
+      if (level === 'region') { $('regionFilter').value = name; $('divisionFilter').value = ''; level = 'division'; }
+      else { $('divisionFilter').value = name; level = 'ccc'; }
+      $('cccFilter').value = '';
+      fillOffices(); markAll(); setLevel(level);
+    }
+    function markAll() { ['regionFilter', 'divisionFilter', 'cccFilter', 'probFilter'].forEach(function (id) { UI.mark($(id)); }); }
+    function setBulk(v) { bulk = v; [].forEach.call(document.querySelectorAll('#bulk button'), function (x) { x.setAttribute('aria-pressed', String(x.getAttribute('data-b') === v)); }); render(); }
+
+    ['regionFilter', 'divisionFilter', 'cccFilter'].forEach(function (id) {
+      $(id).addEventListener('change', function () {
+        if (id === 'regionFilter') $('divisionFilter').value = '';
+        if (id !== 'cccFilter') $('cccFilter').value = '';
+        fillOffices(); markAll(); render();
+      });
+    });
+    $('probFilter').addEventListener('change', function () { UI.mark(this); render(); });
+    $('bulk').addEventListener('click', function (e) { var b = e.target.closest('button'); if (b) setBulk(b.getAttribute('data-b')); });
+    $('levelTabs').addEventListener('click', function (e) { var t = e.target.closest('.ui-tab'); if (t) setLevel(t.getAttribute('data-l')); });
+    $('clearBtn').addEventListener('click', function () {
+      ['regionFilter', 'divisionFilter', 'cccFilter', 'probFilter'].forEach(function (id) { if (!$(id).disabled) $(id).value = ''; });
+      fillOffices(); markAll(); bulk = ''; [].forEach.call(document.querySelectorAll('#bulk button'), function (x) { x.setAttribute('aria-pressed', String(x.getAttribute('data-b') === '')); });
+      setLevel(scope && (scope.level === 'division' || scope.level === 'ccc') ? 'ccc' : scope && scope.level === 'region' ? 'division' : 'region');
+    });
+    $('exportBtn').addEventListener('click', function () {
+      UI.exportCsv('docket-closure-by-problem.csv', [{ key: 'prob', label: 'Problem' }, { key: 'tech', label: 'Type', csv: function (x) { return x.tech ? 'Technical' : 'Non-technical'; } }, { key: 'n', label: 'Dockets' }, { key: 'avg', label: 'Average closure (days)', csv: function (x) { return x.avg == null ? '' : x.avg.toFixed(3); } }], window.__probs || []);
+    });
+
+    function load(force) {
+      var b = $('refreshBtn'); if (force) b.classList.add('spin');
+      return fetch(URL_CSV, { cache: force ? 'no-store' : 'default' }).then(function (r) { if (!r.ok) throw new Error('Sheet HTTP ' + r.status); return r.text(); })
+        .then(function (t) {
+          prepare(t);
+          if (!load.done) {
+            load.done = true;
+            if (scope && (scope.level === 'division' || scope.level === 'ccc')) level = 'ccc'; else if (scope && scope.level === 'region') level = 'division';
+            [].forEach.call(document.querySelectorAll('#levelTabs .ui-tab'), function (x) { x.setAttribute('aria-selected', String(x.getAttribute('data-l') === level)); });
+            markAll();
+          }
+          render();
+        })
+        .catch(function (e) { if (!all.length) { $('officeTable').innerHTML = '<div class="ui-empty">' + UI.esc(e.message) + '</div>'; } else UI.toast(e.message); })
+        .then(function () { b.classList.remove('spin'); });
+    }
+    $('refreshBtn').addEventListener('click', function () { load(true); });
+    load(false);
+  });
+  </script>
 </body>
 </html>

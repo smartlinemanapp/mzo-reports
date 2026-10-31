@@ -1,76 +1,60 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="ui">
 <head>
+  <script src="/mzo_theme.js?v=3"></script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Stock Upload</title>
   <style>
-    :root {
-      --bg: #f3f5f8; --card: #fff; --ink: #1f2937; --muted: #6b7280;
-      --line: #e5e7eb; --brand: #0b5cab; --ok: #166534; --bad: #991b1b;
-    }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0; font-family: "Segoe UI", system-ui, sans-serif;
-      background: linear-gradient(180deg, #e8eef6 0%, var(--bg) 40%);
-      color: var(--ink); min-height: 100vh; padding: 1.5rem;
-    }
-    .wrap { max-width: 720px; margin: 0 auto; }
-    .card {
-      background: var(--card); border: 1px solid var(--line); border-radius: 12px;
-      padding: 1.25rem 1.5rem; box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
-    }
-    h1 { margin: 0 0 0.35rem; font-size: 1.35rem; }
-    .muted { color: var(--muted); font-size: 0.92rem; line-height: 1.45; }
-    .guide {
-      margin: 1rem 0; padding: 0.95rem 1rem; background: #f0f7ff;
-      border: 1px solid #dbeafe; border-radius: 8px; font-size: 0.92rem; line-height: 1.5;
-    }
-    .guide ol { margin: 0.4rem 0 0 1.2rem; padding: 0; }
-    .guide li { margin: 0.25rem 0; }
-    .guide p { margin: 0.35rem 0 0; }
-    .guide .who { margin-top: 0.65rem; }
-    .status-line {
-      margin: 0.85rem 0 0; font-size: 0.9rem; color: var(--muted);
-    }
-    .meta {
-      margin: 1rem 0; padding: 0.85rem 1rem; background: #f8fafc;
-      border: 1px solid var(--line); border-radius: 8px; font-size: 0.9rem; display: none;
-    }
+    body { margin: 0; font: 13px/1.5 var(--mzo-font); background: var(--mzo-bg); color: var(--mzo-text); }
+    .wrap { max-width: 720px; margin: 0 auto; padding: 24px 28px 72px; }
+    .head h1 { margin: 0; font-size: 20px; line-height: 1.3; font-weight: 600; letter-spacing: -0.015em; }
+    .head p { margin: 3px 0 20px; color: var(--mzo-muted); }
+    .card { background: var(--mzo-surface); border: 1px solid var(--mzo-border); border-radius: 10px; padding: 16px; }
+    .muted { color: var(--mzo-muted); }
+    .guide { margin: 0 0 16px; padding: 12px 14px; background: var(--mzo-surface-2); border: 1px solid var(--mzo-border); border-radius: 8px; color: var(--mzo-text-2); }
+    .guide ol { margin: 0; padding-left: 18px; }
+    .guide li { margin: 3px 0; }
+    .guide .who { margin: 8px 0 0; color: var(--mzo-muted); font-size: 12.5px; }
+    .status-line { margin: 0 0 12px; color: var(--mzo-muted); }
+    .meta { margin: 0 0 16px; padding: 10px 14px; background: var(--mzo-surface-2); border: 1px solid var(--mzo-border); border-radius: 8px; display: none; font-variant-numeric: tabular-nums; }
     .meta.show { display: block; }
-    .meta strong { display: inline-block; min-width: 9rem; }
-    .row { display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center; margin-top: 1rem; }
-    input[type="file"], input[type="date"] { width: 100%; max-width: 320px; }
-    button, .link-btn {
-      border: none; border-radius: 8px; padding: 0.7rem 1.1rem; font-weight: 600;
-      cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem;
-    }
-    .primary { background: var(--brand); color: #fff; }
-    .primary:disabled { opacity: 0.55; cursor: not-allowed; }
-    .ghost { background: #e5e7eb; color: #111827; }
-    .msg { margin-top: 1rem; padding: 0.85rem 1rem; border-radius: 8px; display: none; white-space: pre-wrap; }
-    .msg.ok { display: block; background: #dcfce7; color: var(--ok); }
-    .msg.err { display: block; background: #fee2e2; color: var(--bad); }
-    .locked { opacity: 0.7; }
+    .meta strong { display: inline-block; min-width: 9rem; font-weight: 500; color: var(--mzo-muted); }
+    label.field { display: block; margin: 12px 0 4px; font-size: 12.5px; font-weight: 500; color: var(--mzo-text-2); }
+    .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 6px; }
+    input[type="file"], input[type="date"] { width: 100%; max-width: 320px; height: 32px; padding: 0 10px; border: 1px solid var(--mzo-border-strong); border-radius: 7px; background: var(--mzo-input); color: var(--mzo-text); font: 13px var(--mzo-font); }
+    input[type="file"] { padding: 4px 6px; }
+    input[type="file"]::file-selector-button { height: 22px; margin-right: 8px; padding: 0 10px; border: 1px solid var(--mzo-border-strong); border-radius: 5px; background: var(--mzo-surface); color: var(--mzo-text); font: 500 12px var(--mzo-font); cursor: pointer; }
+    .hint { margin: 4px 0 0; font-size: 12px; color: var(--mzo-muted); }
+    .actions { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--mzo-border); }
+    button, .link-btn { height: 32px; padding: 0 12px; display: inline-flex; align-items: center; gap: 6px; border-radius: 7px; border: 1px solid var(--mzo-border-strong); background: var(--mzo-surface); color: var(--mzo-text); font: 500 13px var(--mzo-font); text-decoration: none; cursor: pointer; }
+    button:hover, .link-btn:hover { background: var(--mzo-hover); }
+    .primary { background: var(--mzo-fill); border-color: var(--mzo-fill); color: var(--mzo-on-fill); }
+    .primary:hover { background: var(--mzo-fill-hover); border-color: var(--mzo-fill-hover); }
+    .primary:disabled { opacity: .5; cursor: not-allowed; }
+    .ghost { background: var(--mzo-surface); }
+    .msg { margin-top: 16px; padding: 10px 14px; border-radius: 8px; display: none; white-space: pre-wrap; font-weight: 500; }
+    .msg.ok { display: block; background: var(--mzo-ok-soft); color: var(--mzo-ok); }
+    .msg.err { display: block; background: var(--mzo-bad-soft); color: var(--mzo-bad); }
+    .locked { opacity: .6; }
     .admin-only { display: none; }
-    .admin-only.show { display: block; }
-  </style>
+    .admin-only.show { display: block; margin: 0 0 12px; }
+    @media (max-width: 760px) { .wrap { padding: 16px 14px 56px; } }
+</style>
+  <link rel="stylesheet" href="/mzo_theme.css?v=3" />
 </head>
 <body>
   <div class="wrap">
+    <div class="head"><h1>Stock upload</h1><p>Publish a new SAP stock extract to the Stock page</p></div>
     <div class="card">
-      <h1>Stock Upload</h1>
-      <p class="muted" style="margin:0 0 0.25rem;">Replace the figures everyone sees on the Stock page.</p>
 
       <div class="guide" id="guideBox">
-        <strong>How to publish</strong>
         <ol>
-          <li>Set the <strong>data date</strong> — the as-on date of this SAP extract.</li>
-          <li>Choose the SAP stock Excel. Sheet1 must have <strong>Material</strong> and <strong>Material Group</strong>.</li>
-          <li>Click <strong>Upload &amp; Publish</strong> and wait until it finishes. Do not close the tab.</li>
-          <li>Open <strong>Stock</strong> to confirm the new as-on date and quantities.</li>
+          <li>Set the data date (as-on date of the SAP extract).</li>
+          <li>Choose the SAP stock Excel (Sheet1 with Material and Material Group).</li>
+          <li>Upload &amp; publish, keep this tab open, then check the Stock page.</li>
         </ol>
-        <p class="who">Only <strong>admin</strong> or users with <strong>Stock upload = Yes</strong> can publish. The file is cleaned in this browser; the live dump is stored for all offices.</p>
+        <p class="who">Admins and users with Stock upload can publish. The file is processed in this browser.</p>
       </div>
 
       <p class="status-line" id="statusLine"></p>
@@ -86,15 +70,15 @@
       <div class="meta" id="metaBox"></div>
 
       <div id="uploadBlock" class="locked">
-        <label class="muted" for="reportDateInput"><strong>Data date</strong></label>
+        <label class="field" for="reportDateInput">Data date</label>
         <div class="row"><input id="reportDateInput" type="date" disabled required /></div>
-        <p class="muted" style="margin-top:0.35rem;">Use the as-on date of this Excel dump.</p>
+        
 
-        <label class="muted" for="fileInput"><strong>Choose stock Excel</strong></label>
+        <label class="field" for="fileInput">Stock Excel</label>
         <div class="row"><input id="fileInput" type="file" accept=".xlsx,.xlsb,.xls,.csv" disabled /></div>
-        <div class="row">
-          <button class="primary" id="uploadBtn" disabled>Upload &amp; Publish</button>
-          <a class="link-btn ghost" href="/stock/index.html">Open Stock</a>
+        <div class="row actions">
+          <button class="primary" id="uploadBtn" disabled>Upload &amp; publish</button>
+          <a class="link-btn ghost" href="/stock/index.html">Open stock</a>
           <a class="link-btn ghost" href="/index.html">Home</a>
         </div>
       </div>

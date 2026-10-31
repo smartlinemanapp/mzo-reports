@@ -1,2079 +1,238 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="ui">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Consumer Summary Dashboard</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+  <title>Consumers · MZO Reports</title>
+  <script src="/mzo_theme.js?v=3"></script>
+  <link rel="stylesheet" href="/mzo_theme.css?v=3" />
+  <script src="/mzo_ui.js?v=2" defer></script>
+  <script src="/mzo_scope.js?v=5" defer></script>
   <style>
-    /* --- Modern NSC-Inspired Palette & Layout --- */
-    :root {
-      --bg-color: #f1f5f9;
-      --surface-color: #ffffff;
-      --primary-color: #2563eb;
-      --primary-variant: #1d4ed8;
-      --secondary-color: #0d9488;
-      --accent-color: #d97706;
-      --success-color: #10b981;
-      --text-primary: #1e293b;
-      --text-secondary: #64748b;
-      --border-color: #dee2e6;
-      --border-light: #f1f5f9;
-      --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-      --hover-bg: #f8fafc;
-    }
-
-    * { box-sizing: border-box; }
-
-    body {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      margin: 0;
-      background-color: var(--bg-color);
-      color: var(--text-primary);
-      line-height: 1.5;
-      font-size: 14px;
-    }
-
-    /* --- Header (NSC Style) --- */
-    .header {
-      background-color: var(--surface-color);
-      padding: 1.2rem 0;
-      border-bottom: 1px solid var(--border-color);
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
-      text-align: center;
-    }
-    .header .header-inner {
-      width: 92%;
-      max-width: 1400px;
-      margin: 0 auto;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 12px;
-    }
-    .header h1 {
-      margin: 0;
-      font-size: 1.65rem;
-      font-weight: 700;
-      color: var(--primary-color);
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .header .subtitle {
-      margin: 4px 0 0;
-      color: var(--text-secondary);
-      font-size: 13px;
-    }
-    .date-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      background: rgba(37, 99, 235, 0.08);
-      color: var(--primary-color);
-      padding: 5px 12px;
-      border-radius: 999px;
-      font-weight: 600;
-      font-size: 12px;
-    }
-
-    .container {
-      width: 92%;
-      max-width: 1400px;
-      margin: 0 auto;
-      padding: 20px 0 40px;
-    }
-
-    /* --- KPI Cards (NSC Style) --- */
-    .average-delay-cards {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-      gap: 12px;
-      margin-bottom: 20px;
-    }
-    .average-card {
-      background-color: var(--surface-color);
-      padding: 12px 16px;
-      border-radius: 8px;
-      text-align: left;
-      box-shadow: var(--card-shadow);
-      border: 1px solid var(--border-color);
-      border-left: 4px solid var(--secondary-color);
-      cursor: pointer;
-      transition: transform 0.2s, box-shadow 0.2s;
-    }
-    .average-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
-    }
-    .average-card h4 {
-      margin: 0 0 4px;
-      color: var(--text-secondary);
-      font-weight: 600;
-      font-size: 0.72rem;
-      text-transform: uppercase;
-      letter-spacing: 0.02em;
-    }
-    .average-card .value {
-      font-size: 1.35rem;
-      font-weight: 800;
-      color: var(--secondary-color);
-      line-height: 1.2;
-    }
-    .average-card.kpi-blue { border-left-color: var(--primary-color); }
-    .average-card.kpi-blue .value { color: var(--primary-color); }
-    .average-card.kpi-amber { border-left-color: var(--accent-color); }
-    .average-card.kpi-amber .value { color: var(--accent-color); }
-    .average-card.kpi-green { border-left-color: var(--success-color); }
-    .average-card.kpi-green .value { color: var(--success-color); }
-
-    /* --- Control Panel & Filters (NSC Style) --- */
-    .control-panel {
-      background-color: var(--surface-color);
-      padding: 18px 20px;
-      border-radius: 10px;
-      margin-bottom: 20px;
-      box-shadow: var(--card-shadow);
-      border: 1px solid var(--border-color);
-    }
-    .filter-section h3 {
-      margin-top: 0;
-      border-bottom: 2px solid var(--primary-color);
-      padding-bottom: 8px;
-      font-size: 1.05rem;
-      color: var(--text-primary);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-    }
-    .filter-section h3 span {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .filter-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(165px, 1fr));
-      gap: 12px 14px;
-      align-items: end;
-      margin-top: 12px;
-    }
-    .filter-group {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-    .filter-group label {
-      font-size: 11px;
-      font-weight: 700;
-      color: var(--text-secondary);
-      text-transform: uppercase;
-      letter-spacing: 0.03em;
-    }
-    .filter-group select,
-    .filter-group input {
-      width: 100%;
-      padding: 7px 10px;
-      border-radius: 6px;
-      border: 1px solid var(--border-color);
-      background: var(--surface-color);
-      color: var(--text-primary);
-      font-size: 13px;
-      outline: none;
-      transition: border-color 0.2s;
-    }
-    .filter-group select:focus,
-    .filter-group input:focus {
-      border-color: var(--primary-color);
-      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
-    }
-
-    .btn-small {
-      background-color: var(--surface-color);
-      color: var(--primary-color);
-      border: 1px solid var(--primary-color);
-      padding: 6px 12px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 12px;
-      font-weight: 600;
-      transition: background-color 0.2s, color 0.2s;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      white-space: nowrap;
-    }
-    .btn-small:hover {
-      background-color: var(--primary-color);
-      color: #ffffff;
-    }
-    .btn-solid {
-      background-color: var(--primary-color);
-      color: #ffffff;
-    }
-    .btn-solid:hover {
-      background-color: var(--primary-variant);
-    }
-    .btn-secondary-solid {
-      background-color: var(--secondary-color);
-      color: #ffffff;
-      border-color: var(--secondary-color);
-    }
-    .btn-secondary-solid:hover {
-      background-color: #0f766e;
-    }
-
-    /* --- View Switcher Tabs --- */
-    .view-tabs {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 16px;
-      border-bottom: 1px solid var(--border-color);
-      padding-bottom: 8px;
-      flex-wrap: wrap;
-    }
-    .view-tab {
-      padding: 8px 16px;
-      border-radius: 6px;
-      border: 1px solid var(--border-color);
-      background: var(--surface-color);
-      color: var(--text-secondary);
-      font-weight: 600;
-      font-size: 13px;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      transition: all 0.2s ease;
-    }
-    .view-tab.active {
-      background: var(--primary-color);
-      color: white;
-      border-color: var(--primary-color);
-      box-shadow: 0 2px 6px rgba(37, 99, 235, 0.2);
-    }
-
-    /* --- Field Selection Drawer (Modal/Slide-out) --- */
-    .drawer-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(15, 23, 42, 0.5);
-      z-index: 999;
-      display: none;
-      backdrop-filter: blur(3px);
-    }
-    .drawer-overlay.active { display: block; }
-    
-    .field-drawer {
-      position: fixed;
-      top: 0;
-      right: -360px;
-      width: 340px;
-      height: 100vh;
-      background: var(--surface-color);
-      z-index: 1000;
-      box-shadow: -4px 0 20px rgba(0, 0, 0, 0.15);
-      transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      display: flex;
-      flex-direction: column;
-    }
-    .field-drawer.open { right: 0; }
-    .drawer-header {
-      padding: 16px 20px;
-      border-bottom: 1px solid var(--border-color);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: #f8fafc;
-    }
-    .drawer-header h3 { margin: 0; font-size: 15px; font-weight: 700; color: var(--text-primary); }
-    .drawer-body {
-      padding: 16px;
-      overflow-y: auto;
-      flex: 1;
-    }
-    .field-group-title {
-      font-size: 11px;
-      font-weight: 700;
-      color: var(--primary-color);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      margin: 16px 0 8px;
-      border-bottom: 1px solid var(--border-light);
-      padding-bottom: 4px;
-    }
-    .field-group-title:first-child { margin-top: 0; }
-    
-    .checkbox-item {
-      background-color: var(--bg-color);
-      padding: 6px 12px;
-      border-radius: 15px;
-      cursor: pointer;
-      transition: background-color 0.2s, color 0.2s;
-      border: 1px solid var(--border-color);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 6px;
-      font-size: 13px;
-    }
-    .checkbox-item:hover { background-color: var(--hover-bg); }
-    .checkbox-item.active {
-      background-color: var(--primary-color);
-      color: #ffffff;
-      border-color: var(--primary-color);
-    }
-    .checkbox-item input[type="checkbox"] { display: none; }
-
-    /* --- Main Tables & Containers --- */
-    .card-table-wrap {
-      background: var(--surface-color);
-      border-radius: 10px;
-      border: 1px solid var(--border-color);
-      box-shadow: var(--card-shadow);
-      overflow: hidden;
-      margin-bottom: 20px;
-    }
-    .table-container {
-      overflow-x: auto;
-      max-height: 68vh;
-      position: relative;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 12.5px;
-    }
-    thead {
-      position: sticky;
-      top: 0;
-      z-index: 10;
-      background: #f8fafc;
-    }
-    th {
-      padding: 10px 10px;
-      text-align: left;
-      font-size: 11px;
-      font-weight: 700;
-      color: var(--text-secondary);
-      text-transform: uppercase;
-      letter-spacing: 0.03em;
-      border-bottom: 2px solid var(--border-color);
-      border-right: 1px solid var(--border-light);
-      white-space: nowrap;
-      background: #f8fafc;
-    }
-    th.sortable { cursor: pointer; }
-    th.sortable:hover { background: #e2e8f0; }
-    th.sorted-asc::after { content: " ▲"; font-size: 9px; color: var(--primary-color); }
-    th.sorted-desc::after { content: " ▼"; font-size: 9px; color: var(--primary-color); }
-    
-    td {
-      padding: 8px 10px;
-      border-bottom: 1px solid var(--border-light);
-      border-right: 1px solid var(--border-light);
-      white-space: nowrap;
-    }
-    tbody tr:hover { background: var(--hover-bg); }
-
-    td.measure-column, th.measure-column { text-align: right; }
-    tfoot tr {
-      background: #f8fafc;
-      font-weight: 700;
-      border-top: 2px solid var(--border-color);
-    }
-    tfoot td {
-      padding: 10px;
-      border-bottom: none;
-    }
-
-    /* KPI Summary Tables (NSC Style) */
-    .kpi-table-wrapper {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-      gap: 16px;
-      margin-top: 16px;
-    }
-    .kpi-block {
-      background: var(--surface-color);
-      border-radius: 10px;
-      border: 1px solid var(--border-color);
-      padding: 14px;
-      box-shadow: var(--card-shadow);
-    }
-    .kpi-block h5 {
-      margin: 0 0 10px;
-      font-size: 14px;
-      color: var(--primary-color);
-      font-weight: 700;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .kpi-table {
-      width: 100%;
-      font-size: 12px;
-    }
-    .kpi-table th {
-      font-size: 10px;
-      padding: 6px 8px;
-      background: var(--bg-color);
-    }
-    .kpi-table td {
-      padding: 6px 8px;
-    }
-
-    /* Modals (NSC Style) */
-    .modal {
-      display: none;
-      position: fixed;
-      inset: 0;
-      z-index: 1000;
-      background: rgba(15, 23, 42, 0.6);
-      backdrop-filter: blur(4px);
-      align-items: center;
-      justify-content: center;
-      padding: 16px;
-    }
-    .modal.open { display: flex; }
-    .modal-content {
-      background: var(--surface-color);
-      border-radius: 12px;
-      max-width: 960px;
-      width: 100%;
-      max-height: 88vh;
-      display: flex;
-      flex-direction: column;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.2);
-      border: 1px solid var(--border-color);
-      overflow: hidden;
-    }
-    .modal-header {
-      padding: 14px 20px;
-      background: #f8fafc;
-      border-bottom: 1px solid var(--border-color);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .modal-header h3 { margin: 0; font-size: 16px; color: var(--primary-color); font-weight: 700; }
-    .modal-body {
-      padding: 20px;
-      overflow-y: auto;
-      flex: 1;
-    }
-    .close-btn {
-      background: none;
-      border: none;
-      font-size: 22px;
-      cursor: pointer;
-      color: var(--text-secondary);
-    }
-
-    /* Floating KPI Toggle Button */
-    .kpi-icon-btn {
-      position: fixed;
-      bottom: 24px;
-      right: 24px;
-      width: 50px;
-      height: 50px;
-      border-radius: 50%;
-      background: var(--primary-color);
-      color: white;
-      border: none;
-      box-shadow: 0 4px 14px rgba(37, 99, 235, 0.4);
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 20px;
-      z-index: 900;
-      transition: transform 0.2s ease, background 0.2s ease;
-    }
-    .kpi-icon-btn:hover {
-      transform: scale(1.08);
-      background: var(--primary-variant);
-    }
-
-    /* Spinner */
-    .spinner-overlay {
-      position: absolute;
-      inset: 0;
-      background: rgba(255, 255, 255, 0.85);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 20;
-    }
-    .spinner-overlay.visible { display: flex; }
-    .spinner {
-      width: 34px;
-      height: 34px;
-      border: 3px solid var(--border-color);
-      border-top-color: var(--primary-color);
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    .pagination-controls {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 12px 16px;
-      color: var(--text-secondary);
-      font-size: 13px;
-      border-top: 1px solid var(--border-color);
-      background: #f8fafc;
-    }
-    .pagination-controls button {
-      padding: 6px 12px;
-      margin-left: 6px;
-      border-radius: 6px;
-      border: 1px solid var(--border-color);
-      background: var(--surface-color);
-      color: var(--text-primary);
-      cursor: pointer;
-      font-size: 12px;
-      font-weight: 500;
-    }
-    .pagination-controls button:hover:not(:disabled) {
-      background: var(--primary-color);
-      color: white;
-    }
-    .pagination-controls button:disabled { opacity: 0.5; cursor: not-allowed; }
-
-    /* Mobile View Optimization (Compact Layout) */
-    @media (max-width: 768px) {
-      body { font-size: 13px; }
-      .header { padding: 0.6rem 0; }
-      .header .header-inner {
-        width: 95%;
-        gap: 6px;
-        flex-direction: column;
-        align-items: flex-start;
-      }
-      .header h1 { font-size: 1.15rem; gap: 6px; }
-      .header .subtitle { font-size: 11px; margin-top: 1px; }
-      .date-badge { padding: 3px 8px; font-size: 11px; }
-
-      .container { width: 95%; padding: 8px 0 24px; }
-
-      /* Compact KPI cards */
-      .average-delay-cards {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 6px;
-        margin-bottom: 10px;
-      }
-      .average-card {
-        padding: 6px 8px;
-        border-radius: 6px;
-        border-left-width: 3px;
-      }
-      .average-card h4 {
-        font-size: 0.62rem;
-        margin-bottom: 2px;
-        letter-spacing: 0.01em;
-      }
-      .average-card .value {
-        font-size: 1.05rem;
-        line-height: 1.15;
-      }
-      .kpi-sub {
-        font-size: 10px;
-        margin-top: 2px;
-      }
-
-      /* Compact Control Panel & Filters */
-      .control-panel {
-        padding: 10px 10px;
-        margin-bottom: 10px;
-        border-radius: 8px;
-      }
-      .filter-section h3 {
-        font-size: 0.88rem;
-        padding-bottom: 4px;
-      }
-      .filter-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 6px 8px;
-        margin-top: 6px;
-      }
-      .filter-group label {
-        font-size: 10px;
-        margin-bottom: 1px;
-      }
-      .filter-group select,
-      .filter-group input {
-        padding: 4px 6px;
-        font-size: 11px;
-        height: 28px;
-        border-radius: 4px;
-      }
-      .btn-small {
-        padding: 4px 8px;
-        font-size: 11px;
-        height: 28px;
-      }
-
-      /* Compact View Switcher Tabs */
-      .view-tabs {
-        gap: 4px;
-        margin-bottom: 8px;
-        padding-bottom: 4px;
-      }
-      .view-tab {
-        padding: 5px 9px;
-        font-size: 11px;
-        border-radius: 5px;
-        gap: 4px;
-      }
-
-      /* Compact Table & Containers */
-      .table-container {
-        border-radius: 6px;
-        max-height: calc(100vh - 240px);
-      }
-      th {
-        padding: 6px 6px;
-        font-size: 10px;
-      }
-      td {
-        padding: 4px 6px;
-        font-size: 11px;
-      }
-      tfoot td {
-        padding: 6px;
-        font-size: 11px;
-      }
-      .pagination-controls {
-        padding: 6px 8px;
-        font-size: 11px;
-      }
-      .pagination-controls button {
-        padding: 4px 8px;
-        font-size: 11px;
-      }
-
-      /* Compact KPI Summary Tables */
-      .kpi-table-wrapper {
-        grid-template-columns: 1fr;
-        gap: 8px;
-        margin-top: 8px;
-      }
-      .kpi-block {
-        padding: 8px;
-        margin-bottom: 6px;
-        border-radius: 6px;
-      }
-      .kpi-block h5 {
-        font-size: 12px;
-        margin-bottom: 4px;
-      }
-      .kpi-table th {
-        font-size: 9px;
-        padding: 4px 5px;
-      }
-      .kpi-table td {
-        padding: 4px 5px;
-        font-size: 10px;
-      }
-
-      /* Compact Drawer & Modal */
-      .drawer {
-        width: 280px;
-        padding: 12px;
-      }
-      .column-option {
-        padding: 4px 6px;
-        font-size: 11px;
-      }
-      .kpi-icon-btn {
-        width: 42px;
-        height: 42px;
-        bottom: 14px;
-        right: 14px;
-        font-size: 16px;
-      }
-      .modal-content {
-        max-height: 92vh;
-        border-radius: 8px;
-      }
-      .modal-header {
-        padding: 10px 14px;
-      }
-      .modal-header h3 {
-        font-size: 14px;
-      }
-      .modal-body {
-        padding: 10px;
-      }
-    }
-
-    @media (max-width: 480px) {
-      .average-delay-cards {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 4px;
-      }
-      .average-card {
-        padding: 5px 6px;
-      }
-      .average-card h4 {
-        font-size: 0.58rem;
-      }
-      .average-card .value {
-        font-size: 0.95rem;
-      }
-      .filter-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 4px 6px;
-      }
-      th { font-size: 9px; padding: 5px 4px; }
-      td { font-size: 10px; padding: 3px 4px; }
-    }
+    .cs-pick { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 12.5px; color: var(--mzo-muted); }
   </style>
 </head>
 <body>
-
-  <!-- NSC Header -->
-  <header class="header">
-    <div class="header-inner">
+  <main class="ui-page">
+    <header class="ui-head">
       <div>
-        <h1><i class="fas fa-users text-primary"></i> Consumer Summary Dashboard</h1>
+        <h1>Consumers</h1>
+        <p id="meta">Loading…</p>
       </div>
-      <div class="date-badge">
-        <i class="far fa-calendar-alt"></i> <span id="reportDateBadge">Updated up to --</span>
+      <div class="ui-actions">
+        <button type="button" class="ui-btn icon" id="refreshBtn" aria-label="Refresh" title="Refresh"><svg class="ui-i"><use href="#ui-refresh"/></svg></button>
       </div>
-    </div>
-  </header>
+    </header>
 
-  <div class="container">
-
-    <!-- Top KPI Cards (NSC Style) -->
-    <div class="average-delay-cards">
-      <div class="average-card kpi-blue" id="kpiCardConsumers">
-        <h4><i class="fas fa-users"></i> Total Consumers</h4>
-        <div class="value" id="kpiValConsumers">0</div>
-        <div class="kpi-sub" id="kpiSubConsumers">Active connections</div>
-      </div>
-      <div class="average-card" id="kpiCardLoad">
-        <h4><i class="fas fa-bolt"></i> Connected Load</h4>
-        <div class="value" id="kpiValLoad">0 kW</div>
-        <div class="kpi-sub" id="kpiSubLoad">Sanctioned load</div>
-      </div>
-      <div class="average-card kpi-amber" id="kpiCardOsd">
-        <h4><i class="fas fa-file-invoice-dollar"></i> Total Outstanding (OSD)</h4>
-        <div class="value" id="kpiValOsd">0 ₹ L</div>
-        <div class="kpi-sub" id="kpiSubOsd">Due arrears</div>
-      </div>
-      <div class="average-card kpi-green" id="kpiCardAvgLoad">
-        <h4><i class="fas fa-chart-line"></i> Avg Load / Consumer</h4>
-        <div class="value" id="kpiValAvgLoad">0 kW</div>
-        <div class="kpi-sub" id="kpiSubAvgLoad">Intensity per connection</div>
-      </div>
+    <div class="ui-filters">
+      <span class="ui-select"><select id="regionFilter" aria-label="Region"><option value="">All regions</option></select></span>
+      <span class="ui-select"><select id="divisionFilter" aria-label="Division"><option value="">All divisions</option></select></span>
+      <span class="ui-select"><select id="cccFilter" aria-label="CCC"><option value="">All CCCs</option></select></span>
+      <span class="ui-select"><select id="f_CONN_STAT" aria-label="Status"></select></span>
+      <span class="ui-select"><select id="f_BASE_CLASS" aria-label="Class"></select></span>
+      <span class="ui-select"><select id="f_CONN_PHASE" aria-label="Phase"></select></span>
+      <span class="ui-select"><select id="f_CATEGORY" aria-label="Area"></select></span>
+      <span class="ui-select"><select id="f_GOVT_STAT" aria-label="Government"></select></span>
+      <button type="button" class="ui-btn ghost" id="clearBtn" hidden><svg class="ui-i"><use href="#ui-x"/></svg>Clear</button>
     </div>
 
-    <!-- Control Panel & Filters (NSC Style) -->
-    <div class="control-panel">
-      <div class="filter-section">
-        <h3>
-          <span><i class="fas fa-filter"></i> Filters & Hierarchy</span>
-          <div style="display: flex; gap: 8px;">
-            <button type="button" class="btn-small btn-secondary-solid" id="btnColumnSelector">
-              <i class="fas fa-columns"></i> Columns
-            </button>
-            <button type="button" class="btn-small" id="resetBtn">
-              <i class="fas fa-undo"></i> Reset
-            </button>
-          </div>
-        </h3>
-        
-        <div class="filter-grid">
-          <div class="filter-group">
-            <label>Region</label>
-            <select id="regionSelect"><option value="ALL">All Regions</option></select>
-          </div>
-          <div class="filter-group">
-            <label>Division</label>
-            <select id="divisionSelect"><option value="ALL">All Divisions</option></select>
-          </div>
-          <div class="filter-group">
-            <label>CCC</label>
-            <select id="cccSelect"><option value="ALL">All CCCs</option></select>
-          </div>
-          <div class="filter-group">
-            <label>Base Class</label>
-            <select id="baseClassSelect"><option value="ALL">All</option></select>
-          </div>
-          <div class="filter-group">
-            <label>Category</label>
-            <select id="categorySelect"><option value="ALL">All</option></select>
-          </div>
-          <div class="filter-group">
-            <label>Meter Type</label>
-            <select id="meterSelect"><option value="ALL">All</option></select>
-          </div>
-          <div class="filter-group">
-            <label>Phase</label>
-            <select id="phaseSelect"><option value="ALL">All</option></select>
-          </div>
-          <div class="filter-group">
-            <label>Govt Status</label>
-            <select id="govtSelect"><option value="ALL">All</option></select>
-          </div>
-          <div class="filter-group">
-            <label>Connected By</label>
-            <select id="connBySelect"><option value="ALL">All</option></select>
-          </div>
-          <div class="filter-group">
-            <label>Connection Status</label>
-            <select id="connStatSelect"><option value="ALL">All</option></select>
+    <section class="ui-stats" style="--n:5" aria-label="Summary">
+      <div class="ui-stat"><div class="k">Consumers</div><div class="v" id="sCount"><span class="ui-skel"></span></div><div class="s" id="sCountS">&nbsp;</div></div>
+      <div class="ui-stat"><div class="k">Connected load</div><div class="v" id="sLoad"><span class="ui-skel"></span></div><div class="s" id="sLoadS">&nbsp;</div></div>
+      <div class="ui-stat"><div class="k">Security deposit</div><div class="v" id="sSd"><span class="ui-skel"></span></div><div class="s">&nbsp;</div></div>
+      <div class="ui-stat"><div class="k">Outstanding</div><div class="v" id="sOsd"><span class="ui-skel"></span></div><div class="s" id="sOsdS">&nbsp;</div></div>
+      <div class="ui-stat"><div class="k">Govt. consumers</div><div class="v" id="sGovt"><span class="ui-skel"></span></div><div class="s" id="sGovtS">&nbsp;</div></div>
+    </section>
+
+    <div class="ui-grid">
+      <section class="ui-panel">
+        <div class="ui-panel-h">
+          <h2>Breakdown</h2>
+          <div class="cs-pick">
+            <span class="ui-select"><select id="rowDim" aria-label="Break down by"></select></span>
+            <span>split by</span>
+            <span class="ui-select"><select id="colDim" aria-label="Split by"></select></span>
+            <button type="button" class="ui-btn sm icon" id="exportBtn" aria-label="Export CSV" title="Export CSV"><svg class="ui-i"><use href="#ui-download"/></svg></button>
           </div>
         </div>
+        <div id="pivot" style="--max-h:640px"><div class="ui-empty">Loading…</div></div>
+      </section>
+      <div>
+        <section class="ui-panel">
+          <div class="ui-panel-h"><h2>Connection status</h2></div>
+          <div class="ui-panel-b"><div id="hStat"></div></div>
+        </section>
+        <section class="ui-panel">
+          <div class="ui-panel-h"><h2>Meter type</h2></div>
+          <div class="ui-panel-b"><div id="hMeter"></div></div>
+        </section>
+        <section class="ui-panel">
+          <div class="ui-panel-h"><h2>Connected by</h2></div>
+          <div class="ui-panel-b"><div id="hBy"></div></div>
+        </section>
       </div>
     </div>
+  </main>
 
-    <!-- View Mode Switcher -->
-    <div class="view-tabs">
-      <button class="view-tab active" data-view="table"><i class="fas fa-table"></i> Report Table</button>
-      <button class="view-tab" data-view="kpi"><i class="fas fa-chart-bar"></i> KPI Regional Overview</button>
-      <button class="view-tab" data-view="breakdown"><i class="fas fa-layer-group"></i> Categorical Breakdown</button>
-    </div>
-
-    <!-- View Pane 1: Custom Report Table -->
-    <div id="viewPaneTable">
-      <div class="card-table-wrap">
-        <div style="padding: 12px 16px; background: #f8fafc; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-          <div style="font-weight: 700; color: var(--text-primary); font-size: 14px;" id="tableCardTitle">
-            <i class="fas fa-table text-primary"></i> Custom Pivot Report
-          </div>
-          <button id="exportBtn" class="btn-small btn-solid">
-            <i class="fas fa-download"></i> Export CSV
-          </button>
-        </div>
-        
-        <div class="table-container">
-          <div id="tableSpinner" class="spinner-overlay visible">
-            <div class="spinner"></div>
-          </div>
-          <table id="dataTable">
-            <thead>
-              <tr><th colspan="5" style="text-align: center;">Loading columns...</th></tr>
-            </thead>
-            <tbody></tbody>
-            <tfoot></tfoot>
-          </table>
-        </div>
-        
-        <div id="paginationControls" class="pagination-controls" style="display: none;">
-          <span id="paginationInfo"></span>
-          <div class="pagination-nav"></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- View Pane 2: KPI Overview Tables (NSC Style) -->
-    <div id="viewPaneKpi" style="display: none;">
-      <div class="kpi-table-wrapper">
-        <div class="kpi-block" id="kpiRegionBlock">
-          <h5><i class="fas fa-globe"></i> Region-wise Summary</h5>
-          <table class="kpi-table" id="kpiRegionTable">
-            <thead>
-              <tr>
-                <th>Region</th>
-                <th>Consumers</th>
-                <th>Load (kW)</th>
-                <th>OSD (₹ L)</th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
-        </div>
-
-        <div class="kpi-block" id="kpiDivisionBlock">
-          <h5><i class="fas fa-sitemap"></i> Division-wise Summary</h5>
-          <table class="kpi-table" id="kpiDivisionTable">
-            <thead>
-              <tr>
-                <th>Division</th>
-                <th>Consumers</th>
-                <th>Load (kW)</th>
-                <th>OSD (₹ L)</th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
-        </div>
-
-        <div class="kpi-block" id="kpiCCCBlock">
-          <h5><i class="fas fa-building"></i> CCC-wise Summary</h5>
-          <table class="kpi-table" id="kpiCCCTable">
-            <thead>
-              <tr>
-                <th>CCC</th>
-                <th>Consumers</th>
-                <th>Load (kW)</th>
-                <th>OSD (₹ L)</th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- View Pane 3: Categorical Breakdown -->
-    <div id="viewPaneBreakdown" style="display: none;">
-      <div class="kpi-table-wrapper">
-        <div class="kpi-block">
-          <h5><i class="fas fa-plug"></i> Connection Phase Distribution</h5>
-          <table class="kpi-table" id="kpiPhaseTable">
-            <thead>
-              <tr><th>Phase</th><th>Consumers</th><th>Load (kW)</th></tr>
-            </thead>
-            <tbody></tbody>
-          </table>
-        </div>
-
-        <div class="kpi-block">
-          <h5><i class="fas fa-tag"></i> Category Distribution</h5>
-          <table class="kpi-table" id="kpiCategoryTable">
-            <thead>
-              <tr><th>Category</th><th>Consumers</th><th>Load (kW)</th></tr>
-            </thead>
-            <tbody></tbody>
-          </table>
-        </div>
-
-        <div class="kpi-block">
-          <h5><i class="fas fa-landmark"></i> Government vs Private</h5>
-          <table class="kpi-table" id="kpiGovtTable">
-            <thead>
-              <tr><th>Status</th><th>Consumers</th><th>Load (kW)</th></tr>
-            </thead>
-            <tbody></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-  </div>
-
-  <!-- Slide-out Field Drawer -->
-  <div class="drawer-overlay" id="drawerOverlay"></div>
-  <div class="field-drawer" id="fieldDrawer">
-    <div class="drawer-header">
-      <h3><i class="fas fa-columns text-primary"></i> Column Selector</h3>
-      <button class="close-btn" id="closeDrawerBtn">&times;</button>
-    </div>
-    <div class="drawer-body">
-      <p style="font-size: 12px; color: var(--text-secondary); margin-top: 0;">Check or uncheck fields to add/remove table columns.</p>
-      <div id="availableFieldsList">
-        <div class="spinner-overlay visible" style="position: static; padding: 20px;"><div class="spinner"></div></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Floating KPI Button -->
-  <button id="kpiToggleBtn" class="kpi-icon-btn" title="Show KPI Overview">
-    <i class="fas fa-chart-bar"></i>
-  </button>
-
-  <!-- KPI Overview Modal (NSC Style) -->
-  <div class="modal" id="kpiModal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h3><i class="fas fa-chart-bar"></i> Key Performance Indicators Overview</h3>
-        <button class="close-btn" id="closeKpiModalBtn">&times;</button>
-      </div>
-      <div class="modal-body">
-        <div class="average-delay-cards">
-          <div class="average-card kpi-blue">
-            <h4>Total Consumers</h4>
-            <div class="value" id="modalValConsumers">0</div>
-          </div>
-          <div class="average-card">
-            <h4>Total Load</h4>
-            <div class="value" id="modalValLoad">0 kW</div>
-          </div>
-          <div class="average-card kpi-amber">
-            <h4>Total OSD</h4>
-            <div class="value" id="modalValOsd">0 ₹ L</div>
-          </div>
-          <div class="average-card kpi-green">
-            <h4>Avg Load / Cons</h4>
-            <div class="value" id="modalValAvgLoad">0 kW</div>
-          </div>
-        </div>
-
-        <hr style="margin: 20px 0; border: none; border-top: 1px solid var(--border-color);" />
-
-        <div class="kpi-table-wrapper">
-          <div class="kpi-block">
-            <h5>Region-wise Breakdown</h5>
-            <table class="kpi-table" id="modalRegionTable">
-              <thead><tr><th>Region</th><th>Consumers</th><th>Load (kW)</th><th>OSD (₹ L)</th></tr></thead>
-              <tbody></tbody>
-            </table>
-          </div>
-          <div class="kpi-block">
-            <h5>Division-wise Breakdown</h5>
-            <table class="kpi-table" id="modalDivisionTable">
-              <thead><tr><th>Division</th><th>Consumers</th><th>Load (kW)</th><th>OSD (₹ L)</th></tr></thead>
-              <tbody></tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <script src="https://d3js.org/d3.v7.min.js"></script>
   <script>
-    try {
-      const HIER = {
-        "6610000": { name: "MALDA REGION", divisions: {
-          "6611000": { name: "MALDA DIVISION", cccs: {"6611101":"MANIKCHAK","6611102":"GOLAPGANJ","6611103":"BAISHNABNAGAR","6611104":"KALIACHAK","6611105":"MOTHABARI","6611106":"SUJAPUR","6611107":"RATHBARI","6611108":"FULBARI","6611109":"MOKDUMPUR"}},
-          "6612000": { name: "CHANCHAL DIVISION", cccs: {"6612101":"BHALUKA","6612102":"SAMSI","6612103":"PARANPUR","6612104":"CHANCHAL","6612105":"MALATIPUR","6612106":"HARISHCHANDRAPUR","6612107":"KUSHIDA"}},
-          "6613000": { name: "GAZOLE DIVISION", cccs: {"6613101":"GAZOL","6613102":"AIHO","6613103":"PANDUA","6613104":"BAMONGOLA","6613105":"OLD MALDA"}}
-        }},
-        "6620000": { name: "UTTAR DINAJPUR REGION", divisions: {
-          "6621000": { name: "RAIGANJ DIVISION", cccs: {"6621101":"ITAHAR","6621102":"HEMTABAD","6621103":"KALIYAGANJ","6621104":"RAIGANJ","6621105":"BIRNAGAR","6621106":"KARANDIGHI"}},
-          "6622000": { name: "ISLAMPUR DIVISION", cccs: {"6622101":"ISLAMPUR","6622102":"CHOPRA","6622103":"DALKHOLA","6622104":"GOALPOKHER","6622105":"KANKI"}}
-        }},
-        "6630000": { name: "DAKSHIN DINAJPUR REGION", divisions: {
-          "6631000": { name: "BALURGHAT DIVISION", cccs: {"6631101":"BALURGHAT","6631102":"TAPAN","6631103":"KUMARGANJ","6631104":"HILI","6631105":"PATIRAM"}},
-          "6632000": { name: "BUNIADPUR DIVISION", cccs: {"6632101":"BUNIADPUR","6632102":"KUSMANDI","6632103":"HARIRAMPUR","6632104":"GANGARAMPUR"}}
-        }}
-      };
-      
-      const CORE_DIMENSIONS_ORDER = ['regionName', 'divisionName', 'cccName'];
-      let ALL_FIELDS = [];
-
-      const STATIC_FIELDS = [
-        { key: 'regionName', label: 'Region Name', type: 'dimension' },
-        { key: 'divisionName', label: 'Division Name', type: 'dimension' },
-        { key: 'cccName', label: 'CCC Name', type: 'dimension' },
-        { key: 'COUNT', label: 'Total Consumer', type: 'measure', format: 'number' },
-        { key: 'LOAD', label: 'Load (kW)', type: 'measure', format: 'number' },
-        { key: 'SD_LAKH', label: 'SD', type: 'measure', format: 'osd' },
-        { key: 'OSD_LAKH', label: 'OSD', type: 'measure', format: 'osd' },
-        { key: 'Average_Load_per_Consumer', label: 'Avg Load/Cons', type: 'measure', format: 'decimal' },
-        { key: 'Average_OSD_per_Consumer', label: 'Avg OSD/Cons', type: 'measure', format: 'decimal' }
-      ];
-
-      const DYNAMIC_PIVOT_SPECS = [
-        { key: 'BASE_CLASS', label: 'Base Class' }, 
-        { key: 'CONN_PHASE', label: 'Phase' }, 
-        { key: 'GOVT_STAT', label: 'Govt Status' }, 
-        { key: 'CATEGORY', label: 'Category' },
-        { key: 'TYPE_OF_METER', label: 'Meter Type' }, 
-        { key: 'CONN_BY', label: 'Connected By' },
-        { key: 'CONN_STAT', label: 'Connection Status' }
-      ];
-
-      // DOM Elements
-      const regionSelect = document.getElementById('regionSelect');
-      const divisionSelect = document.getElementById('divisionSelect');
-      const cccSelect = document.getElementById('cccSelect');
-      const baseClassSelect = document.getElementById('baseClassSelect');
-      const categorySelect = document.getElementById('categorySelect');
-      const meterSelect = document.getElementById('meterSelect');
-      const phaseSelect = document.getElementById('phaseSelect');
-      const govtSelect = document.getElementById('govtSelect');
-      const connBySelect = document.getElementById('connBySelect');
-      const connStatSelect = document.getElementById('connStatSelect');
-      
-      const exportBtn = document.getElementById('exportBtn');
-      const resetBtn = document.getElementById('resetBtn');
-      const availableFieldsList = document.getElementById('availableFieldsList');
-      const dataTable = document.getElementById('dataTable');
-      const tableSpinner = document.getElementById('tableSpinner');
-
-      let rawData = [];
-      let filtered = [];
-      let sortKey = null;
-      let sortDirection = 'asc';
-      let currentPage = 1;
-      const ITEMS_PER_PAGE = 25;
-      let selectedFields = [];
-
-      function enforceDimensionOrder(fields) {
-        let coreFields = [];
-        let otherFields = [];
-        let totalField = fields.find(f => f.key === 'COUNT');
-        
-        fields.filter(f => f.key !== 'COUNT').forEach(f => {
-          if (CORE_DIMENSIONS_ORDER.includes(f.key)) {
-            coreFields.push(f);
-          } else {
-            otherFields.push(f);
-          }
-        });
-
-        coreFields.sort((a, b) => CORE_DIMENSIONS_ORDER.indexOf(a.key) - CORE_DIMENSIONS_ORDER.indexOf(b.key));
-        const newFields = [...coreFields, ...otherFields];
-        if (totalField) newFields.push(totalField);
-        return newFields;
-      }
-
-      function mapHierarchy(ccc_code){
-        for(const rKey of Object.keys(HIER)){
-          const region = HIER[rKey];
-          for(const dKey of Object.keys(region.divisions)){
-            const div = region.divisions[dKey];
-            if(div.cccs[ccc_code]){
-              return { 
-                regionCode: rKey, 
-                regionName: region.name, 
-                divisionCode: dKey, 
-                divisionName: div.name, 
-                cccCode: ccc_code, 
-                cccName: div.cccs[ccc_code] 
-              };
-            }
-          }
-        }
-        return null;
-      }
-
-      function updatePageTitleWithDate(){
-        try {
-          if (rawData.length > 0) {
-            const firstRow = rawData[0];
-            let reportDate = firstRow.Date || firstRow.DATE || firstRow.date || firstRow.REPORT_DATE || '';
-            if (reportDate) {
-              const badge = document.getElementById('reportDateBadge');
-              badge.textContent = 'Updated up to ' + formatDateString(reportDate);
-            }
-          }
-        } catch (e) {
-          console.warn('Could not extract date:', e);
-        }
-      }
-
-      function formatDateString(dateStr) {
-        try {
-          if (!dateStr) return dateStr;
-          const dmY = dateStr.toString().trim().match(/^(\d{1,2})[/\-](\d{1,2})[/\-](\d{4})$/);
-          let date = null;
-          if (dmY) {
-            date = new Date(parseInt(dmY[3], 10), parseInt(dmY[2], 10) - 1, parseInt(dmY[1], 10));
-          } else {
-            date = new Date(dateStr);
-          }
-          if (!date || isNaN(date.getTime())) return dateStr;
-          return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
-        } catch (e) {
-          return dateStr;
-        }
-      }
-
-      function createPivotFields(pivotKey, pivotLabel) {
-        const uniqueValues = Array.from(new Set(rawData.map(d => d[pivotKey]))).filter(Boolean).sort();
-        if (uniqueValues.length === 0) return [];
-
-        const pivotField = { 
-          key: pivotKey, 
-          label: pivotLabel, 
-          type: 'pivot', 
-          pivotValue: pivotKey, 
-          pivotOptions: uniqueValues, 
-          baseMeasure: 'COUNT' 
-        };
-
-        const pivotMeasures = uniqueValues.map(val => ({
-          key: `${pivotKey}_${val.toString().replace(/[^a-zA-Z0-9]/g, '_')}`, 
-          label: val, 
-          type: 'measure', 
-          format: 'number', 
-          isPivot: true, 
-          pivotKey: pivotKey, 
-          pivotVal: val
-        }));
-        
-        return [pivotField, ...pivotMeasures];
-      }
-
-      async function loadData(url){
-        try{
-          showSpinner();
-          const data = await d3.csv(url);
-          rawData = data.map(r=>({
-            ...r,
-            CCC_CODE: (r.CCC_CODE||'').toString().trim(),
-            COUNT: Number((r.COUNT||0).toString().replace(/,/g,''))||0,
-            LOAD: Number((r.LOAD||0).toString().replace(/,/g,''))||0,
-            SD_LAKH: Number((r.SD_LAKH||0).toString().replace(/,/g,''))||0,
-            OSD_LAKH: Number((r.OSD_LAKH||0).toString().replace(/,/g,''))||0
-          }));
-
-          rawData.forEach(r=>{
-            const m = mapHierarchy(r.CCC_CODE);
-            if(m) {
-              Object.assign(r,m);
-            } else { 
-              r.regionCode='UNKNOWN'; 
-              r.regionName='UNKNOWN'; 
-              r.divisionCode='UNKNOWN'; 
-              r.divisionName='UNKNOWN'; 
-              r.cccName = r.CCC_CODE; 
-            }
-            r.Average_Load_per_Consumer = r.COUNT ? r.LOAD / r.COUNT : 0;
-            r.Average_OSD_per_Consumer = r.COUNT ? r.OSD_LAKH / r.COUNT : 0;
-          });
-
-          let dynamicFields = [];
-          DYNAMIC_PIVOT_SPECS.forEach(spec => {
-            dynamicFields.push(...createPivotFields(spec.key, spec.label));
-          });
-
-          ALL_FIELDS = [...STATIC_FIELDS, ...dynamicFields];
-          
-          selectedFields = [
-            ALL_FIELDS.find(f => f.key === 'regionName'),
-            ALL_FIELDS.find(f => f.key === 'CONN_PHASE'),
-            ALL_FIELDS.find(f => f.key === 'COUNT'),
-          ].filter(Boolean);
-
-          selectedFields = enforceDimensionOrder(selectedFields);
-
-          updatePageTitleWithDate();
-          populateFilterOptions();
-          initUIEvents();
-          applyFilters();
-        }catch(err){
-          alert('Failed to load CSV data: '+err.message);
-          console.error(err);
-          hideSpinner();
-        }
-      }
-
-      function populateFilterOptions(){
-        regionSelect.innerHTML = '<option value="ALL">All Regions</option>';
-        divisionSelect.innerHTML = '<option value="ALL">All Divisions</option>';
-        cccSelect.innerHTML = '<option value="ALL">All CCCs</option>';
-
-        Object.keys(HIER).forEach(rKey=>{
-          const opt = document.createElement('option'); 
-          opt.value = rKey; 
-          opt.textContent = HIER[rKey].name; 
-          regionSelect.appendChild(opt);
-        });
-
-        function fill(selectEl, values){
-          selectEl.innerHTML = '<option value="ALL">All</option>';
-          Array.from(values).filter(Boolean).sort().forEach(v=>{ 
-            const o = document.createElement('option'); 
-            o.value = v; 
-            o.textContent = v; 
-            selectEl.appendChild(o); 
-          });
-        }
-
-        fill(baseClassSelect, new Set(rawData.map(d=>d.BASE_CLASS)));
-        fill(categorySelect, new Set(rawData.map(d=>d.CATEGORY)));
-        fill(meterSelect, new Set(rawData.map(d=>d.TYPE_OF_METER)));
-        fill(phaseSelect, new Set(rawData.map(d=>d.CONN_PHASE)));
-        fill(govtSelect, new Set(rawData.map(d=>d.GOVT_STAT)));
-        fill(connBySelect, new Set(rawData.map(d=>d.CONN_BY)));
-        fill(connStatSelect, new Set(rawData.map(d=>d.CONN_STAT)));
-
-        regionSelect.onchange = onRegionChange;
-        divisionSelect.onchange = onDivisionChange;
-        cccSelect.onchange = applyFilters;
-        baseClassSelect.onchange = applyFilters;
-        categorySelect.onchange = applyFilters;
-        meterSelect.onchange = applyFilters;
-        phaseSelect.onchange = applyFilters;
-        govtSelect.onchange = applyFilters;
-        connBySelect.onchange = applyFilters;
-        connStatSelect.onchange = applyFilters;
-
-        onRegionChange();
-      }
-
-      function onRegionChange(){
-        const r = regionSelect.value;
-        divisionSelect.innerHTML = '<option value="ALL">All Divisions</option>';
-        cccSelect.innerHTML = '<option value="ALL">All CCCs</option>';
-
-        if(r === 'ALL'){
-          Object.keys(HIER).forEach(rKey=>{
-            const region = HIER[rKey];
-            Object.keys(region.divisions).forEach(dKey=>{
-              const opt = document.createElement('option'); 
-              opt.value = dKey; 
-              opt.textContent = region.divisions[dKey].name + ' — ' + region.name; 
-              divisionSelect.appendChild(opt);
-            });
-          });
-        } else {
-          const region = HIER[r];
-          Object.keys(region.divisions).forEach(dKey=>{
-            const opt = document.createElement('option'); 
-            opt.value = dKey; 
-            opt.textContent = region.divisions[dKey].name; 
-            divisionSelect.appendChild(opt);
-          });
-        }
-
-        applyFilters();
-      }
-
-      function onDivisionChange(){
-        const d = divisionSelect.value;
-        cccSelect.innerHTML = '<option value="ALL">All CCCs</option>';
-
-        if(d === 'ALL'){
-          const r = regionSelect.value;
-          if(r === 'ALL'){
-            Object.keys(HIER).forEach(rKey=>{
-              const region = HIER[rKey];
-              Object.keys(region.divisions).forEach(dKey=>{
-                const div = region.divisions[dKey];
-                Object.keys(div.cccs).forEach(cKey=>{
-                  const opt = document.createElement('option'); 
-                  opt.value = cKey; 
-                  opt.textContent = div.cccs[cKey] + ' — ' + div.name; 
-                  cccSelect.appendChild(opt);
-                });
-              });
-            });
-          } else {
-            const region = HIER[r];
-            Object.keys(region.divisions).forEach(dKey=>{
-              const div = region.divisions[dKey];
-              Object.keys(div.cccs).forEach(cKey=>{
-                const opt = document.createElement('option'); 
-                opt.value = cKey; 
-                opt.textContent = div.cccs[cKey]; 
-                cccSelect.appendChild(opt);
-              });
-            });
-          }
-        } else {
-          for(const rKey of Object.keys(HIER)){
-            if(HIER[rKey].divisions[d]){
-              const div = HIER[rKey].divisions[d];
-              Object.keys(div.cccs).forEach(cKey=>{
-                const opt = document.createElement('option'); 
-                opt.value = cKey; 
-                opt.textContent = div.cccs[cKey]; 
-                cccSelect.appendChild(opt);
-              });
-              break;
-            }
-          }
-        }
-
-        applyFilters();
-      }
-
-      function resetFilters(){
-        regionSelect.value='ALL';
-        onRegionChange();
-        divisionSelect.value='ALL';
-        onDivisionChange();
-        cccSelect.value='ALL';
-        baseClassSelect.value='ALL';
-        categorySelect.value='ALL';
-        meterSelect.value='ALL';
-        phaseSelect.value='ALL';
-        govtSelect.value='ALL';
-        connBySelect.value='ALL';
-        connStatSelect.value='ALL';
-        applyFilters();
-      }
-
-      function applyFilters(){
-        showSpinner();
-        currentPage = 1;
-
-        const R = regionSelect.value;
-        const D = divisionSelect.value;
-        const C = cccSelect.value;
-
-        filtered = rawData.filter(row=>{
-          if(R !== 'ALL' && row.regionCode !== R) return false;
-          if(D !== 'ALL' && row.divisionCode !== D) return false;
-          if(C !== 'ALL' && row.cccCode !== C) return false;
-          if(baseClassSelect.value !== 'ALL' && row.BASE_CLASS !== baseClassSelect.value) return false;
-          if(categorySelect.value !== 'ALL' && row.CATEGORY !== categorySelect.value) return false;
-          if(meterSelect.value !== 'ALL' && row.TYPE_OF_METER !== meterSelect.value) return false;
-          if(phaseSelect.value !== 'ALL' && row.CONN_PHASE !== phaseSelect.value) return false;
-          if(govtSelect.value !== 'ALL' && row.GOVT_STAT !== govtSelect.value) return false;
-          if(connBySelect.value !== 'ALL' && row.CONN_BY !== connBySelect.value) return false;
-          if(connStatSelect.value !== 'ALL' && row.CONN_STAT !== connStatSelect.value) return false;
-          return true;
-        });
-        
-        selectedFields = enforceDimensionOrder(selectedFields);
-
-        updateKpiOverview();
-
-        setTimeout(() => {
-          renderCustomTable();
-        }, 10);
-      }
-
-      function updateKpiOverview() {
-        const totalConsumers = d3.sum(filtered, d => d.COUNT);
-        const totalLoad = d3.sum(filtered, d => d.LOAD);
-        const totalOsd = d3.sum(filtered, d => d.OSD_LAKH);
-        const avgLoad = totalConsumers > 0 ? (totalLoad / totalConsumers) : 0;
-
-        document.getElementById('kpiValConsumers').textContent = Math.round(totalConsumers).toLocaleString();
-        document.getElementById('kpiValLoad').textContent = totalLoad >= 1000 ? (totalLoad / 1000).toFixed(2) + ' MW' : Math.round(totalLoad).toLocaleString() + ' kW';
-        document.getElementById('kpiValOsd').textContent = totalOsd >= 100 ? (totalOsd / 100).toFixed(2) + ' ₹ Cr' : totalOsd.toFixed(2) + ' ₹ L';
-        document.getElementById('kpiValAvgLoad').textContent = avgLoad.toFixed(2) + ' kW';
-
-        document.getElementById('modalValConsumers').textContent = Math.round(totalConsumers).toLocaleString();
-        document.getElementById('modalValLoad').textContent = totalLoad >= 1000 ? (totalLoad / 1000).toFixed(2) + ' MW' : Math.round(totalLoad).toLocaleString() + ' kW';
-        document.getElementById('modalValOsd').textContent = totalOsd >= 100 ? (totalOsd / 100).toFixed(2) + ' ₹ Cr' : totalOsd.toFixed(2) + ' ₹ L';
-        document.getElementById('modalValAvgLoad').textContent = avgLoad.toFixed(2) + ' kW';
-
-        renderGroupSummary('regionName', 'kpiRegionTable', 'modalRegionTable');
-        renderGroupSummary('divisionName', 'kpiDivisionTable', 'modalDivisionTable');
-        renderGroupSummary('cccName', 'kpiCCCTable', null);
-
-        renderCategorySummary('CONN_PHASE', 'kpiPhaseTable');
-        renderCategorySummary('CATEGORY', 'kpiCategoryTable');
-        renderCategorySummary('GOVT_STAT', 'kpiGovtTable');
-      }
-
-      function renderGroupSummary(groupKey, targetTableId, modalTableId) {
-        const roll = d3.rollups(
-          filtered,
-          v => ({
-            count: d3.sum(v, d => d.COUNT),
-            load: d3.sum(v, d => d.LOAD),
-            osd: d3.sum(v, d => d.OSD_LAKH)
-          }),
-          d => d[groupKey] || 'Other'
-        );
-
-        roll.sort((a, b) => b[1].count - a[1].count);
-
-        const html = roll.map(([name, stat]) => `
-          <tr>
-            <td><strong>${name}</strong></td>
-            <td>${Math.round(stat.count).toLocaleString()}</td>
-            <td>${Math.round(stat.load).toLocaleString()}</td>
-            <td>${stat.osd.toFixed(2)}</td>
-          </tr>
-        `).join('');
-
-        const tableBody = document.querySelector(`#${targetTableId} tbody`);
-        if (tableBody) tableBody.innerHTML = html || '<tr><td colspan="4" style="text-align:center;">No data</td></tr>';
-
-        if (modalTableId) {
-          const mBody = document.querySelector(`#${modalTableId} tbody`);
-          if (mBody) mBody.innerHTML = html || '<tr><td colspan="4" style="text-align:center;">No data</td></tr>';
-        }
-      }
-
-      function renderCategorySummary(groupKey, targetTableId) {
-        const roll = d3.rollups(
-          filtered,
-          v => ({
-            count: d3.sum(v, d => d.COUNT),
-            load: d3.sum(v, d => d.LOAD)
-          }),
-          d => d[groupKey] || 'Unknown'
-        );
-        roll.sort((a, b) => b[1].count - a[1].count);
-
-        const html = roll.map(([name, stat]) => `
-          <tr>
-            <td><strong>${name}</strong></td>
-            <td>${Math.round(stat.count).toLocaleString()}</td>
-            <td>${Math.round(stat.load).toLocaleString()}</td>
-          </tr>
-        `).join('');
-
-        const tbody = document.querySelector(`#${targetTableId} tbody`);
-        if (tbody) tbody.innerHTML = html || '<tr><td colspan="3" style="text-align:center;">No data</td></tr>';
-      }
-
-      function showSpinner() {
-        tableSpinner.classList.add('visible');
-      }
-
-      function hideSpinner() {
-        tableSpinner.classList.remove('visible');
-      }
-      
-      function formatValue(value, format) {
-        if (value === null || value === undefined) return '—';
-        if (format === 'number') return Math.round(value).toLocaleString();
-        if (format === 'decimal') return value.toFixed(2).toLocaleString();
-        if (format === 'osd') {
-          const absValue = Math.abs(value);
-          if (absValue >= 100) return (value / 100).toFixed(2) + ' ₹ Cr';
-          if (absValue >= 1) return value.toFixed(2) + ' ₹ L';
-          if (absValue >= 0.01) return (value * 100).toFixed(0) + ' ₹ K';
-          return (value * 100000).toFixed(0) + ' ₹';
-        }
-        return value.toString();
-      }
-      
-      function getFinalRenderFields(fields) {
-        const finalFields = [];
-        fields.forEach(field => {
-          if (field.type === 'pivot') {
-            const pivotMeasures = ALL_FIELDS.filter(f => f.isPivot && f.pivotKey === field.key);
-            finalFields.push(...pivotMeasures);
-          } else {
-            finalFields.push(field);
-          }
-        });
-        return finalFields;
-      }
-
-      function handleCheckboxChange(e) {
-        const key = e.target.value;
-        const isChecked = e.target.checked;
-        const field = ALL_FIELDS.find(f => f.key === key);
-        
-        let currentFields = [...selectedFields];
-        
-        if (isChecked) {
-          if (field && !currentFields.some(f => f.key === key)) {
-            const lastDimensionIndex = currentFields.findLastIndex(f => f.type === 'dimension' || f.type === 'pivot');
-            if (field.type === 'dimension' || field.type === 'pivot') {
-              currentFields.splice(lastDimensionIndex + 1, 0, field);
-            } else {
-              const countIndex = currentFields.findIndex(f => f.key === 'COUNT');
-              if (countIndex > -1) {
-                currentFields.splice(countIndex, 0, field);
-              } else {
-                currentFields.push(field);
-              }
-            }
-          }
-        } else {
-          const index = currentFields.findIndex(f => f.key === key);
-          if (index > -1) currentFields.splice(index, 1);
-        }
-        
-        selectedFields = enforceDimensionOrder(currentFields);
-        currentPage = 1; 
-        renderCustomTable();
-      }
-      
-      function renderAvailableFields() {
-        availableFieldsList.innerHTML = '';
-        const available = ALL_FIELDS.filter(f => !f.isPivot); 
-
-        if (available.length === 0) {
-          availableFieldsList.innerHTML = '<div style="color:var(--text-secondary);padding:10px;">No fields available.</div>';
-          return;
-        }
-
-        const isCoreDimension = (field) => CORE_DIMENSIONS_ORDER.includes(field.key);
-        const groups = { coreDimensions: [], otherFields: [] };
-        available.forEach(field => {
-          if (isCoreDimension(field)) groups.coreDimensions.push(field);
-          else groups.otherFields.push(field);
-        });
-        
-        groups.coreDimensions.sort((a,b) => a.label.localeCompare(b.label));
-        groups.otherFields.sort((a,b) => a.label.localeCompare(b.label));
-
-        const renderGroup = (title, fields) => {
-          if (fields.length === 0) return;
-          
-          const groupTitle = document.createElement('h3');
-          groupTitle.className = 'field-group-title';
-          groupTitle.textContent = title;
-          availableFieldsList.appendChild(groupTitle);
-
-          fields.forEach(field => {
-            const isChecked = selectedFields.some(f => f.key === field.key);
-            const label = document.createElement('label');
-            label.className = 'checkbox-item' + (isChecked ? ' active' : '');
-            
-            const input = document.createElement('input');
-            input.type = 'checkbox';
-            input.value = field.key;
-            input.checked = isChecked;
-            input.addEventListener('change', (ev) => {
-              handleCheckboxChange(ev);
-              label.classList.toggle('active', input.checked);
-            });
-
-            label.appendChild(input);
-            label.appendChild(document.createTextNode(field.label));
-            availableFieldsList.appendChild(label);
-          });
-        };
-
-        renderGroup('Core Dimensions', groups.coreDimensions);
-        renderGroup('Other Dimensions & Measures', groups.otherFields);
-      }
-
-      function handleSort(e) {
-        const newSortKey = e.currentTarget.dataset.key;
-        const field = ALL_FIELDS.find(f => f.key === newSortKey);
-
-        if (!field || (field.type !== 'dimension' && field.type !== 'measure')) return;
-
-        if (sortKey === newSortKey) {
-          sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
-        } else {
-          sortKey = newSortKey;
-          sortDirection = 'asc';
-        }
-        
-        currentPage = 1; 
-        renderCustomTable();
-      }
-
-      function renderCustomTable(){
-        const table = document.getElementById('dataTable');
-        const thead = table.querySelector('thead');
-        const tbody = table.querySelector('tbody');
-        const tfoot = table.querySelector('tfoot');
-        const paginationControls = document.getElementById('paginationControls');
-        thead.innerHTML = '';
-        tbody.innerHTML = '';
-        tfoot.innerHTML = '';
-        
-        renderAvailableFields();
-
-        const finalRenderFields = getFinalRenderFields(selectedFields);
-
-        if(finalRenderFields.length === 0){
-          sortKey = null;
-          sortDirection = 'asc';
-          thead.innerHTML = '<tr><th colspan="5" style="text-align: center;">Use the Column Selector to add table fields</th></tr>';
-          paginationControls.style.display = 'none';
-          hideSpinner();
-          return;
-        }
-
-        const headerRowGroup = document.createElement('tr'); 
-        const headerRowDetail = document.createElement('tr'); 
-        
-        const snTh = document.createElement('th');
-        snTh.textContent = 'SL.';
-        snTh.setAttribute('rowspan', 2);
-        headerRowGroup.appendChild(snTh);
-
-        selectedFields.forEach(field => {
-          const th = document.createElement('th');
-          th.textContent = field.label;
-          
-          if (field.type === 'dimension') th.classList.add('dimension-column');
-          else if (field.type === 'measure') th.classList.add('measure-column');
-          
-          if (field.type === 'pivot') {
-            th.classList.add('pivot-group-header');
-            const pivotMeasures = ALL_FIELDS.filter(f => f.isPivot && f.pivotKey === field.key);
-            th.setAttribute('colspan', pivotMeasures.length);
-            
-            pivotMeasures.forEach((pm) => {
-              const detailTh = document.createElement('th');
-              detailTh.textContent = pm.label;
-              detailTh.dataset.key = pm.key;
-              detailTh.classList.add('sortable', 'measure-column');
-              detailTh.addEventListener('click', handleSort);
-              if (sortKey === pm.key) {
-                detailTh.classList.add(sortDirection === 'asc' ? 'sorted-asc' : 'sorted-desc');
-              }
-              headerRowDetail.appendChild(detailTh);
-            });
-          } else {
-            th.setAttribute('rowspan', 2);
-            const isSortable = field.type === 'dimension' || field.type === 'measure';
-            if (isSortable) {
-              th.classList.add('sortable');
-              th.dataset.key = field.key;
-              th.addEventListener('click', handleSort);
-              if (sortKey === field.key) {
-                th.classList.add(sortDirection === 'asc' ? 'sorted-asc' : 'sorted-desc');
-              }
-            }
-          }
-          headerRowGroup.appendChild(th);
-        });
-
-        thead.appendChild(headerRowGroup);
-        if (headerRowDetail.children.length > 0) {
-          thead.appendChild(headerRowDetail);
-        }
-
-        const groupingDimensions = selectedFields.filter(f => f.type === 'dimension');
-        const pivotFields = selectedFields.filter(f => f.type === 'pivot');
-        
-        if (groupingDimensions.length === 0) {
-          const totalAgg = {
-            COUNT: d3.sum(filtered, d => d.COUNT),
-            LOAD: d3.sum(filtered, d => d.LOAD),
-            SD_LAKH: d3.sum(filtered, d => d.SD_LAKH),
-            OSD_LAKH: d3.sum(filtered, d => d.OSD_LAKH),
-            Average_Load_per_Consumer: filtered.length ? d3.mean(filtered, d => d.Average_Load_per_Consumer) : 0,
-            Average_OSD_per_Consumer: filtered.length ? d3.mean(filtered, d => d.Average_OSD_per_Consumer) : 0,
-          };
-          
-          if (pivotFields.length > 0) {
-            pivotFields.forEach(pivotField => {
-              const pivotMeasures = ALL_FIELDS.filter(f => f.isPivot && f.pivotKey === pivotField.key);
-              pivotMeasures.forEach(pm => {
-                totalAgg[pm.key] = d3.sum(filtered.filter(d => d[pm.pivotKey] == pm.pivotVal), d => d[pivotField.baseMeasure] || 0);
-              });
-            });
-          }
-
-          const tr = document.createElement('tr');
-          const snTd = document.createElement('td');
-          snTd.textContent = 1;
-          tr.appendChild(snTd);
-
-          finalRenderFields.forEach((field) => {
-            const td = document.createElement('td');
-            td.textContent = formatValue(totalAgg[field.key], field.format);
-            if (field.type === 'measure' || field.isPivot) td.classList.add('measure-column');
-            tr.appendChild(td);
-          });
-          if (finalRenderFields.length > 0) tbody.appendChild(tr);
-
-        } else {
-          const dimKeys = groupingDimensions.map(d => d.key);
-          const aggregatedData = d3.rollups(
-            filtered,
-            v => {
-              const obj = {};
-              selectedFields.filter(f => f.type === 'measure' && !f.isPivot).forEach(m => {
-                if (['COUNT', 'LOAD', 'SD_LAKH', 'OSD_LAKH'].includes(m.key)) {
-                  obj[m.key] = d3.sum(v, d => d[m.key]);
-                } else if (['Average_Load_per_Consumer', 'Average_OSD_per_Consumer'].includes(m.key)) {
-                  obj[m.key] = d3.mean(v, d => v.filter(row => row.COUNT > 0).length > 0 ? d[m.key] : 0);
-                }
-              });
-              
-              if (pivotFields.length > 0) {
-                pivotFields.forEach(pivotField => {
-                  const pivotMeasures = ALL_FIELDS.filter(f => f.isPivot && f.pivotKey === pivotField.key);
-                  pivotMeasures.forEach(pm => {
-                    obj[pm.key] = d3.sum(v.filter(d => d[pm.pivotKey] == pm.pivotVal), d => d[pivotField.baseMeasure] || 0);
-                  });
-                });
-              }
-              return obj;
-            },
-            ...dimKeys.map(key => d => d[key])
-          );
-
-          const flatAggregatedData = [];
-          function flatten(arr, currentDimensions) {
-            if (!arr) return;
-            arr.forEach(([key, value]) => {
-              const nextDimensions = [...currentDimensions, key];
-              if (Array.isArray(value)) {
-                flatten(value, nextDimensions);
-              } else {
-                const row = {};
-                dimKeys.forEach((k, i) => { row[k] = nextDimensions[i]; });
-                Object.assign(row, value);
-                flatAggregatedData.push(row);
-              }
-            });
-          }
-          flatten(aggregatedData, []);
-
-          if (sortKey) {
-            const sortField = ALL_FIELDS.find(f => f.key === sortKey);
-            if (sortField) {
-              flatAggregatedData.sort((a, b) => {
-                let valA = a[sortKey];
-                let valB = b[sortKey];
-                if (valA == null) return 1;
-                if (valB == null) return -1;
-                let comparison = (sortField.type === 'measure' || sortField.isPivot) ? (valA - valB) : valA.toString().localeCompare(valB.toString());
-                return sortDirection === 'asc' ? comparison : -comparison;
-              });
-            }
-          }
-
-          const totalItems = flatAggregatedData.length;
-          const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-          const endIndex = startIndex + ITEMS_PER_PAGE;
-          const paginatedData = flatAggregatedData.slice(startIndex, endIndex);
-
-          paginatedData.forEach((row, index) => {
-            const tr = document.createElement('tr');
-            const snTd = document.createElement('td');
-            snTd.textContent = startIndex + index + 1;
-            tr.appendChild(snTd);
-
-            finalRenderFields.forEach((field) => {
-              const td = document.createElement('td');
-              td.textContent = formatValue(row[field.key], field.format);
-              if (field.type === 'measure' || field.isPivot) td.classList.add('measure-column');
-              tr.appendChild(td);
-            });
-            tbody.appendChild(tr);
-          });
-
-          renderPagination(totalItems);
-        }
-        
-        const hasMeasures = finalRenderFields.some(f => f.type === 'measure' || f.isPivot);
-        if (tbody.children.length > 0 && hasMeasures) {
-          const footerRow = document.createElement('tr');
-          let totalLabelPlaced = false;
-
-          footerRow.appendChild(document.createElement('td'));
-
-          finalRenderFields.forEach((field) => {
-            const td = document.createElement('td');
-            const isDim = groupingDimensions.some(d => d.key === field.key) || pivotFields.some(p => p.key === field.key);
-
-            if (isDim) {
-              if (!totalLabelPlaced && !CORE_DIMENSIONS_ORDER.includes(field.key)) {
-                td.textContent = 'Grand Total';
-                totalLabelPlaced = true;
-              } else if (!totalLabelPlaced && field.type === 'dimension') {
-                td.textContent = 'Grand Total';
-                totalLabelPlaced = true;
-              }
-            } else if (field.type === 'measure' || field.isPivot) {
-              td.classList.add('measure-column');
-              let totalValue;
-              if (['COUNT', 'LOAD', 'SD_LAKH', 'OSD_LAKH'].includes(field.key) || field.isPivot) {
-                if (field.isPivot) {
-                  const pivotField = ALL_FIELDS.find(f => f.key === field.pivotKey);
-                  totalValue = d3.sum(filtered.filter(d => d[field.pivotKey] === field.pivotVal), d => d[pivotField.baseMeasure] || 0);
-                } else {
-                  totalValue = d3.sum(filtered, d => d[field.key] || 0);
-                }
-              } else if (field.key === 'Average_Load_per_Consumer') {
-                const totalCount = d3.sum(filtered, d => d.COUNT);
-                totalValue = totalCount > 0 ? d3.sum(filtered, d => d.LOAD) / totalCount : 0;
-              } else if (field.key === 'Average_OSD_per_Consumer') {
-                const totalCount = d3.sum(filtered, d => d.COUNT);
-                totalValue = totalCount > 0 ? d3.sum(filtered, d => d.OSD_LAKH) / totalCount : 0;
-              } 
-              td.textContent = formatValue(totalValue, field.format);
-            }
-            footerRow.appendChild(td);
-          });
-          tfoot.appendChild(footerRow);
-        }
-
-        if(tbody.children.length === 0 && finalRenderFields.length > 0) {
-          tfoot.innerHTML = '';
-          paginationControls.style.display = 'none';
-          tbody.innerHTML = `<tr><td colspan="${finalRenderFields.length + 1}" style="text-align:center;padding:30px;color:var(--text-secondary);">No data matches current filters for these columns.</td></tr>`;
-        }
-
-        hideSpinner();
-      }
-
-      function initUIEvents() {
-        document.getElementById('paginationControls').addEventListener('click', e => {
-          if (e.target.matches('.prev-btn')) {
-            if (currentPage > 1) { currentPage--; renderCustomTable(); }
-          }
-          if (e.target.matches('.next-btn')) {
-            const totalItems = document.getElementById('paginationInfo').dataset.totalItems || 0;
-            const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
-            if (currentPage < totalPages) { currentPage++; renderCustomTable(); }
-          }
-        });
-
-        // Drawer toggle
-        const btnColumnSelector = document.getElementById('btnColumnSelector');
-        const fieldDrawer = document.getElementById('fieldDrawer');
-        const drawerOverlay = document.getElementById('drawerOverlay');
-        const closeDrawerBtn = document.getElementById('closeDrawerBtn');
-
-        const openDrawer = () => {
-          fieldDrawer.classList.add('open');
-          drawerOverlay.classList.add('active');
-        };
-        const closeDrawer = () => {
-          fieldDrawer.classList.remove('open');
-          drawerOverlay.classList.remove('active');
-        };
-
-        if (btnColumnSelector) btnColumnSelector.addEventListener('click', openDrawer);
-        if (closeDrawerBtn) closeDrawerBtn.addEventListener('click', closeDrawer);
-        if (drawerOverlay) drawerOverlay.addEventListener('click', closeDrawer);
-
-        // View Tabs
-        document.querySelectorAll('.view-tab').forEach(tab => {
-          tab.addEventListener('click', () => {
-            document.querySelectorAll('.view-tab').forEach(t => t.classList.remove('active'));
-            tab.classList.add('active');
-            const view = tab.dataset.view;
-            document.getElementById('viewPaneTable').style.display = view === 'table' ? 'block' : 'none';
-            document.getElementById('viewPaneKpi').style.display = view === 'kpi' ? 'block' : 'none';
-            document.getElementById('viewPaneBreakdown').style.display = view === 'breakdown' ? 'block' : 'none';
-          });
-        });
-
-        // KPI Modal
-        const kpiToggleBtn = document.getElementById('kpiToggleBtn');
-        const kpiModal = document.getElementById('kpiModal');
-        const closeKpiModalBtn = document.getElementById('closeKpiModalBtn');
-
-        if (kpiToggleBtn) kpiToggleBtn.addEventListener('click', () => kpiModal.classList.add('open'));
-        if (closeKpiModalBtn) closeKpiModalBtn.addEventListener('click', () => kpiModal.classList.remove('open'));
-        if (kpiModal) kpiModal.addEventListener('click', (ev) => { if (ev.target === kpiModal) kpiModal.classList.remove('open'); });
-
-        renderAvailableFields();
-      }
-
-      function renderPagination(totalItems) {
-        const paginationControls = document.getElementById('paginationControls');
-        const paginationInfo = document.getElementById('paginationInfo');
-        const paginationNav = paginationControls.querySelector('.pagination-nav');
-
-        paginationNav.innerHTML = '';
-        paginationInfo.innerHTML = '';
-
-        if (totalItems <= ITEMS_PER_PAGE) {
-          paginationControls.style.display = 'none';
-          return;
-        }
-
-        paginationControls.style.display = 'flex';
-        const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
-        
-        if (currentPage > totalPages) currentPage = totalPages;
-        if (currentPage < 1) currentPage = 1;
-
-        paginationInfo.textContent = `Page ${currentPage} of ${totalPages} (${totalItems.toLocaleString()} rows)`;
-        paginationInfo.dataset.totalItems = totalItems;
-
-        const prevBtn = `<button class="prev-btn" ${currentPage === 1 ? 'disabled' : ''}>Previous</button>`;
-        const nextBtn = `<button class="next-btn" ${currentPage === totalPages ? 'disabled' : ''}>Next</button>`;
-        paginationNav.innerHTML = `${prevBtn}${nextBtn}`;
-      }
-
-      function exportFilteredCSV(){
-        const finalRenderFields = getFinalRenderFields(selectedFields);
-        if(finalRenderFields.length === 0){
-          alert('Please select columns before exporting.');
-          return;
-        }
-
-        const groupingDimensions = selectedFields.filter(f => f.type === 'dimension');
-        const pivotFields = selectedFields.filter(f => f.type === 'pivot');
-        
-        const exportKeys = finalRenderFields.map(f => f.key);
-        const exportLabels = finalRenderFields.map(f => {
-          if (f.isPivot) {
-            const pivotGroup = ALL_FIELDS.find(p => p.key === f.pivotKey);
-            return `${pivotGroup ? pivotGroup.label : f.pivotKey}: ${f.label}`;
-          }
-          return f.label;
-        });
-        
-        let exportRows = [];
-
-        if (groupingDimensions.length === 0) {
-          const totalAgg = {
-            COUNT: d3.sum(filtered, d => d.COUNT),
-            LOAD: d3.sum(filtered, d => d.LOAD),
-            SD_LAKH: d3.sum(filtered, d => d.SD_LAKH),
-            OSD_LAKH: d3.sum(filtered, d => d.OSD_LAKH),
-            Average_Load_per_Consumer: filtered.length ? d3.mean(filtered, d => d.Average_Load_per_Consumer) : 0,
-            Average_OSD_per_Consumer: filtered.length ? d3.mean(filtered, d => d.Average_OSD_per_Consumer) : 0,
-          };
-          if (pivotFields.length > 0) {
-            pivotFields.forEach(pivotField => {
-              const pivotMeasures = ALL_FIELDS.filter(f => f.isPivot && f.pivotKey === pivotField.key);
-              pivotMeasures.forEach(pm => {
-                totalAgg[pm.key] = d3.sum(filtered.filter(d => d[pm.pivotKey] == pm.pivotVal), d => d[pivotField.baseMeasure] || 0);
-              });
-            });
-          }
-          exportRows.push(totalAgg);
-        } else {
-          const dimKeys = groupingDimensions.map(d => d.key);
-          const aggregatedData = d3.rollups(
-            filtered,
-            v => {
-              const obj = {};
-              selectedFields.filter(f => f.type === 'measure' && !f.isPivot).forEach(m => {
-                if (['COUNT', 'LOAD', 'SD_LAKH', 'OSD_LAKH'].includes(m.key)) {
-                  obj[m.key] = d3.sum(v, d => d[m.key]);
-                } else if (['Average_Load_per_Consumer', 'Average_OSD_per_Consumer'].includes(m.key)) {
-                  obj[m.key] = d3.mean(v, d => v.filter(row => row.COUNT > 0).length > 0 ? d[m.key] : 0);
-                }
-              });
-
-              if (pivotFields.length > 0) {
-                pivotFields.forEach(pivotField => {
-                  const pivotMeasures = ALL_FIELDS.filter(f => f.isPivot && f.pivotKey === pivotField.key);
-                  pivotMeasures.forEach(pm => {
-                    obj[pm.key] = d3.sum(v.filter(d => d[pm.pivotKey] == pm.pivotVal), d => d[pivotField.baseMeasure] || 0);
-                  });
-                });
-              }
-              return obj;
-            },
-            ...dimKeys.map(key => d => d[key])
-          );
-
-          function flatten(arr, currentDimensions) {
-            if (!arr) return;
-            arr.forEach(([key, value]) => {
-              const nextDimensions = [...currentDimensions, key];
-              if (Array.isArray(value)) {
-                flatten(value, nextDimensions);
-              } else {
-                const row = {};
-                dimKeys.forEach((k, i) => { row[k] = nextDimensions[i]; });
-                Object.assign(row, value);
-                exportRows.push(row);
-              }
-            });
-          }
-          flatten(aggregatedData, []);
-        }
-
-        if(!exportRows.length){ 
-          alert('No rows to export with current filters'); 
-          return; 
-        }
-        
-        const lines = ['SL NO,' + exportLabels.join(',')];
-        exportRows.forEach((r, index) => {
-          const rowValues = [index + 1].concat(exportKeys.map(k => {
-            const field = ALL_FIELDS.find(f => f.key === k);
-            return JSON.stringify(formatValue(r[k], field ? field.format : 'text'));
-          }));
-          lines.push(rowValues.join(','));
-        });
-        const csv = lines.join('\n');
-          
-        const blob = new Blob([csv], { type: 'text/csv' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a'); 
-        a.href = url; 
-        a.download = 'consumer_summary_report.csv'; 
-        document.body.appendChild(a); 
-        a.click(); 
-        a.remove();
-      }
-
-      exportBtn.addEventListener('click', exportFilteredCSV);
-      resetBtn.addEventListener('click', resetFilters);
-
-      loadData('https://docs.google.com/spreadsheets/d/e/2PACX-1vQT4ufTMHJGTUqNSqFSzz0q2x-ShM_WHlfSRxT4tVqA6GcaMK5g38PDLmcJR4JXuxLi-tKafW-Yxwdo/pub?gid=0&single=true&output=csv');
-
-    } catch(e){
-      console.error('Dashboard initialization failed:', e);
-      document.body.innerHTML = '<div style="color:#ef4444;padding:24px;font-family:monospace"><strong>Dashboard Error:</strong><br><br>'+(e && e.stack ? e.stack : e) + '</div>';
+  document.addEventListener('DOMContentLoaded', function () {
+    'use strict';
+    var $ = function (id) { return document.getElementById(id); };
+    var URL_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQT4ufTMHJGTUqNSqFSzz0q2x-ShM_WHlfSRxT4tVqA6GcaMK5g38PDLmcJR4JXuxLi-tKafW-Yxwdo/pub?gid=0&single=true&output=csv';
+    var CLASS = { D: 'Domestic', C: 'Commercial', A: 'Agriculture', I: 'Industrial', W: 'Water works', H: 'Class H', S: 'Class S', O: 'Others' };
+    var LABELS = {
+      CONN_STAT: function (v) { return UI.title(v); },
+      BASE_CLASS: function (v) { return CLASS[v] || v; },
+      CONN_PHASE: function (v) { return v === '3' ? 'Three phase' : v === '1' ? 'Single phase' : v; },
+      CATEGORY: function (v) { return v === 'R' ? 'Rural' : v === 'U' ? 'Urban' : v; },
+      GOVT_STAT: function (v) { return v === 'YES' ? 'Government' : v === 'NO' ? 'Private' : v; },
+      TYPE_OF_METER: function (v) { return { ELECTRIONIC: 'Electronic', ELECTROMAGNATIC: 'Electromagnetic', 'NO METER': 'No meter', SMART: 'Smart' }[v] || UI.title(v); },
+      CONN_BY: function (v) { return { 'MANNUAL(GHOST)': 'Manual (ghost)', CCC: 'CCC', RE: 'RE', BRGF: 'BRGF' }[v] || UI.title(v); },
+      TIME_OF_DAY: function (v) { return v === 'T' ? 'Time of day' : v === 'W' ? 'Normal' : v ? v : 'Not set'; }
+    };
+    var DIMS = [
+      ['_region', 'Region'], ['_divn', 'Division'], ['_supp', 'CCC'], ['CONN_STAT', 'Status'], ['BASE_CLASS', 'Class'], ['CONN_PHASE', 'Phase'],
+      ['CATEGORY', 'Area'], ['GOVT_STAT', 'Government'], ['TYPE_OF_METER', 'Meter type'], ['CONN_BY', 'Connected by'], ['TIME_OF_DAY', 'Tariff']
+    ];
+    var FILTERS = { CONN_STAT: 'All statuses', BASE_CLASS: 'All classes', CONN_PHASE: 'Any phase', CATEGORY: 'Rural & urban', GOVT_STAT: 'Govt & private' };
+    var rows = [], asOn = '', scope = null, hf = { TYPE_OF_METER: '', CONN_BY: '' };
+    function lab(dim, v) { return LABELS[dim] ? LABELS[dim](v) : v; }
+    function num(v) { return Number(String(v == null ? '' : v).replace(/,/g, '')) || 0; }
+
+    $('rowDim').innerHTML = DIMS.map(function (d) { return '<option value="' + d[0] + '">' + d[1] + '</option>'; }).join('');
+    $('colDim').innerHTML = '<option value="">Nothing</option>' + DIMS.slice(3).map(function (d) { return '<option value="' + d[0] + '">' + d[1] + '</option>'; }).join('');
+
+    function prepare(text) {
+      asOn = '';
+      rows = UI.csv(text).filter(function (r) { return r.CCC_CODE; }).map(function (r) {
+        if (!asOn && r.Date) asOn = r.Date;
+        var o = UI.office(r.CCC_CODE);
+        r._region = o.region || 'Unmapped'; r._divn = o.division || 'Unmapped'; r._supp = o.ccc || String(r.CCC_CODE).trim();
+        r.COUNT = num(r.COUNT); r.LOAD = num(r.LOAD); r.SD_LAKH = num(r.SD_LAKH); r.OSD_LAKH = num(r.OSD_LAKH);
+        r.TIME_OF_DAY = r.TIME_OF_DAY || '';
+        return r;
+      });
+      if (window.MzoScope) rows = window.MzoScope.filterRows(rows);
+      fillFilters();
     }
+    function uniq(list, k) { var s = {}; list.forEach(function (r) { if (r[k] !== '' && r[k] != null) s[r[k]] = 1; }); return Object.keys(s).sort(); }
+    function fillFilters() {
+      var reg = $('regionFilter').value, div = $('divisionFilter').value;
+      UI.fill('regionFilter', uniq(rows, '_region'), 'All regions');
+      var r1 = rows.filter(function (r) { return !reg || r._region === reg; });
+      UI.fill('divisionFilter', uniq(r1, '_divn'), 'All divisions');
+      var r2 = r1.filter(function (r) { return !div || r._divn === div; });
+      UI.fill('cccFilter', uniq(r2, '_supp'), 'All CCCs');
+      Object.keys(FILTERS).forEach(function (k) { UI.fill('f_' + k, uniq(rows, k).map(function (v) { return { value: v, label: lab(k, v) }; }), FILTERS[k]); });
+      if (!scope) scope = UI.lockScope();
+    }
+    function base(skip) {
+      var reg = $('regionFilter').value, div = $('divisionFilter').value, ccc = $('cccFilter').value;
+      var sel = {}; Object.keys(FILTERS).forEach(function (k) { sel[k] = $('f_' + k).value; });
+      return rows.filter(function (r) {
+        if ((reg && r._region !== reg) || (div && r._divn !== div) || (ccc && r._supp !== ccc)) return false;
+        for (var k in sel) if (k !== skip && sel[k] && r[k] !== sel[k]) return false;
+        for (var h in hf) if (h !== skip && hf[h] && r[h] !== hf[h]) return false;
+        return true;
+      });
+    }
+    function sum(list, k) { var s = 0; for (var i = 0; i < list.length; i++) s += list[i][k]; return s; }
+    function mw(kw) { return kw >= 1000 ? UI.n(Math.round(kw / 100) / 10) + ' MW' : UI.n(Math.round(kw)) + ' kW'; }
+    function lakh(l) { return UI.inr(l * 1e5); }
+
+    function render() {
+      var b = base(), all = sum(rows, 'COUNT'), c = sum(b, 'COUNT'), load = sum(b, 'LOAD'), osd = sum(b, 'OSD_LAKH');
+      var live = sum(b.filter(function (r) { return r.CONN_STAT === 'LIVE'; }), 'COUNT');
+      var govt = b.filter(function (r) { return r.GOVT_STAT === 'YES'; });
+      $('sCount').textContent = UI.n(c); $('sCountS').textContent = UI.n(live) + ' live · ' + UI.pct(live, c);
+      $('sLoad').textContent = mw(load); $('sLoadS').textContent = (c ? (load / c).toFixed(2) : '0') + ' kW per consumer';
+      $('sSd').textContent = lakh(sum(b, 'SD_LAKH'));
+      $('sOsd').textContent = lakh(osd); $('sOsdS').textContent = c ? '₹' + UI.n(Math.round(osd * 1e5 / c)) + ' per consumer' : ' ';
+      $('sGovt').textContent = UI.n(sum(govt, 'COUNT')); $('sGovtS').textContent = 'Outstanding ' + lakh(sum(govt, 'OSD_LAKH'));
+      $('meta').textContent = (asOn ? 'As on ' + UI.fmtDate(asOn) + ' · ' : '') + UI.n(all) + ' consumers';
+
+      pivot(b);
+      hist('hStat', 'CONN_STAT', base('CONN_STAT'), $('f_CONN_STAT').value, function (v) { $('f_CONN_STAT').value = $('f_CONN_STAT').value === v ? '' : v; UI.mark($('f_CONN_STAT')); render(); });
+      hist('hMeter', 'TYPE_OF_METER', base('TYPE_OF_METER'), hf.TYPE_OF_METER, function (v) { hf.TYPE_OF_METER = hf.TYPE_OF_METER === v ? '' : v; render(); });
+      hist('hBy', 'CONN_BY', base('CONN_BY'), hf.CONN_BY, function (v) { hf.CONN_BY = hf.CONN_BY === v ? '' : v; render(); });
+      $('clearBtn').hidden = !(hf.TYPE_OF_METER || hf.CONN_BY || Object.keys(FILTERS).some(function (k) { return $('f_' + k).value; }) || ['regionFilter', 'divisionFilter', 'cccFilter'].some(function (id) { return $(id).value && !$(id).disabled; }));
+    }
+    function hist(el, dim, list, active, onClick) {
+      var g = {}; list.forEach(function (r) { var k = r[dim] || ''; g[k] = (g[k] || 0) + r.COUNT; });
+      var short = { 'DEEMED DISCONNECTED': 'Deemed disc.', 'PERMANENTLY DISCONNECTED': 'Permanent disc.', 'TEMPORARY DISCONNECTED': 'Temporary disc.' };
+      UI.hist(el, Object.keys(g).sort(function (a, c) { return g[c] - g[a]; }).slice(0, 8).map(function (k) { return { key: k, label: short[k] || lab(dim, k), value: g[k] }; }),
+        { active: active, onClick: function (row) { onClick(row.key); } });
+    }
+
+    var last = { rows: [], cols: [] };
+    function pivot(b) {
+      var rd = $('rowDim').value, cd = $('colDim').value === rd ? '' : $('colDim').value;
+      var g = {}, colVals = cd ? uniq(b, cd) : [];
+      if (cd && colVals.length > 8) { var tot = {}; b.forEach(function (r) { tot[r[cd]] = (tot[r[cd]] || 0) + r.COUNT; }); colVals = colVals.sort(function (x, y) { return tot[y] - tot[x]; }).slice(0, 8); }
+      b.forEach(function (r) {
+        var k = r[rd] || '—';
+        var o = g[k] || (g[k] = { key: k, label: lab(rd, k), parent: rd === '_supp' ? r._divn : rd === '_divn' ? r._region : '', COUNT: 0, LOAD: 0, SD: 0, OSD: 0 });
+        o.COUNT += r.COUNT; o.LOAD += r.LOAD; o.SD += r.SD_LAKH; o.OSD += r.OSD_LAKH;
+        if (cd) o['c:' + r[cd]] = (o['c:' + r[cd]] || 0) + r.COUNT;
+      });
+      var list = Object.keys(g).map(function (k) { return g[k]; });
+      var cols = [{ key: 'label', label: DIMS.filter(function (d) { return d[0] === rd; })[0][1], fmt: function (v, o) { return '<span class="ui-strong">' + UI.esc(v) + '</span>' + (o.parent ? '<span class="sub">' + UI.esc(o.parent) + '</span>' : ''); }, csv: function (o) { return o.label; } }];
+      colVals.forEach(function (v) { cols.push({ key: 'c:' + v, label: lab(cd, v), num: true, fmt: function (x) { return x ? UI.n(x) : '<span class="ui-muted">—</span>'; }, csv: function (o) { return o['c:' + v] || 0; } }); });
+      cols.push({ key: 'COUNT', label: 'Consumers', num: true, fmt: UI.n });
+      if (!cd) {
+        cols.push({ key: 'LOAD', label: 'Load (kW)', num: true, fmt: function (v) { return UI.n(Math.round(v)); }, hideSm: true, csv: function (o) { return Math.round(o.LOAD); } });
+        cols.push({ key: 'SD', label: 'SD', num: true, fmt: lakh, hideSm: true, csv: function (o) { return (o.SD * 1e5).toFixed(0); } });
+        cols.push({ key: 'OSD', label: 'Outstanding', num: true, fmt: lakh, csv: function (o) { return (o.OSD * 1e5).toFixed(0); } });
+      }
+      var foot = { COUNT: sum(b, 'COUNT'), LOAD: sum(b, 'LOAD'), SD: sum(b, 'SD_LAKH'), OSD: sum(b, 'OSD_LAKH') };
+      colVals.forEach(function (v) { foot['c:' + v] = sum(b.filter(function (r) { return r[cd] === v; }), 'COUNT'); });
+      last = { rows: list, cols: cols };
+      var drillable = rd === '_region' || rd === '_divn';
+      UI.table('pivot', { rows: list, sort: { key: 'COUNT', dir: 'desc' }, columns: cols, foot: list.length > 1 ? foot : null, count: false, empty: 'No consumers for these filters.', onRow: drillable ? function (o) { drill(rd, o.key); } : null });
+    }
+    function drill(dim, v) {
+      if (dim === '_region') { $('regionFilter').value = v; $('divisionFilter').value = ''; $('rowDim').value = '_divn'; }
+      else { $('divisionFilter').value = v; $('rowDim').value = '_supp'; }
+      $('cccFilter').value = '';
+      fillFilters(); markAll(); render();
+    }
+    function markAll() { ['regionFilter', 'divisionFilter', 'cccFilter'].concat(Object.keys(FILTERS).map(function (k) { return 'f_' + k; })).forEach(function (id) { UI.mark($(id)); }); }
+
+    ['regionFilter', 'divisionFilter', 'cccFilter'].forEach(function (id) {
+      $(id).addEventListener('change', function () {
+        if (id === 'regionFilter') $('divisionFilter').value = '';
+        if (id !== 'cccFilter') $('cccFilter').value = '';
+        fillFilters(); markAll(); render();
+      });
+    });
+    Object.keys(FILTERS).forEach(function (k) { $('f_' + k).addEventListener('change', function () { UI.mark(this); render(); }); });
+    ['rowDim', 'colDim'].forEach(function (id) { $(id).addEventListener('change', function () { $('pivot').__ui = null; render(); }); });
+    $('clearBtn').addEventListener('click', function () {
+      hf.TYPE_OF_METER = ''; hf.CONN_BY = '';
+      ['regionFilter', 'divisionFilter', 'cccFilter'].concat(Object.keys(FILTERS).map(function (k) { return 'f_' + k; })).forEach(function (id) { if (!$(id).disabled) $(id).value = ''; });
+      fillFilters(); markAll(); render();
+    });
+    $('exportBtn').addEventListener('click', function () { UI.exportCsv('consumers-' + $('rowDim').value.replace('_', '') + '.csv', last.cols, last.rows); });
+
+    function load(force) {
+      var b = $('refreshBtn'); if (force) b.classList.add('spin');
+      return fetch(URL_CSV, { cache: force ? 'no-store' : 'default' }).then(function (r) { if (!r.ok) throw new Error('Sheet HTTP ' + r.status); return r.text(); })
+        .then(function (t) {
+          prepare(t);
+          if (!load.done) {
+            load.done = true;
+            if (scope && (scope.level === 'division' || scope.level === 'ccc')) $('rowDim').value = '_supp';
+            else if (scope && scope.level === 'region') $('rowDim').value = '_divn';
+            markAll();
+          }
+          render();
+        })
+        .catch(function (e) { if (!rows.length) { $('meta').textContent = 'Could not load data'; $('pivot').innerHTML = '<div class="ui-empty">' + UI.esc(e.message) + '</div>'; } else UI.toast(e.message); })
+        .then(function () { b.classList.remove('spin'); });
+    }
+    $('refreshBtn').addEventListener('click', function () { load(true); });
+    load(false);
+  });
   </script>
 </body>
 </html>

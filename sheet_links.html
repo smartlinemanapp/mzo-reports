@@ -1,47 +1,48 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="ui">
 <head>
-  <script src="mzo_theme.js?v=1"></script>
+  <script src="mzo_theme.js?v=3"></script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Sheet links</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet" />
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
   <style>
-    :root { color-scheme: light; --bg: #f4f6fb; --card: #fff; --text: #0f172a; --muted: #64748b; --line: #e2e8f0; --link: #1d4ed8; }
-    body.dark-theme { color-scheme: dark; --bg: #0f172a; --card: #1e293b; --text: #e2e8f0; --muted: #94a3b8; --line: #334155; --link: #93c5fd; }
-    * { box-sizing: border-box; }
     html, body { margin: 0; min-height: 100%; }
-    body { font-family: Inter, system-ui, sans-serif; background: var(--bg); color: var(--text); }
-    .sheet-container { max-width: 800px; margin: 0 auto; width: 100%; min-height: 100vh; background: var(--card); }
-    @media (min-width: 801px) {
-      .sheet-container {
-        border-left: 1px solid var(--line);
-        border-right: 1px solid var(--line);
-        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
-      }
-    }
-    .bar { display: flex; align-items: center; height: 44px; padding: 0 12px; background: var(--card); border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 2; }
-    input { width: 100%; border: 1px solid var(--line); background: var(--bg); color: inherit; border-radius: 8px; padding: 6px 10px; font: inherit; font-size: 13px; }
-    .wrap { padding: 0 0 24px; }
-    table { width: 100%; border-collapse: collapse; background: var(--card); font-size: 13px; }
-    th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--line); vertical-align: middle; }
-    th { font-size: 11px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); position: sticky; top: 44px; background: var(--card); }
-    td.n, th.n { width: 3rem; text-align: right; color: var(--muted); font-variant-numeric: tabular-nums; }
-    td.when, th.when { white-space: nowrap; color: var(--muted); font-variant-numeric: tabular-nums; }
-    td.act, th.act { width: 2.6rem; text-align: center; }
-    a.name { color: var(--link); text-decoration: none; font-weight: 600; }
-    a.name:hover { text-decoration: underline; }
-    button.copy { border: none; background: transparent; color: var(--muted); cursor: pointer; padding: 4px; }
-    button.copy.done, button.copy:hover { color: #188038; }
-    .empty { padding: 24px; color: var(--muted); text-align: center; }
-  </style>
-  <link rel="stylesheet" href="mzo_theme.css?v=1" />
+    body { font: 13px/1.5 var(--mzo-font); background: var(--mzo-bg); color: var(--mzo-text); }
+    .sheet-container { max-width: 900px; margin: 0 auto; padding: 24px 28px 72px; }
+    .head { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px 24px; flex-wrap: wrap; margin-bottom: 16px; }
+    .head h1 { margin: 0; font-size: 20px; line-height: 1.3; font-weight: 600; letter-spacing: -0.015em; }
+    .head p { margin: 3px 0 0; color: var(--mzo-muted); }
+    .bar { position: relative; flex: 0 1 280px; }
+    .bar svg { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 15px; height: 15px; fill: none; stroke: var(--mzo-faint); stroke-width: 1.8; stroke-linecap: round; pointer-events: none; }
+    input { width: 100%; height: 32px; padding: 0 10px 0 32px; border: 1px solid var(--mzo-border-strong); border-radius: 7px; background: var(--mzo-input); color: var(--mzo-text); font: 13px var(--mzo-font); outline: none; }
+    input:focus { border-color: var(--mzo-accent); box-shadow: var(--mzo-ring); }
+    input::placeholder { color: var(--mzo-faint); }
+    .wrap { background: var(--mzo-surface); border: 1px solid var(--mzo-border); border-radius: 10px; overflow: hidden; }
+    table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 13px; font-variant-numeric: tabular-nums; }
+    th { position: sticky; top: 0; z-index: 1; text-align: left; padding: 9px 12px; font-size: 12px; font-weight: 500; color: var(--mzo-muted); background: var(--mzo-surface); border-bottom: 1px solid var(--mzo-border); }
+    td { padding: 9px 12px; border-bottom: 1px solid var(--mzo-border); vertical-align: middle; }
+    tbody tr:last-child td { border-bottom: 0; }
+    tbody tr:hover td { background: var(--mzo-row-hover); }
+    td.n, th.n { width: 3rem; padding-left: 16px; color: var(--mzo-faint); }
+    td.when, th.when { white-space: nowrap; color: var(--mzo-muted); }
+    td.act, th.act { width: 3rem; text-align: right; padding-right: 12px; }
+    a.name { color: var(--mzo-text); text-decoration: none; font-weight: 500; }
+    a.name:hover { color: var(--mzo-accent); text-decoration: underline; text-underline-offset: 2px; }
+    button.copy { width: 28px; height: 28px; display: inline-grid; place-items: center; border: 0; border-radius: 6px; background: transparent; color: var(--mzo-muted); cursor: pointer; }
+    button.copy:hover { background: var(--mzo-hover); color: var(--mzo-text); }
+    button.copy.done { color: var(--mzo-ok); }
+    button.copy svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+    .empty { padding: 32px 16px; color: var(--mzo-muted); text-align: center; }
+    [hidden] { display: none !important; }
+    @media (max-width: 760px) { .sheet-container { padding: 16px 14px 56px; } .bar { flex-basis: 100%; } td.n, th.n { display: none; } td:nth-child(2), th:nth-child(2) { padding-left: 16px; } }
+</style>
+  <link rel="stylesheet" href="mzo_theme.css?v=3" />
 </head>
 <body>
   <div class="sheet-container">
-    <div class="bar">
-      <input id="q" type="search" placeholder="Find a sheet…" aria-label="Find a sheet" />
+    <div class="head">
+      <div><h1>Sheet links</h1><p>Google Sheets behind each report</p></div>
+      <label class="bar"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="q" type="search" placeholder="Find a sheet" aria-label="Find a sheet" /></label>
     </div>
     <div class="wrap">
       <table>
@@ -186,7 +187,7 @@
           '<td class="n">' + row.n + '</td>' +
           '<td><a class="name" target="_blank" rel="noopener"></a></td>' +
           '<td class="when"></td>' +
-          '<td class="act"><button type="button" class="copy" title="Copy link"><i class="fas fa-copy" aria-hidden="true"></i></button></td>';
+          '<td class="act"><button type="button" class="copy" title="Copy link"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8.5" y="8.5" width="12" height="12" rx="2"/><path d="M15.5 8.5V5.5a2 2 0 0 0-2-2h-8a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h3"/></svg></button></td>';
         tr.querySelector('a').href = row.href;
         tr.querySelector('a').textContent = row.name;
         tr.querySelector('.when').textContent = row.updated || '—';

@@ -1,1899 +1,269 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="ui">
 <head>
-  <script src="mzo_theme.js?v=1"></script>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Employee Dashboard</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-   <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        body {
-            font-family: 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: #f5f5f5;
-            color: #333;
-            line-height: 1.4;
-        }
-
-        /* Authentication Styles */
-        .auth-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100dvh;       
-        }
-
-        .auth-card {
-            background: white;
-            border-radius: 12px;
-            padding: 24px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-            width: 100%;
-            max-width: 320px;
-            text-align: center;
-        }
-
-        .auth-header h1 {
-            font-size: 2rem;
-            margin-bottom: 8px;
-            color: #1976d2;
-        }
-
-        .auth-header p {
-            color: #666;
-            font-size: 14px;
-            margin-bottom: 24px;
-        }
-
-        .pin-input {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            font-size: 16px;
-            text-align: center;
-            letter-spacing: 2px;
-            margin-bottom: 16px;
-            transition: border-color 0.2s;
-        }
-
-        .pin-input:focus {
-            outline: none;
-            border-color: #1976d2;
-        }
-
-        .auth-btn {
-            background: #1976d2;
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 8px;
-            font-size: 14px;
-            cursor: pointer;
-            width: 100%;
-            transition: background 0.2s;
-            min-height: 44px;
-        }
-
-        .auth-btn:hover:not(:disabled) {
-            background: #1565c0;
-        }
-
-        .auth-btn:disabled {
-            background: #ccc;
-        }
-
-        .error-message {
-            background: #ffebee;
-            color: #c62828;
-            padding: 12px;
-            border-radius: 8px;
-            margin-top: 16px;
-            font-size: 14px;
-            text-align: left;
-        }
-
-        .loading-message {
-            color: #666;
-            margin-top: 12px;
-            font-size: 14px;
-        }
-
-        /* Dashboard Styles */
-        .dashboard {
-            display: none;
-            min-height: 100vh;
-        }
-
-        .header {
-            background: #1976d2;
-            color: white;
-            padding: 16px;
-            text-align: center;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-
-        .header h1 {
-            font-size: 1.5rem;
-            font-weight: 500;
-            margin-bottom: 4px;
-        }
-
-        .header p {
-            font-size: 14px;
-            opacity: 0.9;
-        }
-
-        .container {
-            padding: 16px;
-        }
-
-        .search-section {
-                    margin-top: 16px;
-            margin-bottom: 16px;
-        }
-
-        .search-btn {
-            background: #1976d2;
-            color: white;
-            border: none;
-            padding: 12px 16px;
-            border-radius: 8px;
-            font-size: 14px;
-            cursor: pointer;
-            width: 100%;
-            min-height: 44px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            transition: background 0.2s;
-        }
-
-        .search-btn:hover {
-            background: #1565c0;
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 12px;
-        }
-
-        .stat-card {
-            background: white;
-            border-radius: 8px;
-            padding: 16px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-            transition: transform 0.2s;
-            cursor: pointer;
-            min-height: 60px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .stat-card:active {
-            transform: scale(0.98);
-        }
-
-        .stat-content {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .stat-icon {
-            font-size: 1.5rem;
-            color: #1976d2;
-        }
-
-        .stat-text {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .stat-number {
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: #333;
-            line-height: 1;
-        }
-
-        .stat-label {
-            font-size: 12px;
-            color: #666;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .stat-arrow {
-            color: #ccc;
-            font-size: 1.2rem;
-        }
-
-        /* Modal Styles */
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.3);
-        }
-#detailModal {
-    z-index: 1200;
-}
-        .modal-content {
-            background: white;
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .modal-header {
-            background: #1976d2;
-            color: white;
-            padding: 16px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            min-height: 56px;
-        }
-
-        .modal-header h2 {
-            margin: 0;
-            font-size: 1.2rem;
-            font-weight: 500;
-        }
-
-        .close {
-            color: white;
-            font-size: 24px;
-            cursor: pointer;
-            padding: 4px;
-            min-width: 32px;
-            text-align: center;
-        }
-
-        .modal-body {
-            padding: 16px;
-            flex: 1;
-            overflow-y: auto;
-        }
-
-        .search-input {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            font-size: 16px;
-            margin-bottom: 16px;
-        }
-
-        .search-input:focus {
-            outline: none;
-            border-color: #1976d2;
-        }
-
-        .employee-item {
-            padding: 12px;
-            border: 1px solid #eee;
-            border-radius: 8px;
-            margin-bottom: 8px;
-            background: #fafafa;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            min-height: 56px;
-        }
-
-        .employee-item:active {
-            background: #f0f0f0;
-        }
-
-        .employee-info h4 {
-            margin: 0 0 4px 0;
-            color: #333;
-            font-size: 14px;
-            font-weight: 500;
-        }
-
-        .employee-info p {
-            margin: 0;
-            color: #666;
-            font-size: 12px;
-        }
-
-        .detail-btn {
-            background: #1976d2;
-            color: white;
-            border: none;
-            padding: 6px 12px;
-            border-radius: 16px;
-            cursor: pointer;
-            font-size: 12px;
-            min-height: 32px;
-            transition: background 0.2s;
-        }
-
-        .detail-btn:hover {
-            background: #1565c0;
-        }
-
-        .detail-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 14px;
-        }
-
-        .detail-table th,
-        .detail-table td {
-            padding: 8px;
-            text-align: left;
-            border-bottom: 1px solid #eee;
-        }
-
-        .detail-table th {
-            background: #f5f5f5;
-            font-weight: 500;
-            color: #333;
-            font-size: 12px;
-        }
-
-        .detail-table td {
-            font-size: 13px;
-        }
-
-        .no-results {
-            text-align: center;
-            padding: 32px 16px;
-            color: #666;
-            font-size: 14px;
-        }
-
-        /* Responsive adjustments for larger screens */
-        @media (min-width: 768px) {
-            .modal-content {
-                margin: 5% auto;
-                width: 90%;
-                max-width: 600px;
-                height: auto;
-                max-height: 80vh;
-                border-radius: 12px;
-            }
-
-            .stats-grid {
-                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            }
-
-            .container {
-                max-width: 800px;
-                margin: 0 auto;
-            }
-        }
-
-        /* Android-style loading indicator */
-        .loading-dots {
-            display: inline-block;
-        }
-
-        .loading-dots::after {
-            content: '';
-            animation: dots 1.5s infinite;
-        }
-
-        @keyframes dots {
-            0%, 20% { content: ''; }
-            40% { content: '.'; }
-            60% { content: '..'; }
-            80%, 100% { content: '...'; }
-        }
-        @media (max-width: 767px) {
-  .header {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    z-index: 999;
-    border-bottom: 1px solid #ccc;
-  }
-
-  .dashboard .container {
-    padding-top: 80px; /* Add enough space to prevent overlap with fixed header */
-  }
-}
-@keyframes bloom {
-  0% { transform: scale(1); opacity: 0.8; }
-  100% { transform: scale(1.1); opacity: 1; }
-}
-    </style>
-  <link rel="stylesheet" href="mzo_theme.css?v=1" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Manpower · MZO Reports</title>
+  <script src="/mzo_theme.js?v=3"></script>
+  <link rel="stylesheet" href="/mzo_theme.css?v=3" />
+  <script src="/mzo_ui.js?v=2" defer></script>
+  <style>
+    .gate { min-height: 70vh; display: grid; place-items: center; }
+    .gate form { width: min(340px, 100%); background: var(--mzo-surface); border: 1px solid var(--mzo-border); border-radius: 12px; padding: 24px; }
+    .gate h1 { margin: 0; font-size: 17px; font-weight: 600; }
+    .gate p { margin: 4px 0 16px; color: var(--mzo-muted); font-size: 13px; }
+    .gate .ui-input { width: 100%; padding: 0 12px; height: 36px; letter-spacing: .2em; }
+    .gate .ui-btn { width: 100%; height: 36px; margin-top: 10px; }
+    .gate .err { min-height: 18px; margin-top: 10px; font-size: 12.5px; color: var(--mzo-bad); }
+    .mini { list-style: none; margin: 0; padding: 0; }
+    .mini li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 9px 16px; border-top: 1px solid var(--mzo-border); cursor: pointer; font-size: 13px; }
+    .mini li:first-child { border-top: 0; }
+    .mini li:hover { background: var(--mzo-row-hover); }
+    .mini b { font-weight: 500; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .mini span { color: var(--mzo-muted); font-size: 12px; }
+    .mini .d { text-align: right; font-variant-numeric: tabular-nums; color: var(--mzo-text-2); font-size: 12.5px; white-space: nowrap; }
+  </style>
 </head>
 <body>
-    <!-- Authentication Screen -->
-    <div id="authScreen" class="auth-container">
-        <div class="auth-card">
-            <div class="auth-header">
-                <h1>🔐</h1>
-                <p>Please enter your PIN to access the Employee Dashboard</p>
-            </div>
-            <div>
-                <input type="password" class="pin-input" id="pinInput" 
-                       placeholder="Enter PIN..." 
-                       onkeypress="handlePinKeyPress(event)"
-                       maxlength="10">
-                <button class="auth-btn" id="authBtn" onclick="validatePin()">
-                    <span id="authBtnText">🔓 Authenticate</span>
-                </button>
-                <div id="authError" class="error-message" style="display: none;"></div>
-                <div id="authLoading" class="loading-message" style="display: none;"></div>
-            </div>
+  <main class="ui-page">
+    <section class="gate" id="gate">
+      <form id="gateForm" autocomplete="off">
+        <h1>Manpower</h1>
+        <p id="gateNote">Enter your PIN to continue.</p>
+        <input class="ui-input" id="pin" type="password" inputmode="numeric" placeholder="PIN" aria-label="PIN" disabled />
+        <button type="submit" class="ui-btn primary" id="pinBtn" disabled>Continue</button>
+        <div class="err" id="gateErr" role="alert"></div>
+      </form>
+    </section>
+
+    <div id="app" hidden>
+      <header class="ui-head">
+        <div>
+          <h1>Manpower</h1>
+          <p id="meta">Loading…</p>
         </div>
-    </div>
+      </header>
 
-    <!-- Dashboard Content - Hidden until authenticated -->
-    <div id="dashboardContent" class="dashboard">
-                    <div class="header">
-                <h1>Employee Dashboard</h1>
-                <p>Malda Zone Only</p>
-            </div>
-        <div class="container">
-            <div class="search-section">
-                <button class="search-btn" onclick="openSearchModal()">
-                    🔍 Search Employee
-                </button>
-            </div>
+      <div class="ui-filters">
+        <label class="ui-search"><svg class="ui-i"><use href="#ui-search"/></svg><input class="ui-input" id="q" type="search" placeholder="Name or employee number" autocomplete="off" /></label>
+        <span class="ui-select"><select id="pcFilter" aria-label="Profit center"><option value="">All profit centers</option></select></span>
+        <span class="ui-select"><select id="ccFilter" aria-label="Cost center"><option value="">All cost centers</option></select></span>
+        <span class="ui-select"><select id="desFilter" aria-label="Designation"><option value="">All designations</option></select></span>
+        <span class="ui-select"><select id="classFilter" aria-label="Class"><option value="">All classes</option></select></span>
+        <button type="button" class="ui-btn ghost" id="clearBtn" hidden><svg class="ui-i"><use href="#ui-x"/></svg>Clear</button>
+      </div>
 
-<div class="stats-grid">
-  <div class="stat-card" onclick="openDesignationModal()">
-    <div class="stat-icon">👥</div>
-    <div class="stat-number" id="totalEmployees">-</div>
-    <div class="stat-label">Total Employees</div>
-  </div>
-  <div class="stat-card" onclick="openProfitCenterModal()">
-    <div class="stat-icon">🏢</div>
-    <div class="stat-number" id="profitCenters">-</div>
-    <div class="stat-label">Profit Centers</div>
-  </div>
-  <div class="stat-card" onclick="openCostCenterModal()">
-    <div class="stat-icon">🎯</div>
-    <div class="stat-number" id="costCenters">-</div>
-    <div class="stat-label">Cost Centers</div>
-  </div>
-<div class="stat-card" onclick="openRetirementModal()" style="border-left: 4px solid #d32f2f;">
-  <div class="stat-icon" style="color: #d32f2f;">🫂</div>
-  <div class="stat-number" style="color: #d32f2f;" id="upcomingRetirements">-</div>
-  <div class="stat-label" style="color: #d32f2f;">Upcoming Retirements</div>
-</div>
+      <section class="ui-stats" style="--n:4" id="stats" aria-label="Summary">
+        <button type="button" class="ui-stat" data-k=""><div class="k">Employees</div><div class="v">—</div><div class="s">&nbsp;</div></button>
+        <button type="button" class="ui-stat" data-k="r3"><div class="k">Retiring in 3 months</div><div class="v">—</div><div class="s">&nbsp;</div></button>
+        <button type="button" class="ui-stat" data-k="r12"><div class="k">Retiring in a year</div><div class="v">—</div><div class="s">&nbsp;</div></button>
+        <button type="button" class="ui-stat" data-k="bday"><div class="k">Birthdays this week</div><div class="v">—</div><div class="s">&nbsp;</div></button>
+      </section>
 
-<div class="stat-card" onclick="openBirthdayModal()" style="border-left: 4px solid #4caf50;">
-  <div class="stat-icon" style="color: #4caf50;">🎂</div>
-  <div class="stat-number" style="color: #4caf50;" id="upcomingBirthdays">-</div>
-<div class="stat-label" style="color: #4caf50;">Birthdays in 7 Days</div>
-</div>
-
-</div>
-
-        </div>
-
-        <!-- Search Modal -->
-        <div id="searchModal" class="modal">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h2>Search Employee</h2>
-                    <span class="close" onclick="closeSearchModal()">&times;</span>
-                </div>
-                <div class="modal-body">
-                    <input type="text" class="search-input" id="searchInput" 
-                           placeholder="Enter employee name or employee number..." 
-                           oninput="searchEmployees()">
-                    <div id="searchResults" class="search-results"></div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Detail Modal -->
-        <div id="detailModal" class="modal">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h2>Employee Details</h2>
-                    <span class="close" onclick="closeDetailModal()">&times;</span>
-                </div>
-                <div class="modal-body">
-                    <div id="employeeDetails"></div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-
-
-<!-- Employee List Modal -->
-<div id="employeeListModal" class="modal" style="z-index: 1100;">
-  <div class="modal-content">
-    <div class="modal-header">
-      <h2>Employee List</h2>
-      <span class="close" onclick="closeEmployeeListModal()">&times;</span>
-    </div>
-    <div class="modal-body" id="employeeListBody"></div>
-  </div>
-</div>
-<!-- Profit Center Modal -->
-<div id="profitCenterModal" class="modal">
-  <div class="modal-content">
-    <div class="modal-header">
-      <h2>Profit Center-wise Summary</h2>
-      <span class="close" onclick="closeProfitCenterModal()">&times;</span>
-    </div>
-    <div class="modal-body" id="profitCenterList"></div>
-  </div>
-</div>
-
-<!-- Cost Center Modal -->
-<div id="costCenterModal" class="modal">
-  <div class="modal-content">
-    <div class="modal-header">
-      <h2>Cost Center-wise Summary</h2>
-      <span class="close" onclick="closeCostCenterModal()">&times;</span>
-    </div>
-    <div class="modal-body" id="costCenterList"></div>
-  </div>
-</div>
-<!-- Designation Modal -->
-<div id="designationModal" class="modal">
-  <div class="modal-content">
-    <div class="modal-header">
-      <h2>Designation-wise Count</h2>
-      <span class="close" onclick="closeDesignationModal()">&times;</span>
-    </div>
-    <div class="modal-body" id="designationList"></div>
-  </div>
-</div>
-<!-- Retirement Modal -->
-<div id="retirementModal" class="modal">
-  <div class="modal-content">
-    <div class="modal-header" style="background: #d32f2f;">
-      <h2>Upcoming Retirements</h2>
-      <span class="close" onclick="closeRetirementModal()">&times;</span>
-    </div>
-    <div class="modal-body">
-      <div class="stats-grid">
-        <div class="stat-card" onclick="openRetirementListModal('3 months')" style="border-left: 4px solid #ff5722;">
-          <div class="stat-content">
-            <div class="stat-icon" style="color: #ff5722;">⚠️</div>
-            <div class="stat-text">
-              <div class="stat-number" style="color: #ff5722;" id="retire3Months">-</div>
-              <div class="stat-label">Within 3 Months</div>
+      <div class="ui-grid">
+        <section class="ui-panel">
+          <div class="ui-panel-h">
+            <h2>Strength</h2>
+            <div class="ui-tabs" role="tablist" id="groupTabs">
+              <button type="button" class="ui-tab" role="tab" data-g="des" aria-selected="true">Designation</button>
+              <button type="button" class="ui-tab" role="tab" data-g="pc">Profit center</button>
+              <button type="button" class="ui-tab" role="tab" data-g="cc">Cost center</button>
             </div>
           </div>
-          <div class="stat-arrow">›</div>
-        </div>
-        <div class="stat-card" onclick="openRetirementListModal('6 months')" style="border-left: 4px solid #ff9800;">
-          <div class="stat-content">
-            <div class="stat-icon" style="color: #ff9800;">📅</div>
-            <div class="stat-text">
-              <div class="stat-number" style="color: #ff9800;" id="retire6Months">-</div>
-              <div class="stat-label">Within 6 Months</div>
-            </div>
-          </div>
-          <div class="stat-arrow">›</div>
-        </div>
-        <div class="stat-card" onclick="openRetirementListModal('1 year')" style="border-left: 4px solid #ffc107;">
-          <div class="stat-content">
-            <div class="stat-icon" style="color: #ffc107;">📋</div>
-            <div class="stat-text">
-              <div class="stat-number" style="color: #ffc107;" id="retire1Year">-</div>
-              <div class="stat-label">Within 1 Year</div>
-            </div>
-          </div>
-          <div class="stat-arrow">›</div>
+          <div id="groupTable" style="--max-h:480px"></div>
+        </section>
+        <div>
+          <section class="ui-panel">
+            <div class="ui-panel-h"><h2>Retiring soon</h2><span class="ui-note">Next 6 months</span></div>
+            <ul class="mini" id="retireList"></ul>
+          </section>
+          <section class="ui-panel">
+            <div class="ui-panel-h"><h2>Birthdays</h2><span class="ui-note">Next 7 days</span></div>
+            <ul class="mini" id="bdayList"></ul>
+          </section>
         </div>
       </div>
-    </div>
-  </div>
-</div>
-<!-- Retirement List Modal -->
-<div id="retirementListModal" class="modal" style="z-index: 1100;">
-  <div class="modal-content">
-    <div class="modal-header" style="background: #d32f2f;">
-      <h2 id="retirementListTitle">Retirement List</h2>
-      <span class="close" onclick="closeRetirementListModal()">&times;</span>
-    </div>
-    <div class="modal-body" id="retirementListBody"></div>
-  </div>
-</div>
 
-<div id="birthdayModal" class="modal" style="z-index: 1100;">
-  <div class="modal-content">
-    <div class="modal-header" style="background: #4caf50;">
-<h2>Birthdays in Next 7 Days</h2>
-      <span class="close" onclick="closeBirthdayModal()">&times;</span>
+      <section class="ui-panel">
+        <div class="ui-panel-h">
+          <h2>Employees <small id="empCount"></small></h2>
+          <button type="button" class="ui-btn sm" id="exportBtn"><svg class="ui-i"><use href="#ui-download"/></svg>Export CSV</button>
+        </div>
+        <div id="empTable"></div>
+      </section>
     </div>
-    <div class="modal-body" id="birthdayListBody"></div>
-  </div>
-</div>
-<!-- 🌸 Birthday Greeting Modal -->
-<div id="birthdayGreetingModal" class="modal" style="z-index: 2000; display: none;">
-  <div class="modal-content" style="background: linear-gradient(to bottom right, #fff0f5, #e1bee7); text-align: center; padding: 32px; overflow-y: auto; max-height: 100vh;">
-    <div style="font-size: 2rem; margin-bottom: 8px; color: #c2185b;">🎉 Happy Birthday!</div>
-    <div id="birthdayGreetingList" style="font-size: 16px; color: #4a148c; margin-bottom: 24px;">
-      <!-- Populated dynamically -->
-    </div>
-    <div style="margin: 24px auto;">
-      <img src="https://cdn.pixabay.com/photo/2017/08/30/07/52/flower-2697047_960_720.png" alt="" style="max-height: 100px; animation: bloom 4s infinite alternate ease-in-out;">
-    </div>
-    <audio id="birthdayAudio" autoplay loop>
-      <source src="https://cdn.pixabay.com/audio/2022/10/22/audio_2fa402f848.mp3" type="audio/mpeg">
-    </audio>
-    <canvas id="confettiCanvas" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;"></canvas>
-    <button onclick="closeBirthdayGreetingModal()" class="auth-btn" style="max-width: 240px; margin: 0 auto;">Proceed to Dashboard</button>
-  </div>
-</div>
+  </main>
 
-    <script>
-        
-        let employeeData = [];
-        let authorizedPins = [];
-        let isDataLoaded = false;
-        let isAuthenticated = false;
-        let openedFromSearch = false;
-        let openedFromList = false;
+  <script>
+  document.addEventListener('DOMContentLoaded', function () {
+    'use strict';
+    var $ = function (id) { return document.getElementById(id); };
+    var SHEET = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRRXojudL5q-ln7pXOcbLaGsBqznppnvsINcp8xEFvpJUWRCiC7bjii9eZYSu0istzyM91m4yybd5g-/pub?single=true&output=csv&gid=';
+    var PIN_GID = '2073511562', DATA_GID = '2110628491';
+    var FIELDS = ['Employee No', 'Name', 'Profit Center Code', 'Profit Center Name', 'Cost Center Code', 'Cost Center Name', 'Legacy ID', 'Position',
+      'Designation', 'Class', 'Date of joining', 'Date of Retirement', 'Date of Increment', 'IFSC Code', 'Bank Account No', 'Payscale Group',
+      'Payscale Level', 'Pay', 'Grade Pay', 'Dearness Allowance', 'House Rent Allowance', 'Gross Salary', 'PF A/C Number', 'PF Trust ID', 'Lock Status'];
+    var pins = [], all = [], stat = '', group = 'des';
 
+    /* ---------- PIN gate (PINs live in Sheet2, column B) ---------- */
+    fetch(SHEET + PIN_GID, { cache: 'no-store' }).then(function (r) { return r.text(); }).then(function (text) {
+      var rows = text.split(/\r?\n/).slice(1);
+      pins = rows.map(function (line) { var c = UI.csv('a,b\n' + line)[0]; return c && c.b != null ? String(c.b).trim() : ''; }).filter(Boolean);
+      $('pin').disabled = false; $('pinBtn').disabled = false; $('pin').focus();
+    }).catch(function () { $('gateErr').textContent = 'Could not reach the authorisation sheet. Check your connection and reload.'; });
 
-        // Load PIN data on page load
-        window.addEventListener('DOMContentLoaded', function() {
-            loadAuthorizedPins();
+    $('gateForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+      var v = $('pin').value.trim();
+      if (!v) { $('gateErr').textContent = 'Enter a PIN.'; return; }
+      if (!pins.some(function (p) { return p === v || (/^\d+$/.test(p) && /^\d+$/.test(v) && Number(p) === Number(v)); })) { $('gateErr').textContent = 'Not authorised. Ask an admin to add your PIN.'; $('pin').value = ''; $('pin').focus(); return; }
+      $('gateErr').textContent = '';
+      $('pinBtn').disabled = true; $('pinBtn').textContent = 'Loading…';
+      loadData();
+    });
+
+    /* ---------- data ---------- */
+    function toDate(v) {
+      var s = String(v == null ? '' : v).trim();
+      if (!s || /^n\/?a$/i.test(s)) return null;
+      if (/^\d{5}(\.\d+)?$/.test(s)) return new Date(Date.UTC(1899, 11, 30) + parseFloat(s) * 864e5); // Excel serial
+      return UI.date(s);
+    }
+    function birthday(legacy, year) {
+      var id = String(legacy || '').trim();
+      if (id.length !== 10) return null;
+      var mm = +id.slice(4, 6) - 1, dd = +id.slice(6, 8);
+      if (!(mm >= 0 && mm < 12 && dd >= 1 && dd <= 31)) return null;
+      return new Date(year, mm, dd);
+    }
+
+    function loadData() {
+      fetch(SHEET + DATA_GID, { cache: 'no-store' }).then(function (r) { return r.text(); }).then(function (text) {
+        var today = new Date(); today.setHours(0, 0, 0, 0);
+        var week = new Date(today.getTime() + 6 * 864e5);
+        all = UI.csv(text).map(function (row) {
+          var e = {}; Object.keys(row).forEach(function (k) { e[k.trim()] = row[k]; });
+          return e;
+        }).filter(function (e) { return e.Name && String(e.Name).trim(); }).map(function (e) {
+          var ret = toDate(e['Date of Retirement']), join = toDate(e['Date of joining']);
+          var bd = birthday(e['Legacy ID'], today.getFullYear());
+          if (bd && bd < today) bd = birthday(e['Legacy ID'], today.getFullYear() + 1);
+          return {
+            raw: e, name: String(e.Name).trim(), no: String(e['Employee No'] || '').trim(), des: String(e.Designation || '').trim() || 'Not set',
+            cls: String(e.Class || '').trim(), pc: String(e['Profit Center Name'] || e['Profit Center Code'] || '').trim(), cc: String(e['Cost Center Name'] || e['Cost Center Code'] || '').trim(),
+            join: join, ret: ret, retDays: ret ? Math.round((ret - today) / 864e5) : null, bday: bd && bd <= week ? bd : null
+          };
         });
-
-        async function loadAuthorizedPins() {
-            // Load PINs from Sheet2, Column B
-            // Note: You may need to adjust the gid parameter for Sheet2
-            const pinUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRRXojudL5q-ln7pXOcbLaGsBqznppnvsINcp8xEFvpJUWRCiC7bjii9eZYSu0istzyM91m4yybd5g-/pub?gid=2073511562&single=true&output=csv';
-            
-            try {
-                showAuthLoading('Loading authorization data...');
-                const response = await fetch(pinUrl);
-                const csvText = await response.text();
-                
-                Papa.parse(csvText, {
-                    header: false,
-                    dynamicTyping: true,
-                    skipEmptyLines: true,
-                    complete: function(results) {
-                        // Extract Column B (index 1) values, skipping header row
-                        authorizedPins = results.data.slice(1).map(row => {
-                            return row[1] ? row[1].toString().trim() : null;
-                        }).filter(pin => pin && pin !== '');
-                        
-                        hideAuthLoading();
-                        console.log('Loaded authorized PINs');
-                        
-                        // Focus on PIN input
-                        document.getElementById('pinInput').focus();
-                    },
-                    error: function(error) {
-                        console.error('Error loading PINs:', error);
-                        showAuthError('Failed to load authorization data. Please refresh the page.');
-                        hideAuthLoading();
-                    }
-                });
-            } catch (error) {
-                console.error('Error fetching PIN data:', error);
-                showAuthError('Failed to connect to authorization server. Please check your internet connection.');
-                hideAuthLoading();
-            }
-        }
-
-        function handlePinKeyPress(event) {
-            if (event.key === 'Enter') {
-                validatePin();
-            }
-        }
-
-        async function validatePin() {
-            const pinInput = document.getElementById('pinInput');
-            const enteredPin = pinInput.value.trim();
-            
-            if (!enteredPin) {
-                showAuthError('Please enter a PIN.');
-                return;
-            }
-
-            if (authorizedPins.length === 0) {
-                showAuthError('Authorization data not loaded. Please refresh the page.');
-                return;
-            }
-
-            showAuthLoading('Validating PIN...');
-            disableAuthButton(true);
-            
-            // Small delay to show loading state
-            setTimeout(() => {
-                if (authorizedPins.includes(enteredPin)) {
-                    // PIN is valid - authenticate user and load dashboard
-                    isAuthenticated = true;
-                    showAuthLoading('Access granted! Loading dashboard...');
-                    
-setTimeout(() => {
-    document.getElementById('authScreen').style.display = 'none';
-    document.getElementById('dashboardContent').style.display = 'block';
-    loadEmployeeDataWithBirthdayGreeting(); // ✅ Correct function
-}, 1000);
-
-                } else {
-                    // PIN is invalid
-                    showAuthError('Ask admin to authorize you.');
-                    pinInput.value = '';
-                    pinInput.focus();
-                    hideAuthLoading();
-                    disableAuthButton(false);
-                }
-            }, 1500);
-        }
-
-        function showAuthError(message) {
-            const errorDiv = document.getElementById('authError');
-            errorDiv.textContent = message;
-            errorDiv.style.display = 'block';
-            setTimeout(() => {
-                errorDiv.style.display = 'none';
-            }, 5000);
-        }
-
-        function showAuthLoading(message) {
-            const loadingDiv = document.getElementById('authLoading');
-            loadingDiv.textContent = message;
-            loadingDiv.style.display = 'block';
-        }
-
-        function hideAuthLoading() {
-            document.getElementById('authLoading').style.display = 'none';
-        }
-
-        function disableAuthButton(disabled) {
-            const authBtn = document.getElementById('authBtn');
-            authBtn.disabled = disabled;
-            document.getElementById('authBtnText').textContent = disabled ? '⏳ Validating...' : '🔓 Authenticate';
-        }
-
-        async function loadEmployeeData() {
-            const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRRXojudL5q-ln7pXOcbLaGsBqznppnvsINcp8xEFvpJUWRCiC7bjii9eZYSu0istzyM91m4yybd5g-/pub?gid=2110628491&single=true&output=csv';
-            
-            try {
-                showLoading();
-                const response = await fetch(csvUrl);
-                const csvText = await response.text();
-                
-                Papa.parse(csvText, {
-                    header: true,
-                    dynamicTyping: true,
-                    skipEmptyLines: true,
-                    complete: function(results) {
-                        // Clean headers by removing whitespace
-                        employeeData = results.data.map(row => {
-                            const cleanRow = {};
-                            Object.keys(row).forEach(key => {
-                                const cleanKey = key.trim();
-                                cleanRow[cleanKey] = row[key];
-                            });
-                            return cleanRow;
-                        }).filter(row => row.Name && row.Name.trim() !== '');
-                        
-                        updateStats();
-                        calculateUpcomingBirthdays();
-
-                        isDataLoaded = true;
-                        hideLoading();
-                    },
-                    error: function(error) {
-                        console.error('Error parsing CSV:', error);
-                        showError('Failed to load employee data. Please try again.');
-                    }
-                });
-            } catch (error) {
-                console.error('Error fetching data:', error);
-                showError('Failed to fetch employee data. Please check your internet connection.');
-            }
-        }
-
-        function updateStats() {
-            const totalEmployees = employeeData.length;
-            const profitCenters = new Set(employeeData.map(emp => emp['Profit Center Code']).filter(code => code)).size;
-            const costCenters = new Set(employeeData.map(emp => emp['Cost Center Code']).filter(code => code)).size;
-
-            document.getElementById('totalEmployees').textContent = totalEmployees;
-            document.getElementById('profitCenters').textContent = profitCenters;
-            document.getElementById('costCenters').textContent = costCenters;
-        }
-
-        function showLoading() {
-            document.getElementById('totalEmployees').textContent = '...';
-            document.getElementById('profitCenters').textContent = '...';
-            document.getElementById('costCenters').textContent = '...';
-        }
-
-        function hideLoading() {
-            // Stats are updated in updateStats()
-        }
-
-        function showError(message) {
-            const errorDiv = document.createElement('div');
-            errorDiv.className = 'error-message';
-            errorDiv.textContent = message;
-            document.querySelector('.container').insertBefore(errorDiv, document.querySelector('.search-section'));
-        }
-
-        function openSearchModal() {
-            if (!isDataLoaded) {
-                alert('Employee data is still loading. Please wait a moment.');
-                return;
-            }
-            document.getElementById('searchModal').style.display = 'block';
-            document.getElementById('searchInput').focus();
-        }
-
-        function closeSearchModal() {
-            document.getElementById('searchModal').style.display = 'none';
-            document.getElementById('searchInput').value = '';
-            document.getElementById('searchResults').innerHTML = '';
-        }
-
-        function closeDetailModal() {
-            document.getElementById('detailModal').style.display = 'none';
-        }
-
-        function searchEmployees() {
-            const searchTerm = document.getElementById('searchInput').value.trim().toLowerCase();
-            const resultsDiv = document.getElementById('searchResults');
-
-            if (searchTerm === '') {
-                resultsDiv.innerHTML = '';
-                return;
-            }
-
-            const filteredEmployees = employeeData.filter(employee => {
-                const name = (employee.Name || '').toString().toLowerCase();
-                const empNo = (employee['Employee No'] || '').toString().toLowerCase();
-                return name.includes(searchTerm) || empNo.includes(searchTerm);
-            });
-
-            if (filteredEmployees.length === 0) {
-                resultsDiv.innerHTML = '<div class="no-results">No employees found matching your search.</div>';
-                return;
-            }
-
-            let html = '';
-            filteredEmployees.forEach((employee, index) => {
-                html += `
-                    <div class="employee-item">
-                        <div class="employee-info">
-                            <h4>${employee.Name || 'N/A'}</h4>
-                            <p>Employee No: ${employee['Employee No'] || 'N/A'} | ${employee.Designation || 'N/A'}</p>
-                        </div>
-                            <button class="detail-btn" onclick="openedFromSearch = true; showEmployeeDetails(${employeeData.indexOf(employee)})">
-                            Show Details
-                        </button>
-                    </div>
-                `;
-            });
-
-            resultsDiv.innerHTML = html;
-        }
-
-function showEmployeeDetails(index) {
-    const employee = employeeData[index];
-    const detailsDiv = document.getElementById('employeeDetails');
-    
-    // Update modal header with employee name
-    const modalHeader = document.querySelector('#detailModal .modal-header h2');
-    modalHeader.innerHTML = `${employee.Name || 'Employee Details'}`;
-    
-    // Calculate service duration
-// Calculate service duration
-let serviceDuration = '';
-const joiningDate = employee['Date of joining'];
-if (joiningDate && joiningDate !== 'N/A' && joiningDate !== '' && joiningDate !== null && joiningDate !== undefined) {
-    let joinDate;
-    if (typeof joiningDate === 'number') {
-        // Convert Excel serial date
-        const excelEpoch = new Date(1900, 0, 1);
-        joinDate = new Date(excelEpoch.getTime() + (joiningDate - 2) * 24 * 60 * 60 * 1000);
-    } else {
-        // Handle string dates - check format
-        const dateStr = joiningDate.toString().trim();
-        if (dateStr.includes('/')) {
-            const parts = dateStr.split('/');
-            if (parts.length === 3) {
-                // Assume DD/MM/YYYY format and convert to MM/DD/YYYY
-                const day = parts[0];
-                const month = parts[1];
-                const year = parts[2];
-                joinDate = new Date(`${month}/${day}/${year}`);
-            } else {
-                joinDate = new Date(dateStr);
-            }
-        } else if (dateStr.includes('.')) {
-            const parts = dateStr.split('.');
-            if (parts.length === 3) {
-                // Handle DD.MM.YYYY format
-                const day = parts[0];
-                const month = parts[1];
-                const year = parts[2];
-                joinDate = new Date(`${month}/${day}/${year}`);
-            } else {
-                joinDate = new Date(dateStr);
-            }
-        } else {
-            joinDate = new Date(dateStr);
-        }
-    }
-    
-    if (!isNaN(joinDate.getTime()) && joinDate.getFullYear() > 1900) {
-        const today = new Date();
-        let years = today.getFullYear() - joinDate.getFullYear();
-        let months = today.getMonth() - joinDate.getMonth();
-        let days = today.getDate() - joinDate.getDate();
-        
-        if (days < 0) {
-            months--;
-            days += new Date(today.getFullYear(), today.getMonth(), 0).getDate();
-        }
-        if (months < 0) {
-            years--;
-            months += 12;
-        }
-        
-        // Ensure non-negative values
-        years = Math.max(0, years);
-        months = Math.max(0, months);
-        days = Math.max(0, days);
-        
-        serviceDuration = `<p style="color: #1976d2; font-weight: bold; margin-bottom: 16px;">Serving for ${years} yrs, ${months} months, ${days} days</p>`;
-    }
-}
-
-let html = serviceDuration + '<table class="detail-table">';            
-            const fieldsToShow = [
-                'Employee No', 'Name', 'Profit Center Code', 'Profit Center Name',
-                'Cost Center Code', 'Cost Center Name', 'Legacy ID', 'Position',
-                'Designation', 'Class', 'Date of joining', 'Date of Retirement',
-                'Date of Increment', 'IFSC Code', 'Bank Account No', 'Payscale Group',
-                'Payscale Level', 'Pay', 'Grade Pay', 'Dearness Allowance',
-                'House Rent Allowance', 'Gross Salary', 'PF A/C Number',
-                'PF Trust ID', 'Lock Status'
-            ];
-
-fieldsToShow.forEach(field => {
-    let value = employee[field] || 'N/A';
-    
-    // Handle date fields
-    if ((field === 'Date of joining' || field === 'Date of Retirement' || field === 'Date of Increment') && value !== 'N/A') {
-        if (typeof value === 'number') {
-            // Convert Excel serial date to JavaScript date
-            const excelEpoch = new Date(1900, 0, 1);
-            const jsDate = new Date(excelEpoch.getTime() + (value - 2) * 24 * 60 * 60 * 1000);
-            value = jsDate.toLocaleDateString('en-GB');
-        }
-    }
-    
-    html += `
-        <tr>
-            <th>${field}</th>
-            <td>${value}</td>
-        </tr>
-    `;
-});
-
-            html += '</table>';
-            detailsDiv.innerHTML = html;
-
-if (!openedFromSearch) {
-    closeSearchModal();
-} else {
-    openedFromSearch = false;
-}
-
-if (!openedFromList) {
-    closeEmployeeListModal();
-} else {
-    openedFromList = false;
-}
-
-document.getElementById('detailModal').style.display = 'block';
-
-        }
-
-        // Close modals when clicking outside
-        window.onclick = function(event) {
-            const searchModal = document.getElementById('searchModal');
-            const detailModal = document.getElementById('detailModal');
-            
-            if (event.target === searchModal) {
-                closeSearchModal();
-            }
-            if (event.target === detailModal) {
-                closeDetailModal();
-            }
-            if (event.target === document.getElementById('designationModal')) {
-  closeDesignationModal();
-}
-if (event.target === document.getElementById('employeeListModal')) {
-  closeEmployeeListModal();
-}
-if (event.target === document.getElementById('profitCenterModal')) {
-  closeProfitCenterModal();
-}
-if (event.target === document.getElementById('costCenterModal')) {
-  closeCostCenterModal();
-}
-if (event.target === document.getElementById('birthdayModal')) {
-  closeBirthdayModal();
-}
-
-        }
-
-function openDesignationModal() {
-  if (!isDataLoaded) return alert("Data is still loading...");
-
-  const designationMap = {};
-
-  // Group by designation, track highest salary in each group
-  employeeData.forEach(emp => {
-    const desig = emp.Designation || "Unknown";
-    const gross = parseFloat(emp['Gross Salary']) || 0;
-
-    if (!designationMap[desig]) {
-      designationMap[desig] = {
-        count: 1,
-        topSalary: gross
-      };
-    } else {
-      designationMap[desig].count += 1;
-      if (gross > designationMap[desig].topSalary) {
-        designationMap[desig].topSalary = gross;
-      }
-    }
-  });
-
-  // Sort by top salary within each designation
-  const sorted = Object.entries(designationMap).sort((a, b) => {
-    return b[1].topSalary - a[1].topSalary;
-  });
-
-  const container = document.getElementById('designationList');
-  container.innerHTML = '';
-
-  sorted.forEach(([desig, data]) => {
-    const div = document.createElement('div');
-    div.className = 'employee-item';
-    div.innerHTML = `
-      <div class="employee-info">
-        <h4>${desig}</h4>
-        <p>${data.count} employees</p>
-      </div>
-      <button class="detail-btn" onclick="openEmployeeList('${desig.replace(/'/g, "\\'")}')">View</button>
-    `;
-    container.appendChild(div);
-  });
-
-  document.getElementById('designationModal').style.display = 'block';
-}
-
-
-
-function openProfitCenterModal() {
-  if (!isDataLoaded) return alert("Data is still loading...");
-
-  const map = {};
-
-  employeeData.forEach(emp => {
-    const code = emp['Profit Center Code'] || 'Unknown';
-    const name = emp['Profit Center Name'] || 'Unnamed';
-    const gross = parseFloat(emp['Gross Salary']) || 0;
-
-    if (!map[code]) {
-      map[code] = { name, count: 1, topSalary: gross };
-    } else {
-      map[code].count++;
-      map[code].topSalary = Math.max(map[code].topSalary, gross);
-    }
-  });
-
-const sorted = Object.entries(map).sort((a, b) => b[1].count - a[1].count);
-  const container = document.getElementById('profitCenterList');
-  container.innerHTML = '';
-
-  sorted.forEach(([code, data]) => {
-    const div = document.createElement('div');
-    div.className = 'employee-item';
-    div.innerHTML = `
-      <div class="employee-info">
-        <h4>${data.name} (${code})</h4>
-        <p>${data.count} employees</p>
-      </div>
-<button class="detail-btn" onclick="openDesignationWithinProfitCenter('${code.replace(/'/g, "\\'")}')">View</button>
-    `;
-    container.appendChild(div);
-  });
-
-  document.getElementById('profitCenterModal').style.display = 'block';
-}
-
-function openDesignationWithinProfitCenter(profitCenterCode) {
-  const filtered = employeeData.filter(emp => (emp['Profit Center Code'] || '') === profitCenterCode);
-  const designationMap = {};
-
-  filtered.forEach(emp => {
-    const desig = emp.Designation || "Unknown";
-    const gross = parseFloat(emp['Gross Salary']) || 0;
-
-    if (!designationMap[desig]) {
-      designationMap[desig] = {
-        count: 1,
-        topSalary: gross
-      };
-    } else {
-      designationMap[desig].count += 1;
-      designationMap[desig].topSalary = Math.max(designationMap[desig].topSalary, gross);
-    }
-  });
-
-  const sorted = Object.entries(designationMap).sort((a, b) => b[1].topSalary - a[1].topSalary);
-  const container = document.getElementById('designationList');
-  container.innerHTML = '';
-
-  sorted.forEach(([desig, data]) => {
-    const div = document.createElement('div');
-    div.className = 'employee-item';
-    div.innerHTML = `
-      <div class="employee-info">
-        <h4>${desig}</h4>
-        <p>${data.count} employees</p>
-      </div>
-      <button class="detail-btn" onclick="openEmployeeListFiltered('${profitCenterCode.replace(/'/g, "\\'")}', '${desig.replace(/'/g, "\\'")}')">View</button>
-    `;
-    container.appendChild(div);
-  });
-
-  document.getElementById('designationModal').style.display = 'block';
-}
-
-function openDesignationWithinCostCenter(costCenterCode) {
-  const filtered = employeeData.filter(emp => (emp['Cost Center Code'] || '') === costCenterCode);
-  const designationMap = {};
-
-  filtered.forEach(emp => {
-    const desig = emp.Designation || "Unknown";
-    const gross = parseFloat(emp['Gross Salary']) || 0;
-
-    if (!designationMap[desig]) {
-      designationMap[desig] = {
-        count: 1,
-        topSalary: gross
-      };
-    } else {
-      designationMap[desig].count += 1;
-      designationMap[desig].topSalary = Math.max(designationMap[desig].topSalary, gross);
-    }
-  });
-
-  const sorted = Object.entries(designationMap).sort((a, b) => b[1].topSalary - a[1].topSalary);
-  const container = document.getElementById('designationList');
-  container.innerHTML = '';
-
-  sorted.forEach(([desig, data]) => {
-    const div = document.createElement('div');
-    div.className = 'employee-item';
-    div.innerHTML = `
-      <div class="employee-info">
-        <h4>${desig}</h4>
-        <p>${data.count} employees</p>
-      </div>
-      <button class="detail-btn" onclick="openEmployeeListFilteredByCostCenter('${costCenterCode.replace(/'/g, "\\'")}', '${desig.replace(/'/g, "\\'")}')">View</button>
-    `;
-    container.appendChild(div);
-  });
-
-  document.getElementById('designationModal').style.display = 'block';
-}
-
-function openCostCenterModal() {
-  if (!isDataLoaded) return alert("Data is still loading...");
-
-  const map = {};
-
-  employeeData.forEach(emp => {
-    const code = emp['Cost Center Code'] || 'Unknown';
-    const name = emp['Cost Center Name'] || 'Unnamed';
-    const gross = parseFloat(emp['Gross Salary']) || 0;
-
-    if (!map[code]) {
-      map[code] = { name, count: 1, topSalary: gross };
-    } else {
-      map[code].count++;
-      map[code].topSalary = Math.max(map[code].topSalary, gross);
-    }
-  });
-
-const sorted = Object.entries(map).sort((a, b) => b[1].count - a[1].count);
-  const container = document.getElementById('costCenterList');
-  container.innerHTML = '';
-
-  sorted.forEach(([code, data]) => {
-    const div = document.createElement('div');
-    div.className = 'employee-item';
-    div.innerHTML = `
-      <div class="employee-info">
-        <h4>${data.name} (${code})</h4>
-        <p>${data.count} employees</p>
-      </div>
-<button class="detail-btn" onclick="openDesignationWithinCostCenter('${code.replace(/'/g, "\\'")}')">View</button>
-    `;
-    container.appendChild(div);
-  });
-
-  document.getElementById('costCenterModal').style.display = 'block';
-}
-
-function openGroupEmployeeList(fieldName, value) {
-const list = employeeData
-  .filter(emp => (emp[fieldName] || '') === value)
-  .sort((a, b) => {
-    const salaryA = parseFloat(a['Gross Salary']) || 0;
-    const salaryB = parseFloat(b['Gross Salary']) || 0;
-    const salaryCompare = salaryB - salaryA;
-    
-    if (salaryCompare !== 0) return salaryCompare;
-    
-    const placeA = (a['Cost Center Name'] || '').toLowerCase();
-    const placeB = (b['Cost Center Name'] || '').toLowerCase();
-    return placeA.localeCompare(placeB);
-  });
-
-  const container = document.getElementById('employeeListBody');
-
-  if (list.length === 0) {
-    container.innerHTML = '<p class="no-results">No employees found.</p>';
-  } else {
-let html = '<table class="detail-table"><tr><th>Name</th><th>Employee No</th><th>Place of Posting</th></tr>';
-list.forEach(emp => {
-  const empIndex = employeeData.indexOf(emp);
-  html += `
-<tr style="cursor: pointer;" onclick="openedFromList = true; showEmployeeDetails(${empIndex})">
-      <td>${emp.Name || 'N/A'}<br><i>${emp.Designation || 'N/A'}</i></td>
-      <td>${emp['Employee No'] || 'N/A'}</td>
-      <td>${emp['Cost Center Name'] || 'N/A'}</td>
-    </tr>
-  `;
-});
-    html += '</table>';
-    container.innerHTML = html;
-  }
-
-  document.getElementById('employeeListModal').style.display = 'block';
-}
-
-function closeProfitCenterModal() {
-  document.getElementById('profitCenterModal').style.display = 'none';
-}
-
-function closeCostCenterModal() {
-  document.getElementById('costCenterModal').style.display = 'none';
-}
-
-
-function closeDesignationModal() {
-  document.getElementById('designationModal').style.display = 'none';
-}
-
-function openEmployeeList(designation) {
-  const list = employeeData
-    .filter(emp => {
-      const empDesignation = emp.Designation || "Unknown";
-      return empDesignation === designation;
-    })
-    .sort((a, b) => {
-      const salaryA = parseFloat(a['Gross Salary']) || 0;
-      const salaryB = parseFloat(b['Gross Salary']) || 0;
-      const salaryCompare = salaryB - salaryA;
-      
-      if (salaryCompare !== 0) return salaryCompare;
-      
-      const placeA = (a['Cost Center Name'] || '').toLowerCase();
-      const placeB = (b['Cost Center Name'] || '').toLowerCase();
-      return placeA.localeCompare(placeB);
-    });
-
-  const container = document.getElementById('employeeListBody');
-  
-  if (list.length === 0) {
-    container.innerHTML = '<p class="no-results">No employees found.</p>';
-  } else {
-    let html = '<table class="detail-table"><tr><th>Name</th><th>Employee No</th><th>Place of Posting</th></tr>';
-    list.forEach(emp => {
-      const empIndex = employeeData.indexOf(emp);
-      html += `
-<tr style="cursor: pointer;" onclick="openedFromList = true; showEmployeeDetails(${empIndex})">
-          <td>${emp.Name || 'N/A'}<br><i>${emp.Designation || 'N/A'}</i></td>
-          <td>${emp['Employee No'] || 'N/A'}</td>
-          <td>${emp['Cost Center Name'] || 'N/A'}</td>
-        </tr>
-      `;
-    });
-    html += '</table>';
-    container.innerHTML = html;
-  }
-
-  document.getElementById('employeeListModal').style.display = 'block';
-}
-function openEmployeeListFiltered(profitCenterCode, designation) {
-  const list = employeeData.filter(emp => 
-    (emp['Profit Center Code'] || '') === profitCenterCode &&
-    (emp.Designation || 'Unknown') === designation
-  ).sort((a, b) => {
-    const salaryA = parseFloat(a['Gross Salary']) || 0;
-    const salaryB = parseFloat(b['Gross Salary']) || 0;
-    const salaryCompare = salaryB - salaryA;
-    if (salaryCompare !== 0) return salaryCompare;
-
-    const placeA = (a['Cost Center Name'] || '').toLowerCase();
-    const placeB = (b['Cost Center Name'] || '').toLowerCase();
-    return placeA.localeCompare(placeB);
-  });
-
-  const container = document.getElementById('employeeListBody');
-  
-  if (list.length === 0) {
-    container.innerHTML = '<p class="no-results">No employees found.</p>';
-  } else {
-    let html = '<table class="detail-table"><tr><th>Name</th><th>Employee No</th><th>Place of Posting</th></tr>';
-    list.forEach(emp => {
-      const empIndex = employeeData.indexOf(emp);
-      html += `
-<tr style="cursor: pointer;" onclick="openedFromList = true; showEmployeeDetails(${empIndex})">
-        <td>${emp.Name || 'N/A'}<br><i>${emp.Designation || 'N/A'}</i></td>
-        <td>${emp['Employee No'] || 'N/A'}</td>
-        <td>${emp['Cost Center Name'] || 'N/A'}</td>
-      </tr>
-    `;
-    });
-    html += '</table>';
-    container.innerHTML = html;
-  }
-
-  closeDesignationModal();  // Optional: Close Designation Modal
-  document.getElementById('employeeListModal').style.display = 'block';
-}
-function openEmployeeListFilteredByCostCenter(costCenterCode, designation) {
-  const list = employeeData.filter(emp => 
-    (emp['Cost Center Code'] || '') === costCenterCode &&
-    (emp.Designation || 'Unknown') === designation
-  ).sort((a, b) => {
-    const salaryA = parseFloat(a['Gross Salary']) || 0;
-    const salaryB = parseFloat(b['Gross Salary']) || 0;
-    const salaryCompare = salaryB - salaryA;
-    if (salaryCompare !== 0) return salaryCompare;
-
-    const placeA = (a['Cost Center Name'] || '').toLowerCase();
-    const placeB = (b['Cost Center Name'] || '').toLowerCase();
-    return placeA.localeCompare(placeB);
-  });
-
-  const container = document.getElementById('employeeListBody');
-
-  if (list.length === 0) {
-    container.innerHTML = '<p class="no-results">No employees found.</p>';
-  } else {
-    let html = '<table class="detail-table"><tr><th>Name</th><th>Employee No</th><th>Place of Posting</th></tr>';
-    list.forEach(emp => {
-      const empIndex = employeeData.indexOf(emp);
-      html += `
-<tr style="cursor: pointer;" onclick="openedFromList = true; showEmployeeDetails(${empIndex})">
-        <td>${emp.Name || 'N/A'}<br><i>${emp.Designation || 'N/A'}</i></td>
-        <td>${emp['Employee No'] || 'N/A'}</td>
-        <td>${emp['Cost Center Name'] || 'N/A'}</td>
-      </tr>
-    `;
-    });
-    html += '</table>';
-    container.innerHTML = html;
-  }
-
-  closeDesignationModal();  // Optional
-  document.getElementById('employeeListModal').style.display = 'block';
-}
-
-function closeEmployeeListModal() {
-  document.getElementById('employeeListModal').style.display = 'none';
-}
-// ADD THESE FUNCTIONS TO YOUR JAVASCRIPT SECTION
-
-function updateStats() {
-    const totalEmployees = employeeData.length;
-    const profitCenters = new Set(employeeData.map(emp => emp['Profit Center Code']).filter(code => code)).size;
-    const costCenters = new Set(employeeData.map(emp => emp['Cost Center Code']).filter(code => code)).size;
-    
-    // Calculate upcoming retirements
-    const retirementCounts = calculateUpcomingRetirements();
-
-    document.getElementById('totalEmployees').textContent = totalEmployees;
-    document.getElementById('profitCenters').textContent = profitCenters;
-    document.getElementById('costCenters').textContent = costCenters;
-    document.getElementById('upcomingRetirements').textContent = retirementCounts.total;
-}
-
-function calculateUpcomingRetirements() {
-    const today = new Date();
-    const threeMonths = new Date(today.getTime() + (90 * 24 * 60 * 60 * 1000));
-    const sixMonths = new Date(today.getTime() + (180 * 24 * 60 * 60 * 1000));
-    const oneYear = new Date(today.getTime() + (365 * 24 * 60 * 60 * 1000));
-    
-    let retire3Months = 0;
-    let retire6Months = 0;
-    let retire1Year = 0;
-    
-    employeeData.forEach(emp => {
-        const retirementDate = parseRetirementDate(emp['Date of Retirement']);
-        if (retirementDate && !isNaN(retirementDate.getTime()) && retirementDate > today) {
-            if (retirementDate <= oneYear) {
-                retire1Year++;
-            }
-            if (retirementDate <= threeMonths) {
-                retire3Months++;
-            }
-            if (retirementDate <= sixMonths) {
-                retire6Months++;
-            }
-        }
-    });
-    
-    // Update the retirement modal counters
-    if (document.getElementById('retire3Months')) {
-        document.getElementById('retire3Months').textContent = retire3Months;
-        document.getElementById('retire6Months').textContent = retire6Months;
-        document.getElementById('retire1Year').textContent = retire1Year;
-    }
-    
-    // Main card should show total within 1 year only
-    return { total: retire1Year, retire3Months, retire6Months, retire1Year };
-}
-// 👇 Place this helper before the birthday functions
-function getBirthdayFromLegacyId(legacyId, year) {
-  if (!legacyId || legacyId.toString().length !== 10) return null;
-
-  const idStr = legacyId.toString().trim();
-  const mm = parseInt(idStr.slice(4, 6), 10) - 1;
-  const dd = parseInt(idStr.slice(6, 8), 10);
-
-  if (isNaN(mm) || isNaN(dd) || mm < 0 || mm > 11 || dd < 1 || dd > 31) {
-    return null;
-  }
-
-  const birthday = new Date(year, mm, dd);
-  return isNaN(birthday) ? null : birthday;
-}
-
-function calculateUpcomingBirthdays() {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0); // Normalize to start of day
-  const end = new Date(today);
-  end.setDate(end.getDate() + 6); // 6 days after today = 7 days total incl. today
-
-  const grouped = {};
-
-  employeeData.forEach(emp => {
-    const legacyId = emp['Legacy ID']?.toString().trim();
-    const name = emp.Name?.trim();
-    if (!legacyId || legacyId.length !== 10 || !name) return;
-
-    let birthday = getBirthdayFromLegacyId(legacyId, today.getFullYear());
-    if (!birthday || isNaN(birthday)) return;
-    birthday.setHours(0, 0, 0, 0); // Normalize
-
-    // If birthday has already passed, move to next year
-    if (birthday < today) {
-      birthday = getBirthdayFromLegacyId(legacyId, today.getFullYear() + 1);
-      birthday.setHours(0, 0, 0, 0);
+        all.forEach(function (e) { e.search = (e.name + ' ' + e.no).toLowerCase(); });
+        var pcs = {}, ccs = {}; all.forEach(function (e) { if (e.pc) pcs[e.pc] = 1; if (e.cc) ccs[e.cc] = 1; });
+        $('meta').textContent = UI.n(all.length) + ' employees · ' + Object.keys(pcs).length + ' profit centers · ' + Object.keys(ccs).length + ' cost centers';
+        fill();
+        $('gate').hidden = true; $('app').hidden = false;
+        render();
+      }).catch(function () { $('gateErr').textContent = 'Could not load employee data. Try again.'; $('pinBtn').disabled = false; $('pinBtn').textContent = 'Continue'; });
     }
 
-    if (birthday >= today && birthday <= end) {
-      const mmdd = `${String(birthday.getMonth() + 1).padStart(2, '0')}${String(birthday.getDate()).padStart(2, '0')}`;
-      if (!grouped[mmdd]) grouped[mmdd] = [];
-      grouped[mmdd].push(emp);
+    function uniq(rows, k) { var s = {}; rows.forEach(function (r) { if (r[k]) s[r[k]] = 1; }); return Object.keys(s).sort(); }
+    function fill() {
+      var pc = $('pcFilter').value;
+      UI.fill('pcFilter', uniq(all, 'pc'), 'All profit centers');
+      var r1 = all.filter(function (e) { return !pc || e.pc === pc; });
+      UI.fill('ccFilter', uniq(r1, 'cc'), 'All cost centers');
+      UI.fill('desFilter', uniq(r1, 'des'), 'All designations');
+      UI.fill('classFilter', uniq(all, 'cls'), 'All classes');
     }
-  });
 
-  window._groupedBirthdays = grouped;
-
-  const total = Object.values(grouped).reduce((sum, arr) => sum + arr.length, 0);
-  document.getElementById('upcomingBirthdays').textContent = total;
-}
-
-
-
-
-
-
-
-function parseRetirementDate(dateStr) {
-    if (!dateStr || dateStr === 'N/A' || dateStr === '' || dateStr === null || dateStr === undefined) {
-        return null;
-    }
-    
-    let retirementDate;
-    if (typeof dateStr === 'number') {
-        // Convert Excel serial date
-        const excelEpoch = new Date(1900, 0, 1);
-        retirementDate = new Date(excelEpoch.getTime() + (dateStr - 2) * 24 * 60 * 60 * 1000);
-    } else {
-        // Handle string dates - check if it's DD.MM.YYYY format
-        const dateString = dateStr.toString().trim();
-        if (dateString.includes('.')) {
-            const parts = dateString.split('.');
-            if (parts.length === 3) {
-                // Convert DD.MM.YYYY to MM/DD/YYYY
-                const day = parts[0];
-                const month = parts[1];
-                const year = parts[2];
-                retirementDate = new Date(`${month}/${day}/${year}`);
-            } else {
-                retirementDate = new Date(dateString);
-            }
-        } else if (dateString.includes('/')) {
-            const parts = dateString.split('/');
-            if (parts.length === 3) {
-                // Assume DD/MM/YYYY format
-                const day = parts[0];
-                const month = parts[1];
-                const year = parts[2];
-                retirementDate = new Date(`${month}/${day}/${year}`);
-            } else {
-                retirementDate = new Date(dateString);
-            }
-        } else {
-            retirementDate = new Date(dateString);
-        }
-    }
-    
-    return retirementDate;
-}
-
-function openRetirementModal() {
-    if (!isDataLoaded) return alert("Data is still loading...");
-    
-    calculateUpcomingRetirements();
-    document.getElementById('retirementModal').style.display = 'block';
-}
-
-function closeRetirementModal() {
-    document.getElementById('retirementModal').style.display = 'none';
-}
-
-function openRetirementListModal(period) {
-    const today = new Date();
-    let endDate;
-    let title;
-    
-    switch(period) {
-        case '3 months':
-            endDate = new Date(today.getTime() + (90 * 24 * 60 * 60 * 1000));
-            title = 'Retiring within 3 Months';
-            break;
-        case '6 months':
-            endDate = new Date(today.getTime() + (180 * 24 * 60 * 60 * 1000));
-            title = 'Retiring within 6 Months';
-            break;
-        case '1 year':
-            endDate = new Date(today.getTime() + (365 * 24 * 60 * 60 * 1000));
-            title = 'Retiring within 1 Year';
-            break;
-    }
-    
-    const retiringEmployees = employeeData.filter(emp => {
-        const retirementDate = parseRetirementDate(emp['Date of Retirement']);
-        return retirementDate && !isNaN(retirementDate.getTime()) && 
-               retirementDate > today && retirementDate <= endDate;
-    }).sort((a, b) => {
-        const dateA = parseRetirementDate(a['Date of Retirement']);
-        const dateB = parseRetirementDate(b['Date of Retirement']);
-        return dateA - dateB; // Sort by retirement date (earliest first)
-    });
-    
-    document.getElementById('retirementListTitle').textContent = title;
-    const container = document.getElementById('retirementListBody');
-    
-    if (retiringEmployees.length === 0) {
-        container.innerHTML = '<p class="no-results">No employees retiring in this period.</p>';
-    } else {
-        let html = '<table class="detail-table"><tr><th>Name</th><th>Employee No</th><th>Retirement Date</th><th>Place of Posting</th></tr>';
-        retiringEmployees.forEach(emp => {
-            const empIndex = employeeData.indexOf(emp);
-            const retirementDate = parseRetirementDate(emp['Date of Retirement']);
-            const formattedDate = retirementDate ? retirementDate.toLocaleDateString('en-GB') : 'N/A';
-            
-            html += `
-<tr style="cursor: pointer;" onclick="openedFromList = true; showEmployeeDetails(${empIndex})">
-                    <td>${emp.Name || 'N/A'}<br><i>${emp.Designation || 'N/A'}</i></td>
-                    <td>${emp['Employee No'] || 'N/A'}</td>
-                    <td style="color: #d32f2f; font-weight: bold;">${formattedDate}</td>
-                    <td>${emp['Cost Center Name'] || 'N/A'}</td>
-                </tr>
-            `;
-        });
-        html += '</table>';
-        container.innerHTML = html;
-    }
-    
-    document.getElementById('retirementListModal').style.display = 'block';
-}
-
-function closeRetirementListModal() {
-    document.getElementById('retirementListModal').style.display = 'none';
-}
-
-// ADD THIS TO THE EXISTING window.onclick FUNCTION
-// Add these lines to the existing window.onclick function:
-if (event.target === document.getElementById('retirementModal')) {
-    closeRetirementModal();
-}
-if (event.target === document.getElementById('retirementListModal')) {
-    closeRetirementListModal();
-}
-
-function openBirthdayModal() {
-  if (!isDataLoaded) return alert("Data is still loading...");
-
-  const container = document.getElementById('birthdayListBody');
-  const grouped = window._groupedBirthdays || {};
-
-  if (Object.keys(grouped).length === 0) {
-    container.innerHTML = '<p class="no-results">No birthdays in the next 1 month.</p>';
-    return;
-  }
-
-  let html = '';
-  const sortedDates = Object.keys(grouped).sort(); // Sort MMDD
-
-  sortedDates.forEach(mmdd => {
-    const day = mmdd.slice(2);
-    const month = mmdd.slice(0, 2);
-    html += `<h4 style="margin: 16px 0 8px; color: #1976d2;">🎂 ${day}/${month}</h4>`;
-    html += '<table class="detail-table"><tr><th>Name</th><th>Employee No</th><th>Place</th><th>🎁</th></tr>';
-
-    grouped[mmdd].forEach(emp => {
-      const empIndex = employeeData.indexOf(emp);
-      html += `
-        <tr style="cursor: default;">
-          <td onclick="openedFromList=true; showEmployeeDetails(${empIndex})" style="cursor: pointer;">
-            ${emp.Name || 'N/A'}<br><i>${emp.Designation || ''}</i>
-          </td>
-          <td onclick="openedFromList=true; showEmployeeDetails(${empIndex})" style="cursor: pointer;">
-            ${emp['Employee No'] || 'N/A'}
-          </td>
-          <td onclick="openedFromList=true; showEmployeeDetails(${empIndex})" style="cursor: pointer;">
-            ${emp['Cost Center Name'] || 'N/A'}
-          </td>
-          <td style="text-align:center;">
-            <button 
-              onclick="event.stopPropagation(); downloadBirthdayCard('${emp.Name}', '${emp['Legacy ID']}', '${emp['Cost Center Name'] || ''}')" 
-              title="Download Greeting Card" 
-              style="background: none; border: none; font-size: 18px; color: #4caf50; cursor: pointer;">
-              🎁
-            </button>
-          </td>
-        </tr>
-      `;
-    });
-
-    html += '</table>';
-  });
-
-  container.innerHTML = html;
-  document.getElementById('birthdayModal').style.display = 'block';
-}
-
-
-
-function closeBirthdayModal() {
-  document.getElementById('birthdayModal').style.display = 'none';
-}
-function closeCardPreview() {
-  document.getElementById('cardPreviewModal').style.display = 'none';
-}
-
-function downloadPreviewCard() {
-  const link = document.createElement('a');
-  link.href = document.getElementById('previewCardImg').src;
-  link.download = 'Birthday_Card.png';
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-}
-
-function showBirthdayGreetingModal() {
-  const today = new Date();
-  const mmddToday = `${String(today.getMonth() + 1).padStart(2, '0')}${String(today.getDate()).padStart(2, '0')}`;
-  const grouped = window._groupedBirthdays || {};
-  const list = grouped[mmddToday] || [];
-
-  if (list.length === 0) return; // No birthday today
-
-  const container = document.getElementById('birthdayGreetingList');
-  let html = '';
-  list.forEach(emp => {
-    html += `<div><b>${emp.Name}</b> - ${emp['Cost Center Name'] || 'N/A'}</div>`;
-  });
-  container.innerHTML = html;
-  document.getElementById('birthdayGreetingModal').style.display = 'block';
-  launchConfetti();
-}
-
-function closeBirthdayGreetingModal() {
-  document.getElementById('birthdayGreetingModal').style.display = 'none';
-  document.getElementById('birthdayAudio').pause();
-  if (window._confettiInterval) clearInterval(window._confettiInterval);
-}
-
-function launchConfetti() {
-  const canvas = document.getElementById('confettiCanvas');
-  const ctx = canvas.getContext('2d');
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
-  const confetti = Array.from({ length: 150 }, () => createParticle());
-
-  function createParticle() {
-    return {
-      x: Math.random() * canvas.width,
-      y: Math.random() * -canvas.height,
-      size: Math.random() * 6 + 2,
-      speed: Math.random() * 3 + 2,
-      color: `hsl(${Math.random() * 360}, 70%, 60%)`
+    var STAT = {
+      '': function () { return true; },
+      r3: function (e) { return e.retDays != null && e.retDays > 0 && e.retDays <= 90; },
+      r12: function (e) { return e.retDays != null && e.retDays > 0 && e.retDays <= 365; },
+      bday: function (e) { return !!e.bday; }
     };
-  }
+    function base() {
+      var q = $('q').value.trim().toLowerCase(), pc = $('pcFilter').value, cc = $('ccFilter').value, des = $('desFilter').value, cls = $('classFilter').value;
+      return all.filter(function (e) {
+        return (!pc || e.pc === pc) && (!cc || e.cc === cc) && (!des || e.des === des) && (!cls || e.cls === cls) && (!q || e.search.indexOf(q) !== -1);
+      });
+    }
 
-  function draw() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    confetti.forEach(p => {
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-      ctx.fillStyle = p.color;
-      ctx.fill();
-      p.y += p.speed;
-      if (p.y > canvas.height) {
-        p.y = Math.random() * -100;
-        p.x = Math.random() * canvas.width;
-      }
+    function render() {
+      var b = base(), view = b.filter(STAT[stat]);
+      [].forEach.call(document.querySelectorAll('#stats .ui-stat'), function (el) {
+        var k = el.getAttribute('data-k'), c = b.filter(STAT[k]).length;
+        el.querySelector('.v').textContent = UI.n(c);
+        el.querySelector('.s').textContent = k ? (c ? UI.pct(c, b.length) + ' of staff' : 'None') : (uniq(b, 'des').length + ' designations');
+        el.setAttribute('aria-pressed', String(stat === k));
+      });
+
+      var key = group, g = {};
+      view.forEach(function (e) { var k = e[key] || 'Not set'; (g[k] || (g[k] = { name: k, n: 0, r12: 0 })).n++; if (STAT.r12(e)) g[k].r12++; });
+      var list = Object.keys(g).map(function (k) { return g[k]; }), max = Math.max.apply(null, list.map(function (x) { return x.n; }).concat([0]));
+      UI.table('groupTable', {
+        rows: list, sort: { key: 'n', dir: 'desc' }, count: false, empty: 'No employees for these filters.',
+        columns: [
+          { key: 'name', label: { des: 'Designation', pc: 'Profit center', cc: 'Cost center' }[group], cls: 'wrap', fmt: function (v) { return '<span class="ui-strong">' + UI.esc(v) + '</span>'; } },
+          { key: 'n', label: 'Staff', num: true, fmt: UI.n },
+          { key: 'r12', label: 'Retiring in a year', num: true, hideSm: true, fmt: function (v) { return v ? UI.n(v) : '<span class="ui-muted">0</span>'; } },
+          { key: 'share', label: 'Share', sortVal: function (x) { return x.n; }, fmt: function (_, x) { return UI.bar(x.n, max, UI.pct(x.n, view.length)); }, hideSm: true, width: '28%' }
+        ],
+        onRow: function (x) { var id = { des: 'desFilter', pc: 'pcFilter', cc: 'ccFilter' }[group]; $(id).value = $(id).value === x.name ? '' : x.name; if (id === 'pcFilter') fill(); UI.mark($(id)); render(); }
+      });
+
+      var soon = b.filter(function (e) { return e.retDays != null && e.retDays > 0 && e.retDays <= 182; }).sort(function (x, y) { return x.retDays - y.retDays; });
+      $('retireList').innerHTML = soon.slice(0, 8).map(function (e) { return '<li data-no="' + UI.esc(e.no) + '"><div><b>' + UI.esc(e.name) + '</b><span>' + UI.esc(e.des + (e.cc ? ' · ' + e.cc : '')) + '</span></div><div class="d">' + UI.fmtDate(e.ret) + '</div></li>'; }).join('') || '<li style="cursor:default"><span>No one in the next 6 months.</span></li>';
+      var bd = b.filter(STAT.bday).sort(function (x, y) { return x.bday - y.bday; });
+      $('bdayList').innerHTML = bd.slice(0, 8).map(function (e) { return '<li data-no="' + UI.esc(e.no) + '"><div><b>' + UI.esc(e.name) + '</b><span>' + UI.esc(e.cc || e.des) + '</span></div><div class="d">' + e.bday.getDate() + ' ' + ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][e.bday.getMonth()] + '</div></li>'; }).join('') || '<li style="cursor:default"><span>No birthdays this week.</span></li>';
+
+      $('empCount').textContent = UI.n(view.length);
+      UI.table('empTable', { rows: view, sort: stat === 'r3' || stat === 'r12' ? { key: 'ret', dir: 'asc' } : stat === 'bday' ? { key: 'bday', dir: 'asc' } : { key: 'name', dir: 'asc' }, limit: 50, resetPage: true, empty: 'No employees match these filters.', columns: COLS, onRow: detail });
+      window.__view = view;
+      $('clearBtn').hidden = !($('q').value || stat || ['pcFilter', 'ccFilter', 'desFilter', 'classFilter'].some(function (id) { return $(id).value; }));
+    }
+
+    var COLS = [
+      { key: 'name', label: 'Name', fmt: function (v, e) { return '<span class="ui-strong">' + UI.esc(v) + '</span><span class="sub">' + UI.esc(e.no) + '</span>'; } },
+      { key: 'des', label: 'Designation', cls: 'wrap' },
+      { key: 'cc', label: 'Cost center', hideSm: true, cls: 'wrap' },
+      { key: 'cls', label: 'Class', hideSm: true },
+      { key: 'join', label: 'Joined', num: true, hideSm: true, sortVal: function (e) { return e.join ? e.join.getTime() : 0; }, fmt: function (v) { return v ? UI.fmtDate(v) : '—'; }, csv: function (e) { return e.join ? UI.fmtDate(e.join) : ''; } },
+      { key: 'ret', label: 'Retires', num: true, sortVal: function (e) { return e.ret ? e.ret.getTime() : 9e15; }, fmt: function (v, e) { return v ? (e.retDays > 0 && e.retDays <= 90 ? '<span class="ui-delta bad">' + UI.fmtDate(v) + '</span>' : UI.fmtDate(v)) : '—'; }, csv: function (e) { return e.ret ? UI.fmtDate(e.ret) : ''; } },
+      { key: 'bday', label: 'Birthday', num: true, hideSm: true, sortVal: function (e) { return e.bday ? e.bday.getTime() : 9e15; }, fmt: function (v) { return v ? UI.fmtDate(v).replace(/ \d{4}$/, '') : '<span class="ui-muted">—</span>'; }, csv: function (e) { return e.bday ? UI.fmtDate(e.bday) : ''; } }
+    ];
+
+    function service(join) {
+      if (!join) return '';
+      var t = new Date(), y = t.getFullYear() - join.getFullYear(), m = t.getMonth() - join.getMonth();
+      if (t.getDate() < join.getDate()) m--;
+      if (m < 0) { y--; m += 12; }
+      return Math.max(0, y) + ' yrs ' + Math.max(0, m) + ' months';
+    }
+    function detail(e) {
+      var pairs = [['Service', service(e.join)]];
+      FIELDS.forEach(function (f) {
+        var v = e.raw[f];
+        if (/^Date of/.test(f)) { var d = toDate(v); v = d ? UI.fmtDate(d) : v; }
+        pairs.push([f, v]);
+      });
+      UI.drawer(e.name, [e.des, e.cc].filter(Boolean).join(' · '), pairs);
+    }
+
+    ['pcFilter', 'ccFilter', 'desFilter', 'classFilter'].forEach(function (id) { $(id).addEventListener('change', function () { if (id === 'pcFilter') { $('ccFilter').value = ''; $('desFilter').value = ''; fill(); } UI.mark(this); render(); }); });
+    $('q').addEventListener('input', UI.debounce(render, 160));
+    $('stats').addEventListener('click', function (e) { var s = e.target.closest('.ui-stat'); if (!s) return; var k = s.getAttribute('data-k'); stat = stat === k ? '' : k; render(); });
+    $('groupTabs').addEventListener('click', function (e) {
+      var t = e.target.closest('.ui-tab'); if (!t) return;
+      group = t.getAttribute('data-g');
+      [].forEach.call(this.querySelectorAll('.ui-tab'), function (x) { x.setAttribute('aria-selected', String(x === t)); });
+      render();
     });
-  }
-
-  window._confettiInterval = setInterval(draw, 30);
-}
-
-// 👇 Call after data is loaded
-function loadEmployeeDataWithBirthdayGreeting() {
-  loadEmployeeData();
-  setTimeout(() => {
-    showBirthdayGreetingModal();
-  }, 2000);
-}
-
-
-function downloadBirthdayCard(name, legacyId, costCenterName = '') {
-  const today = new Date();
-  let birthdayMessage = '';
-
-  if (legacyId && legacyId.length === 10) {
-    const birthYear = parseInt(legacyId.slice(0, 4));
-    const month = parseInt(legacyId.slice(4, 6)) - 1;
-    const day = parseInt(legacyId.slice(6, 8));
-    const currentYear = today.getFullYear();
-    const dobThisYear = new Date(currentYear, month, day);
-    const age = currentYear - birthYear;
-
-    const formattedDate = dobThisYear.toLocaleDateString('en-GB', {
-      day: 'numeric', month: 'long', year: 'numeric'
+    ['retireList', 'bdayList'].forEach(function (id) {
+      $(id).addEventListener('click', function (ev) { var li = ev.target.closest('li[data-no]'); if (!li) return; var e = all.filter(function (x) { return x.no === li.getAttribute('data-no'); })[0]; if (e) detail(e); });
     });
-
-    const ordinal = (n) => {
-      if (n % 10 === 1 && n % 100 !== 11) return n + "st";
-      if (n % 10 === 2 && n % 100 !== 12) return n + "nd";
-      if (n % 10 === 3 && n % 100 !== 13) return n + "rd";
-      return n + "th";
-    };
-
-    birthdayMessage = `${ordinal(age)} Birthday on ${formattedDate}`;
-  }
-
-  document.getElementById('cardName').textContent = name;
-  document.getElementById('cardCostCenter').textContent = costCenterName ? `(${costCenterName})` : '';
-  document.getElementById('cardBirthdayText').textContent = birthdayMessage;
-
-  document.getElementById('cardPreviewModal').style.display = 'block';
-}
-
-function captureCardAndDownload() {
-  const captureElement = document.getElementById('cardCapture');
-
-  html2canvas(captureElement, {
-    scale: 3,
-    useCORS: true
-  }).then(canvas => {
-    canvas.toBlob(blob => {
-      const url = URL.createObjectURL(blob);
-      const isMobile = /android|iphone|ipad|mobile/i.test(navigator.userAgent);
-
-      if (isMobile) {
-        const win = window.open();
-        win.document.write(`<img src="${url}" style="width:100%;">`);
-      } else {
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = 'Birthday_Card.png';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
-      }
-    }, 'image/png');
+    $('clearBtn').addEventListener('click', function () { $('q').value = ''; stat = ''; ['pcFilter', 'ccFilter', 'desFilter', 'classFilter'].forEach(function (id) { $(id).value = ''; }); fill(); render(); });
+    $('exportBtn').addEventListener('click', function () {
+      UI.exportCsv('manpower.csv', [{ key: 'no', label: 'Employee No' }, { key: 'name', label: 'Name' }, { key: 'des', label: 'Designation' }, { key: 'cls', label: 'Class' }, { key: 'pc', label: 'Profit center' }, { key: 'cc', label: 'Cost center' }].concat(COLS.slice(4)), window.__view || []);
+    });
   });
-}
-
-
-
-
-    </script>
-
-<div id="cardPreviewModal" class="modal" style="z-index: 2000; display: none;">
-  <div class="modal-content" style="text-align: center; padding: 24px; max-width: 640px; margin: auto;">
-    
-    <div id="cardCapture" style="
-      background: #fff8e1;
-      padding: 30px;
-      border-radius: 12px;
-      border: 4px solid #f57c00;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    ">
-      <div style="font-size: 32px; font-weight: bold; color: #e65100; margin-bottom: 20px;">
-        🎉 Happy Birthday!
-      </div>
-      
-      <div id="cardName" style="font-size: 28px; color: #6a1b9a; font-weight: bold; margin-bottom: 5px;"></div>
-      <div id="cardCostCenter" style="font-size: 16px; color: #666; font-style: italic; margin-bottom: 20px;"></div>
-
-      <div id="cardBirthdayText" style="font-size: 20px; color: #424242; margin-bottom: 20px;"></div>
-
-      <div style="font-style: italic; color: #1b5e20; font-size: 18px;">
-        Wishing you joy, good health, and success!
-      </div>
-
-      <div style="color: #777; font-size: 16px; margin-top: 30px;">
-        — Malda Zone, WBSEDCL
-      </div>
-    </div>
-
-    <div style="display: flex; justify-content: center; gap: 12px; margin-top: 24px;">
-      <button onclick="captureCardAndDownload()" class="auth-btn" style="min-width: 120px;">⬇️ Save</button>
-      <button onclick="closeCardPreview()" class="auth-btn" style="min-width: 120px;">Close</button>
-    </div>
-  </div>
-</div>
-
-
-
-<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-
+  </script>
 </body>
 </html>

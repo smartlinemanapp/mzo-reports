@@ -1,933 +1,207 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html lang="en" class="ui">
 <head>
-  <script src="mzo_theme.js?v=1"></script>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Important Data Sheets</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background-color: #f0f2f5;
-            color: #1c1e21;
-            margin: 0;
-            padding: 16px;
-        }
-
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-        }
-
-        h1 {
-            font-size: 24px;
-            color: #111827;
-            margin-bottom: 8px;
-        }
-
-        p {
-            color: #4b5563;
-            font-size: 14px;
-            margin-top: 0;
-            margin-bottom: 20px;
-        }
-
-        .links-grid {
-            display: grid;
-            gap: 12px;
-        }
-
-        .link-card {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 14px;
-            background-color: #fff;
-            border-radius: 10px;
-            text-decoration: none;
-            color: #111827;
-            font-weight: 600;
-            font-size: 15px;
-            border: 1px solid #e5e7eb;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-            transition: all 0.2s ease;
-        }
-
-        .link-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
-            border-color: #d1d5db;
-        }
-
-        .link-card i {
-            width: 24px;
-            text-align: center;
-            font-size: 18px;
-            color: #4b5563;
-            flex-shrink: 0;
-        }
-
-        .link-card a {
-            min-width: 0;
-        }
-
-        .link-card span {
-            word-break: break-word;
-            line-height: 1.2;
-        }
-
-        /* Tree/Accordion Styles */
-        .tree-header {
-            cursor: pointer;
-            justify-content: space-between;
-            user-select: none;
-        }
-
-        .tree-header.active {
-            border-bottom-left-radius: 0;
-            border-bottom-right-radius: 0;
-            border-bottom-color: transparent;
-            background-color: #f9fafb;
-        }
-
-        .tree-content {
-            display: none;
-            background: #fff;
-            border: 1px solid #e5e7eb;
-            border-top: none;
-            border-radius: 0 0 10px 10px;
-            overflow: hidden;
-            margin-top: -1px;
-            box-shadow: 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-        }
-
-        .child-link {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 12px 16px 12px 50px;
-            text-decoration: none;
-            color: #374151;
-            font-size: 14px;
-            border-top: 1px solid #f3f4f6;
-            transition: background 0.2s;
-        }
-
-        .child-link:hover:not(.disabled) {
-            background-color: #f3f4f6;
-            color: #111827;
-        }
-
-        .child-link > a {
-            min-width: 0;
-            overflow: hidden;
-        }
-
-        .child-link.disabled {
-            color: #9ca3af;
-            cursor: default;
-            background-color: #fafafa;
-        }
-
-        .chevron-icon {
-            font-size: 14px !important;
-            width: auto !important;
-            transition: transform 0.3s ease;
-        }
-
-        .tree-header.active .chevron-icon {
-            transform: rotate(180deg);
-        }
-
-        /* Hide child links that are placeholders or empty */
-        .child-link[href="#"],
-        .child-link[href=""] {
-            display: none;
-        }
-
-        .download-button {
-            background-color: #e5e7eb;
-            border: none;
-            border-radius: 6px;
-            color: #374151;
-            padding: 8px 12px;
-            font-size: 12px;
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }
-
-        .download-button:hover {
-            background-color: #d1d5db;
-        }
-
-        .whatsapp-button {
-            background-color: #25D366;
-            border: none;
-            border-radius: 6px;
-            color: white;
-            padding: 8px 12px;
-            font-size: 12px;
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }
-
-        .whatsapp-button:hover {
-            background-color: #1DA851;
-        }
-
-        .highlight-value {
-            background-color: #d4edda;
-            /* Light green background */
-            color: #155724;
-            /* Dark green text */
-            padding: 2px 6px;
-            border-radius: 4px;
-            margin-left: 8px;
-            font-size: 0.9em;
-            font-weight: 700;
-        }
-
-        .alert-badge {
-            margin-left: 6px;
-            background: #dc2626;
-            color: #ffffff;
-            font-size: 12px;
-            font-weight: 700;
-            padding: 2px 6px;
-            border-radius: 6px;
-        }
-
-        .manage-months-btn {
-            border: 1px solid #d1d5db;
-            background: #fff;
-            color: #374151;
-            border-radius: 6px;
-            padding: 4px 8px;
-            font-size: 11px;
-            font-weight: 600;
-            cursor: pointer;
-        }
-        .manage-months-btn:hover { background: #f3f4f6; }
-
-        .unbilled-manage-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(15, 23, 42, 0.45);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            padding: 16px;
-            z-index: 9999;
-        }
-        .unbilled-manage-overlay.active { display: flex; }
-        .unbilled-manage-card {
-            width: min(560px, 100%);
-            max-height: 90vh;
-            overflow: auto;
-            background: #fff;
-            border-radius: 12px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.2);
-        }
-        .unbilled-manage-header, .unbilled-manage-footer {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 8px;
-            padding: 14px 16px;
-            border-bottom: 1px solid #e5e7eb;
-        }
-        .unbilled-manage-footer { border-bottom: none; border-top: 1px solid #e5e7eb; }
-        .unbilled-manage-body { padding: 14px 16px; display: grid; gap: 12px; }
-        .unbilled-form-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-        }
-        .unbilled-form-grid .span-2 { grid-column: 1 / -1; }
-        .unbilled-form-grid label {
-            display: block;
-            font-size: 12px;
-            color: #6b7280;
-            margin-bottom: 4px;
-        }
-        .unbilled-form-grid input {
-            width: 100%;
-            box-sizing: border-box;
-            border: 1px solid #d1d5db;
-            border-radius: 6px;
-            padding: 8px 10px;
-            font-size: 14px;
-        }
-        .unbilled-manage-list { display: grid; gap: 8px; }
-        .unbilled-manage-item {
-            border: 1px solid #e5e7eb;
-            border-radius: 8px;
-            padding: 10px;
-            display: flex;
-            justify-content: space-between;
-            gap: 8px;
-            align-items: center;
-        }
-        .unbilled-manage-item .meta { font-size: 12px; color: #6b7280; word-break: break-all; }
-        .btn-mini {
-            border: none;
-            border-radius: 6px;
-            padding: 6px 10px;
-            font-size: 12px;
-            cursor: pointer;
-            font-weight: 600;
-        }
-        .btn-mini.primary { background: #2563eb; color: #fff; }
-        .btn-mini.secondary { background: #e5e7eb; color: #374151; }
-        .btn-mini.danger { background: #fee2e2; color: #b91c1c; }
-        @media (max-width: 500px) {
-            .unbilled-form-grid { grid-template-columns: 1fr; }
-            .unbilled-form-grid .span-2 { grid-column: auto; }
-        }
-
-        /* Responsive Styles */
-        @media (max-width: 500px) {
-            body {
-                padding: 12px;
-            }
-
-            .container {
-                padding-bottom: 40px;
-            }
-
-            h1 {
-                font-size: 20px;
-                margin-bottom: 4px;
-            }
-
-            p {
-                font-size: 13px;
-                margin-bottom: 16px;
-            }
-
-            .link-card {
-                padding: 10px 12px;
-                gap: 8px;
-            }
-
-            .link-card i {
-                font-size: 16px;
-                width: 20px;
-            }
-
-            .link-card span {
-                font-size: 14px;
-            }
-
-            .child-link {
-                padding: 10px 12px 10px 36px;
-                gap: 8px;
-            }
-
-            .child-link span {
-                font-size: 13px;
-            }
-
-            .highlight-value,
-            .alert-badge {
-                font-size: 10px;
-                padding: 1px 4px;
-                margin-left: 4px;
-                display: inline-block;
-                margin-top: 2px;
-                border-radius: 4px;
-            }
-
-            .download-button,
-            .whatsapp-button {
-                padding: 6px 8px;
-                font-size: 11px;
-                border-radius: 5px;
-            }
-            
-            .link-card div {
-                display: flex;
-                gap: 4px;
-            }
-        }
-    </style>
-  <link rel="stylesheet" href="mzo_theme.css?v=1" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Important data sheets · MZO Reports</title>
+  <script src="/mzo_theme.js?v=3"></script>
+  <link rel="stylesheet" href="/mzo_theme.css?v=3" />
+  <script src="/mzo_ui.js?v=2" defer></script>
+  <style>
+    .ui-page { max-width: 980px; }
+    .sl { list-style: none; margin: 0; padding: 0; }
+    .sl li { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: 12px 16px; padding: 10px 12px 10px 16px; border-top: 1px solid var(--mzo-border); }
+    .sl li:first-child { border-top: 0; }
+    .sl li:hover { background: var(--mzo-row-hover); }
+    .sl .n { font-weight: 500; min-width: 0; }
+    .sl .n a { color: inherit; text-decoration: none; }
+    .sl .n a:hover { text-decoration: underline; text-underline-offset: 2px; }
+    .sl .vals { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; font-variant-numeric: tabular-nums; }
+    .sl .acts { display: flex; gap: 4px; }
+    .mg-list li { grid-template-columns: minmax(0, 1fr) auto; }
+    .mg-list .meta { font-size: 12px; color: var(--mzo-muted); word-break: break-all; }
+    .mg form { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 16px; border-bottom: 1px solid var(--mzo-border); }
+    .mg form label { display: grid; gap: 4px; font-size: 12px; color: var(--mzo-muted); }
+    .mg form .wide { grid-column: span 2; }
+    .mg form .ui-input { width: 100%; padding: 0 10px; }
+    .mg form .row { grid-column: span 2; display: flex; justify-content: flex-end; gap: 8px; }
+    @media (max-width: 760px) { .sl li { grid-template-columns: minmax(0, 1fr) auto; } .sl .vals { grid-column: 1; justify-content: flex-start; flex-wrap: nowrap; } .sl .acts { grid-row: 1 / span 2; grid-column: 2; } .sl .acts .lbl { display: none; } .sl .acts .ui-btn { padding: 0 8px; } }
+  </style>
 </head>
-
 <body>
+  <main class="ui-page">
+    <header class="ui-head">
+      <div>
+        <h1>Important data sheets</h1>
+        <p>Open in Google Sheets, download as Excel, or share.</p>
+      </div>
+      <div class="ui-actions">
+        <button type="button" class="ui-btn" id="manageBtn" hidden>Manage months</button>
+      </div>
+    </header>
 
-    <div class="container">
-        <h1>Important Data Sheets</h1>
-        <p>Open the required Google Sheet in a new tab or download it as an XLSX file.</p>
+    <section class="ui-panel">
+      <div class="ui-panel-h"><h2>Unbilled up to date</h2><span class="ui-note">Q and M from each month's sheet</span></div>
+      <ul class="sl" id="unbilled"><li><span class="ui-skel" style="width:40%"></span></li></ul>
+    </section>
 
-        <div class="links-grid">
-            <!-- Tree Structure for Unbilled -->
-            <div class="tree-group">
-                <div class="link-card tree-header active" onclick="toggleTree(this)">
-                    <div style="display: flex; align-items: center; gap: 12px;">
-                        <i class="fas fa-file-invoice-dollar"></i>
-                        <span>Unbilled upto date</span>
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 8px;" onclick="event.stopPropagation()">
-                        <button type="button" id="manageUnbilledBtn" class="manage-months-btn" style="display:none;"
-                            onclick="openUnbilledManagePanel()">
-                            <i class="fas fa-cog"></i> Manage
-                        </button>
-                        <i class="fas fa-chevron-down chevron-icon" onclick="toggleTree(this.closest('.tree-header'))"></i>
-                    </div>
-                </div>
-                <div class="tree-content" id="unbilled-months" style="display: block;"></div>
-            </div>
+    <section class="ui-panel">
+      <div class="ui-panel-h"><h2>Billing and metering</h2></div>
+      <ul class="sl" id="billing"></ul>
+    </section>
 
-            <div class="link-card" id="three-months-unbilled-card">
-                <a href="https://docs.google.com/spreadsheets/d/1g_YAYXocaaEDh42WpgT5jqzEwWMgwtvfrXP2J3Jh8lw/edit?gid=0#gid=0"
-                    target="_blank" rel="noopener noreferrer"
-                    style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 12px; flex-grow: 1;">
-                    <i class="fas fa-calendar-times"></i>
-                    <span>3 Months Unbilled <span id="q60-value" class="highlight-value"></span></span>
-                </a>
-                <div>
-                    <button class="whatsapp-button"
-                        onclick="shareOnWhatsApp(event, 'https://docs.google.com/spreadsheets/d/1g_YAYXocaaEDh42WpgT5jqzEwWMgwtvfrXP2J3Jh8lw/edit?gid=0#gid=0', '3 Monhs Unbilled')">
-                        <i class="fab fa-whatsapp"></i>
-                    </button>
-                    <a href="https://docs.google.com/spreadsheets/d/1g_YAYXocaaEDh42WpgT5jqzEwWMgwtvfrXP2J3Jh8lw/export?format=xlsx"
-                        download class="download-button">
-                        <i class="fas fa-download"></i>
-                    </a>
-                </div>
-            </div>
-            <div class="link-card">
-                <a href="https://docs.google.com/spreadsheets/d/1gPNCdyhoGNZy5i6FFp2HBIHs4-4FelNWGWThmC8PeQE/edit?gid=0#gid=0"
-                    target="_blank" rel="noopener noreferrer"
-                    style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 12px; flex-grow: 1;">
-                    <i class="fas fa-file-signature"></i>
-                    <span>
-                        1st Bill not generated
-                        <span id="j57-value" class="highlight-value"></span>
-                    </span>
-                </a>
-                <div>
-                    <button class="whatsapp-button"
-                        onclick="shareOnWhatsApp(event, 'https://docs.google.com/spreadsheets/d/1gPNCdyhoGNZy5i6FFp2HBIHs4-4FelNWGWThmC8PeQE/edit?gid=0#gid=0', '1st Bill not generated')">
-                        <i class="fab fa-whatsapp"></i>
-                    </button>
-                    <a href="https://docs.google.com/spreadsheets/d/1gPNCdyhoGNZy5i6FFp2HBIHs4-4FelNWGWThmC8PeQE/export?format=xlsx"
-                        download class="download-button">
-                        <i class="fas fa-download"></i>
-                    </a>
-                </div>
-            </div>
-            <div class="link-card">
-                <a href="https://docs.google.com/spreadsheets/d/1-stbDqVWjFfeftqpe20zQOw2NFKj6595ptBLrCG-__s/edit?gid=1066479111#gid=1066479111"
-                    target="_blank" rel="noopener noreferrer"
-                    style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 12px; flex-grow: 1;">
-                    <i class="fas fa-tachometer-alt"></i>
-                    <span>Smart Metering</span>
-                </a>
-                <div>
-                    <button class="whatsapp-button"
-                        onclick="shareOnWhatsApp(event, 'https://docs.google.com/spreadsheets/d/1-stbDqVWjFfeftqpe20zQOw2NFKj6595ptBLrCG-__s/edit?gid=1066479111#gid=1066479111', 'Smart Metering')">
-                        <i class="fab fa-whatsapp"></i>
-                    </button>
-                    <a href="https://docs.google.com/spreadsheets/d/1-stbDqVWjFfeftqpe20zQOw2NFKj6595ptBLrCG-__s/export?format=xlsx"
-                        download class="download-button">
-                        <i class="fas fa-download"></i>
-                    </a>
-                </div>
-            </div>
-            <div class="link-card">
-                <a href="https://docs.google.com/spreadsheets/d/18z-dWyTbw9jsrJtQ67UUL2TbT-QUgi_Q/edit?gid=183159560#gid=183159560"
-                    target="_blank" rel="noopener noreferrer"
-                    style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 12px; flex-grow: 1;">
-                    <i class="fas fa-tachometer-alt"></i>
-                    <span>Smart Meter: Non-Push Case <span id="non-push-value"></span></span>
-                </a>
-                <div>
-                    <button class="whatsapp-button"
-                        onclick="shareOnWhatsApp(event, 'https://docs.google.com/spreadsheets/d/18z-dWyTbw9jsrJtQ67UUL2TbT-QUgi_Q/edit?gid=183159560#gid=183159560', 'Smart Meter: Non-Push Case')">
-                        <i class="fab fa-whatsapp"></i>
-                    </button>
-                    <a href="https://docs.google.com/spreadsheets/d/18z-dWyTbw9jsrJtQ67UUL2TbT-QUgi_Q/export?format=xlsx"
-                        download class="download-button">
-                        <i class="fas fa-download"></i>
-                    </a>
-                </div>
-            </div>
-            <div class="tree-group">
-                <div class="link-card tree-header" onclick="toggleTree(this)">
-                    <div style="display: flex; align-items: center; gap: 12px;">
-                        <i class="fas fa-clipboard-list"></i>
-                        <span>REM OSD</span>
-                    </div>
-                    <i class="fas fa-chevron-down chevron-icon"></i>
-                </div>
-                <div class="tree-content">
-                    <div class="child-link">
-                        <a href="https://docs.google.com/spreadsheets/d/1kB6g0zxWqR7sX6KiJaHG1pn0Fq_CWFAjyLzDNyOvpDY/edit?gid=0#gid=0"
-                            target="_blank" rel="noopener noreferrer"
-                            style="text-decoration: none; color: inherit; flex-grow: 1;">
-                            <span>REM OSD Follow-up</span>
-                        </a>
-                        <div>
-                            <button class="whatsapp-button"
-                                onclick="shareOnWhatsApp(event, 'https://docs.google.com/spreadsheets/d/1kB6g0zxWqR7sX6KiJaHG1pn0Fq_CWFAjyLzDNyOvpDY/edit?gid=0#gid=0', 'REM OSD Follow-up')">
-                                <i class="fab fa-whatsapp"></i>
-                            </button>
-                            <a href="https://docs.google.com/spreadsheets/d/1kB6g0zxWqR7sX6KiJaHG1pn0Fq_CWFAjyLzDNyOvpDY/export?format=xlsx"
-                                download class="download-button">
-                                <i class="fas fa-download"></i>
-                            </a>
-                        </div>
-                    </div>
-                    <div class="child-link">
-                        <a href="https://docs.google.com/spreadsheets/d/1VGwEKCN5zQogt7EiPZ2potuSpPBBjZfFqm4FtutWxOk/edit?gid=596686415#gid=596686415"
-                            target="_blank" rel="noopener noreferrer"
-                            style="text-decoration: none; color: inherit; flex-grow: 1;">
-                            <span>ATR Summary</span>
-                        </a>
-                        <div>
-                            <button class="whatsapp-button"
-                                onclick="shareOnWhatsApp(event, 'https://docs.google.com/spreadsheets/d/1VGwEKCN5zQogt7EiPZ2potuSpPBBjZfFqm4FtutWxOk/edit?gid=596686415#gid=596686415', 'ATR Summary')">
-                                <i class="fab fa-whatsapp"></i>
-                            </button>
-                            <a href="https://docs.google.com/spreadsheets/d/1VGwEKCN5zQogt7EiPZ2potuSpPBBjZfFqm4FtutWxOk/export?format=xlsx"
-                                download class="download-button">
-                                <i class="fas fa-download"></i>
-                            </a>
-                        </div>
-                    </div>
-                    <div class="child-link">
-                        <a href="https://docs.google.com/spreadsheets/d/1hehnzupXA_4MFvaFf4blhwqb9gRbQS1YORB6IuGOfTg/edit?pli=1&gid=1783257436#gid=1783257436"
-                            target="_blank" rel="noopener noreferrer"
-                            style="text-decoration: none; color: inherit; flex-grow: 1;">
-                            <span>REM STW OSD</span>
-                        </a>
-                        <div>
-                            <button class="whatsapp-button"
-                                onclick="shareOnWhatsApp(event, 'https://docs.google.com/spreadsheets/d/1hehnzupXA_4MFvaFf4blhwqb9gRbQS1YORB6IuGOfTg/edit?pli=1&gid=1783257436#gid=1783257436', 'REM STW OSD')">
-                                <i class="fab fa-whatsapp"></i>
-                            </button>
-                            <a href="https://docs.google.com/spreadsheets/d/1hehnzupXA_4MFvaFf4blhwqb9gRbQS1YORB6IuGOfTg/export?format=xlsx"
-                                download class="download-button">
-                                <i class="fas fa-download"></i>
-                            </a>
-                        </div>
-                    </div>
-                    <div class="child-link">
-                        <a href="https://docs.google.com/spreadsheets/d/1t_N9fTRVbRaKPejMW5TfhMiRmBMmwL5kWrItzWnR3OM/edit?gid=1275155087#gid=1275155087"
-                            target="_blank" rel="noopener noreferrer"
-                            style="text-decoration: none; color: inherit; flex-grow: 1;">
-                            <span>REM OSD AGE ANALYSIS</span>
-                        </a>
-                        <div>
-                            <button class="whatsapp-button"
-                                onclick="shareOnWhatsApp(event, 'https://docs.google.com/spreadsheets/d/1t_N9fTRVbRaKPejMW5TfhMiRmBMmwL5kWrItzWnR3OM/edit?gid=1275155087#gid=1275155087', 'REM OSD AGE ANALYSIS')">
-                                <i class="fab fa-whatsapp"></i>
-                            </button>
-                            <a href="https://docs.google.com/spreadsheets/d/1t_N9fTRVbRaKPejMW5TfhMiRmBMmwL5kWrItzWnR3OM/export?format=xlsx"
-                                download class="download-button">
-                                <i class="fas fa-download"></i>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="link-card">
-                <a href="https://docs.google.com/spreadsheets/d/1It8j3Ic8mjoVf7ejljj1VrN7LEEnqg-9A8n7BY3UrQM/edit?gid=0#gid=0"
-                    target="_blank" rel="noopener noreferrer"
-                    style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 12px; flex-grow: 1;">
-                    <i class="fas fa-arrow-down"></i>
-                    <span>REM Less Unit billed <span id="less-unit-10" class="highlight-value"></span>(<10), <span id="less-unit-0" class="highlight-value"></span>(0)</span>
-                </a>
-                <div>
-                    <button class="whatsapp-button"
-                        onclick="shareOnWhatsApp(event, 'https://docs.google.com/spreadsheets/d/1It8j3Ic8mjoVf7ejljj1VrN7LEEnqg-9A8n7BY3UrQM/edit?gid=0#gid=0', 'REM Less Unit billed')">
-                        <i class="fab fa-whatsapp"></i>
-                    </button>
-                    <a href="https://docs.google.com/spreadsheets/d/1It8j3Ic8mjoVf7ejljj1VrN7LEEnqg-9A8n7BY3UrQM/export?format=xlsx"
-                        download class="download-button">
-                        <i class="fas fa-download"></i>
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
+    <section class="ui-panel">
+      <div class="ui-panel-h"><h2>REM OSD</h2></div>
+      <ul class="sl" id="rem"></ul>
+    </section>
+  </main>
 
-    <div id="unbilledManageOverlay" class="unbilled-manage-overlay" onclick="closeUnbilledManageOnOverlay(event)">
-        <div class="unbilled-manage-card">
-            <div class="unbilled-manage-header">
-                <strong>Manage Unbilled Months</strong>
-                <button type="button" class="btn-mini secondary" onclick="closeUnbilledManagePanel()">Close</button>
-            </div>
-            <div class="unbilled-manage-body">
-                <form id="unbilledMonthForm" onsubmit="saveUnbilledMonth(event)">
-                    <input type="hidden" id="unbilledEditId" value="" />
-                    <div class="unbilled-form-grid">
-                        <div class="span-2">
-                            <label for="unbilledLabel">Month label *</label>
-                            <input id="unbilledLabel" required placeholder="e.g. Sep-2026" />
-                        </div>
-                        <div class="span-2">
-                            <label for="unbilledSheetId">Google Sheet ID *</label>
-                            <input id="unbilledSheetId" required placeholder="1SazJY-ohGvhTji5zN-..." />
-                        </div>
-                        <div>
-                            <label for="unbilledGid">Tab GID</label>
-                            <input id="unbilledGid" placeholder="0" />
-                        </div>
-                        <div>
-                            <label for="unbilledSort">Sort order</label>
-                            <input id="unbilledSort" type="number" placeholder="auto" />
-                        </div>
-                    </div>
-                    <div style="margin-top: 10px; display: flex; gap: 8px; justify-content: flex-end;">
-                        <button type="button" class="btn-mini secondary" onclick="resetUnbilledForm()">Clear</button>
-                        <button type="submit" class="btn-mini primary" id="unbilledSaveBtn">Add month</button>
-                    </div>
-                </form>
-                <div id="unbilledManageList" class="unbilled-manage-list"></div>
-            </div>
-        </div>
-    </div>
+  <div class="ui-drawer" id="manage" hidden>
+    <section class="mg" role="dialog" aria-modal="true" aria-label="Manage unbilled months">
+      <header><div><h3>Unbilled months</h3><p>Add, edit or remove a month's sheet.</p></div><button type="button" class="ui-btn icon ghost" data-close aria-label="Close"><svg class="ui-i"><use href="#ui-x"/></svg></button></header>
+      <form id="mgForm">
+        <input type="hidden" name="mid" />
+        <label class="wide">Month label<input class="ui-input" name="label" required placeholder="Sep-2026" /></label>
+        <label class="wide">Google Sheet ID<input class="ui-input" name="sheetId" required placeholder="1SazJY-ohGv…" /></label>
+        <label>Tab GID<input class="ui-input" name="gid" placeholder="0" /></label>
+        <label>Sort order<input class="ui-input" name="sort" type="number" placeholder="auto" /></label>
+        <div class="row"><button type="button" class="ui-btn ghost sm" id="mgReset">Clear</button><button type="submit" class="ui-btn primary sm" id="mgSave">Add month</button></div>
+      </form>
+      <ul class="sl mg-list" id="mgList"></ul>
+    </section>
+  </div>
 
-    <script src="auth.js"></script>
-    <script>
-        function toggleTree(header) {
-            if (!header) return;
-            header.classList.toggle('active');
-            const content = header.nextElementSibling;
-            if (!content) return;
-            content.style.display = header.classList.contains('active') ? 'block' : 'none';
-        }
+  <script src="/auth.js"></script>
+  <script>
+  document.addEventListener('DOMContentLoaded', function () {
+    'use strict';
+    var $ = function (id) { return document.getElementById(id); };
+    var FALLBACK = [
+      { id: 1, label: 'Jan-2026', sheetId: '1ujR9e1olZKeu1uIgzSsIl2XXK-fN6YWI-1Z_E6xyOTs', gid: '979760067', sortOrder: 1 },
+      { id: 2, label: 'Feb-2026', sheetId: '1cYIV5Uk5Wa0CPkFMPFdeIUwJ3262o6tNJTbxTe7Lelk', gid: '827560931', sortOrder: 2 },
+      { id: 3, label: 'Mar-2026', sheetId: '1iRAE1fXfCbkb7mtRIjYIGYdbMLUga-bmhlHgKm1ZorE', gid: '0', sortOrder: 3 },
+      { id: 4, label: 'Apr-2026', sheetId: '1u3x_XJ_re_MJvkDbGmcE4iwweRk5xe89Qib2p9JxAGc', gid: '801371725', sortOrder: 4 },
+      { id: 5, label: 'May-2026', sheetId: '1c9I7Ng3OCqMik4jyRqO7WZn6ysdVXAFsm93va1Z1PFk', gid: '0', sortOrder: 5 },
+      { id: 6, label: 'Jun-2026', sheetId: '1rgHVfi2Z-8lKPCBl6byXCHfJ_QVCbQcB-7awggyDa1M', gid: '0', sortOrder: 6 },
+      { id: 7, label: 'Jul-2026', sheetId: '1Pw1mSp8x7b5DxgjQMu8WfVfX2dY0UkF836p4YXva1ko', gid: '1573581583', sortOrder: 7 },
+      { id: 8, label: 'Aug-2026', sheetId: '1SazJY-ohGvhTji5zN-mfrCTbaEUvfvGGKh6XWlRn76s', gid: '903839015', sortOrder: 8 }
+    ];
+    // name, sheet id, gid, live cells [[label, range]]
+    var BILLING = [
+      ['3 months unbilled', '1g_YAYXocaaEDh42WpgT5jqzEwWMgwtvfrXP2J3Jh8lw', '0', [['', 'Q60']]],
+      ['1st bill not generated', '1gPNCdyhoGNZy5i6FFp2HBIHs4-4FelNWGWThmC8PeQE', '0', [['', 'J57']]],
+      ['Smart metering', '1-stbDqVWjFfeftqpe20zQOw2NFKj6595ptBLrCG-__s', '1066479111', []],
+      ['Smart meter: non-push cases', '18z-dWyTbw9jsrJtQ67UUL2TbT-QUgi_Q', '183159560', [['', 'G63']]],
+      ['REM less unit billed', '1It8j3Ic8mjoVf7ejljj1VrN7LEEnqg-9A8n7BY3UrQM', '0', [['<10', 'I56'], ['0', 'M56']]]
+    ];
+    var REM = [
+      ['REM OSD follow-up', '1kB6g0zxWqR7sX6KiJaHG1pn0Fq_CWFAjyLzDNyOvpDY', '0'],
+      ['ATR summary', '1VGwEKCN5zQogt7EiPZ2potuSpPBBjZfFqm4FtutWxOk', '596686415'],
+      ['REM STW OSD', '1hehnzupXA_4MFvaFf4blhwqb9gRbQS1YORB6IuGOfTg', '1783257436'],
+      ['REM OSD age analysis', '1t_N9fTRVbRaKPejMW5TfhMiRmBMmwL5kWrItzWnR3OM', '1275155087']
+    ];
+    var months = [], canManage = false, seq = 0;
 
-        function shareOnWhatsApp(event, url, name) {
-            event.stopPropagation();
-            const message = `${name}: ${url}`;
-            window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`, '_blank');
-        }
+    function view(id, gid) { return 'https://docs.google.com/spreadsheets/d/' + id + '/edit?gid=' + gid + '#gid=' + gid; }
+    function xlsx(id) { return 'https://docs.google.com/spreadsheets/d/' + id + '/export?format=xlsx'; }
+    function wa(name, url) { return 'https://api.whatsapp.com/send?text=' + encodeURIComponent(name + ': ' + url); }
 
-        const FALLBACK_UNBILLED_MONTHS = [
-            { id: 1, label: "Jan-2026", sheetId: "1ujR9e1olZKeu1uIgzSsIl2XXK-fN6YWI-1Z_E6xyOTs", gid: "979760067", sortOrder: 1, active: true },
-            { id: 2, label: "Feb-2026", sheetId: "1cYIV5Uk5Wa0CPkFMPFdeIUwJ3262o6tNJTbxTe7Lelk", gid: "827560931", sortOrder: 2, active: true },
-            { id: 3, label: "Mar-2026", sheetId: "1iRAE1fXfCbkb7mtRIjYIGYdbMLUga-bmhlHgKm1ZorE", gid: "0", sortOrder: 3, active: true },
-            { id: 4, label: "Apr-2026", sheetId: "1u3x_XJ_re_MJvkDbGmcE4iwweRk5xe89Qib2p9JxAGc", gid: "801371725", sortOrder: 4, active: true },
-            { id: 5, label: "May-2026", sheetId: "1c9I7Ng3OCqMik4jyRqO7WZn6ysdVXAFsm93va1Z1PFk", gid: "0", sortOrder: 5, active: true },
-            { id: 6, label: "Jun-2026", sheetId: "1rgHVfi2Z-8lKPCBl6byXCHfJ_QVCbQcB-7awggyDa1M", gid: "0", sortOrder: 6, active: true },
-            { id: 7, label: "Jul-2026", sheetId: "1Pw1mSp8x7b5DxgjQMu8WfVfX2dY0UkF836p4YXva1ko", gid: "1573581583", sortOrder: 7, active: true },
-            { id: 8, label: "Aug-2026", sheetId: "1SazJY-ohGvhTji5zN-mfrCTbaEUvfvGGKh6XWlRn76s", gid: "903839015", sortOrder: 8, active: true }
-        ];
+    // One sheet row: name links to the sheet; live cells fill in after.
+    function row(name, id, gid, cells) {
+      var url = view(id, gid);
+      var vals = (cells || []).map(function (c) { var k = 'c' + (++seq); cell(id, c[1], k, c[0]); return '<span class="ui-badge" id="' + k + '">' + (c[0] ? UI.esc(c[0]) + ' · ' : '') + '…</span>'; }).join('');
+      return '<li><div class="n"><a href="' + UI.esc(url) + '" target="_blank" rel="noopener">' + UI.esc(name) + '</a></div>' +
+        '<div class="vals">' + vals + '</div>' +
+        '<div class="acts"><a class="ui-btn sm ghost" href="' + UI.esc(url) + '" target="_blank" rel="noopener" title="Open in Google Sheets"><svg class="ui-i"><use href="#ui-arrow"/></svg><span class="lbl">Open</span></a>' +
+        '<a class="ui-btn sm ghost" href="' + UI.esc(xlsx(id)) + '" title="Download as Excel"><svg class="ui-i"><use href="#ui-download"/></svg><span class="lbl">Excel</span></a>' +
+        '<a class="ui-btn sm ghost" href="' + UI.esc(wa(name, url)) + '" target="_blank" rel="noopener" title="Share on WhatsApp">Share</a></div></li>';
+    }
+    function cell(id, range, target, label) {
+      fetch('https://docs.google.com/spreadsheets/d/' + id + '/export?format=csv&range=' + range)
+        .then(function (r) { return r.text(); })
+        .then(function (t) {
+          var v = t.replace(/"/g, '').trim(), el = $(target);
+          if (!el) return;
+          el.textContent = (label ? label + ' · ' : '') + (v || '0');
+        })
+        .catch(function () { var el = $(target); if (el) el.textContent = (label ? label + ' · ' : '') + '—'; });
+    }
 
-        let unbilledMonths = [];
-        let isSheetsAdmin = false;
+    function paintMonths() {
+      var list = months.filter(function (m) { var id = m.sheetId || m.sheet_id; return id && id !== '#'; });
+      $('unbilled').innerHTML = list.map(function (m) {
+        var gid = m.gid != null && String(m.gid).trim() !== '' ? String(m.gid) : '0';
+        return row(m.label, m.sheetId || m.sheet_id, gid, [['Q', 'D57'], ['M', 'E57']]);
+      }).join('') || '<li><span class="ui-note">No months configured yet.</span></li>';
+      if (canManage) paintManage();
+    }
+    function loadMonths() {
+      return fetch('/api/important-sheets/unbilled', { headers: { Accept: 'application/json' }, credentials: 'same-origin' })
+        .then(function (r) { return r.json().then(function (d) { if (!r.ok || d.status !== 'success') throw new Error(d.message || 'load'); return d; }); })
+        .then(function (d) { months = Array.isArray(d.months) && d.months.length ? d.months : FALLBACK.slice(); })
+        .catch(function () { months = FALLBACK.slice(); })
+        .then(paintMonths);
+    }
 
-        function canManageImportantSheets(profile) {
-            const p = profile || {};
-            if (String(p.role || '').toLowerCase() === 'admin') return true;
-            const flag = String(p['sheets-autho'] != null ? p['sheets-autho'] : (p.sheets_autho || ''))
-                .trim()
-                .toLowerCase();
-            return flag === 'edit' || flag === 'y' || flag === 'all';
-        }
+    /* Manage months (admin or Sheets: Manage) */
+    function canManageSheets(p) {
+      p = p || {};
+      if (String(p.role || '').toLowerCase() === 'admin') return true;
+      var f = String(p['sheets-autho'] != null ? p['sheets-autho'] : (p.sheets_autho || '')).trim().toLowerCase();
+      return f === 'edit' || f === 'y' || f === 'all';
+    }
+    function paintManage() {
+      $('mgList').innerHTML = months.map(function (m) {
+        return '<li><div><div class="n">' + UI.esc(m.label) + '</div><div class="meta">GID ' + UI.esc(m.gid || '0') + ' · order ' + (m.sortOrder != null ? m.sortOrder : '—') + ' · ' + UI.esc(m.sheetId) + '</div></div>' +
+          '<div class="acts"><button type="button" class="ui-btn sm ghost" data-edit="' + m.id + '">Edit</button><button type="button" class="ui-btn sm ghost" data-del="' + m.id + '" style="color:var(--mzo-bad)">Remove</button></div></li>';
+      }).join('') || '<li><span class="ui-note">No months yet.</span></li>';
+    }
+    var form = $('mgForm');
+    function resetForm() { form.reset(); form.mid.value = ''; $('mgSave').textContent = 'Add month'; }
+    function api(url, method, body) {
+      return fetch(url, { method: method, headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, credentials: 'same-origin', body: body ? JSON.stringify(body) : undefined })
+        .then(function (r) { return r.json().then(function (d) { if (!r.ok || d.status !== 'success') throw new Error(d.message || 'Request failed'); return d; }); });
+    }
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var id = form.mid.value.trim(), sort = form.sort.value.trim();
+      var body = { label: form.label.value.trim(), sheetId: form.sheetId.value.trim(), gid: form.gid.value.trim() || '0', sortOrder: sort ? Number(sort) : undefined, active: true };
+      if (!body.label || !body.sheetId) return;
+      $('mgSave').disabled = true;
+      api(id ? '/api/important-sheets/unbilled/' + id : '/api/important-sheets/unbilled', id ? 'PATCH' : 'POST', body)
+        .then(function () { resetForm(); UI.toast('Saved'); return loadMonths(); })
+        .catch(function (err) { UI.toast(err.message || 'Save failed'); })
+        .then(function () { $('mgSave').disabled = false; });
+    });
+    $('mgReset').addEventListener('click', resetForm);
+    $('mgList').addEventListener('click', function (e) {
+      var ed = e.target.closest('[data-edit]'), del = e.target.closest('[data-del]');
+      if (ed) {
+        var m = months.filter(function (x) { return String(x.id) === ed.getAttribute('data-edit'); })[0]; if (!m) return;
+        form.mid.value = m.id; form.label.value = m.label || ''; form.sheetId.value = m.sheetId || ''; form.gid.value = m.gid || '0'; form.sort.value = m.sortOrder != null ? m.sortOrder : '';
+        $('mgSave').textContent = 'Update month'; form.label.focus();
+      }
+      if (del && confirm('Remove this month from the list?')) {
+        var id = del.getAttribute('data-del');
+        api('/api/important-sheets/unbilled/' + id, 'DELETE').then(function () { if (form.mid.value === id) resetForm(); UI.toast('Removed'); return loadMonths(); })
+          .catch(function (err) { UI.toast(err.message || 'Delete failed'); });
+      }
+    });
+    $('manageBtn').addEventListener('click', function () { $('manage').hidden = false; paintManage(); });
+    $('manage').addEventListener('click', function (e) { if (e.target === this || e.target.closest('[data-close]')) { this.hidden = true; resetForm(); } });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') $('manage').hidden = true; });
 
-        function getPortalProfile() {
-            try {
-                return JSON.parse(localStorage.getItem('mzo_user_profile') || '{}') || {};
-            } catch (_) {
-                return {};
-            }
-        }
+    $('billing').innerHTML = BILLING.map(function (b) { return row(b[0], b[1], b[2], b[3]); }).join('');
+    $('rem').innerHTML = REM.map(function (b) { return row(b[0], b[1], b[2], []); }).join('');
 
-        async function refreshProfileFromSession() {
-            try {
-                const res = await fetch('/api/session-check', {
-                    headers: { Accept: 'application/json' },
-                    credentials: 'same-origin'
-                });
-                if (!res.ok) return getPortalProfile();
-                const data = await res.json();
-                if (data.profile) {
-                    localStorage.setItem('mzo_authenticated', 'true');
-                    localStorage.setItem('mzo_user_profile', JSON.stringify(data.profile));
-                    return data.profile;
-                }
-            } catch (_) { /* ignore */ }
-            return getPortalProfile();
-        }
-
-        function monthKey(month) {
-            if (month.id != null) return `m${month.id}`;
-            return String(month.label || 'month').toLowerCase().replace(/[^a-z0-9]+/g, '-');
-        }
-
-        async function fetchCell(sheetId, range, elementId, prefix) {
-            if (!sheetId || sheetId === "#") return;
-            const el = document.getElementById(elementId);
-            if (!el) return;
-            const url = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&range=${range}`;
-            try {
-                const res = await fetch(url);
-                const text = await res.text();
-                const value = text.replace(/"/g, "").trim();
-                el.textContent = `${prefix}:${value || "0"}`;
-            } catch {
-                el.textContent = `${prefix}:—`;
-            }
-        }
-
-        function escapeAttr(s) {
-            return String(s || '')
-                .replace(/&/g, '&amp;')
-                .replace(/"/g, '&quot;')
-                .replace(/'/g, '&#39;')
-                .replace(/</g, '&lt;');
-        }
-
-        function renderUnbilledMonths() {
-            const container = document.getElementById("unbilled-months");
-            if (!container) return;
-            container.innerHTML = "";
-
-            const months = (unbilledMonths || []).filter((month) => {
-                const sheetId = month.sheetId || month.sheet_id;
-                return sheetId && sheetId !== "#";
-            });
-
-            if (!months.length) {
-                container.innerHTML = '<div class="child-link disabled"><span>No unbilled months configured yet.</span></div>';
-                return;
-            }
-
-            months.forEach(month => {
-                const sheetId = month.sheetId || month.sheet_id;
-                const gid = month.gid != null && String(month.gid).trim() !== '' ? String(month.gid) : '0';
-                const key = monthKey(month);
-                const viewLink = `https://docs.google.com/spreadsheets/d/${sheetId}/edit?gid=${gid}#gid=${gid}`;
-                const downloadLink = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=xlsx`;
-                const label = escapeAttr(month.label);
-                const safeView = escapeAttr(viewLink);
-
-                const row = document.createElement("div");
-                row.className = "child-link";
-                row.innerHTML = `
-    <a href="${safeView}" target="_blank" rel="noopener noreferrer">
-      <span>
-        ${label}
-        <span id="${key}-q" class="alert-badge">Q:—</span>
-        <span id="${key}-m" class="alert-badge">M:—</span>
-      </span>
-    </a>
-    <div>
-      <button type="button" class="whatsapp-button" data-url="${safeView}" data-label="${label} Unbilled">
-        <i class="fab fa-whatsapp"></i>
-      </button>
-      <a href="${escapeAttr(downloadLink)}" class="download-button">
-        <i class="fas fa-download"></i>
-      </a>
-    </div>`;
-                row.querySelector('.whatsapp-button')?.addEventListener('click', (e) => {
-                    const btn = e.currentTarget;
-                    shareOnWhatsApp(e, btn.getAttribute('data-url'), btn.getAttribute('data-label'));
-                });
-                container.appendChild(row);
-                fetchCell(sheetId, "D57", `${key}-q`, "Q");
-                fetchCell(sheetId, "E57", `${key}-m`, "M");
-            });
-        }
-
-        async function loadUnbilledMonths() {
-            try {
-                const res = await fetch('/api/important-sheets/unbilled', {
-                    headers: { Accept: 'application/json' },
-                    credentials: 'same-origin'
-                });
-                const data = await res.json();
-                if (!res.ok || data.status !== 'success') {
-                    throw new Error(data.message || 'Failed to load months');
-                }
-                unbilledMonths = Array.isArray(data.months) ? data.months : [];
-                // Empty catalog (table missing seed) → keep known months visible
-                if (!unbilledMonths.length) {
-                    console.warn('[unbilled] API returned no months; using fallback list');
-                    unbilledMonths = FALLBACK_UNBILLED_MONTHS.slice();
-                }
-            } catch (err) {
-                console.warn('[unbilled] API load failed, using fallback:', err.message);
-                unbilledMonths = FALLBACK_UNBILLED_MONTHS.slice();
-            }
-            renderUnbilledMonths();
-            // Keep the Unbilled group open so months are visible immediately
-            const header = document.querySelector('#unbilled-months')?.previousElementSibling;
-            const content = document.getElementById('unbilled-months');
-            if (header && content) {
-                header.classList.add('active');
-                content.style.display = 'block';
-            }
-            if (isSheetsAdmin) renderUnbilledManageList();
-        }
-
-        function openUnbilledManagePanel() {
-            document.getElementById('unbilledManageOverlay').classList.add('active');
-            renderUnbilledManageList();
-        }
-
-        function closeUnbilledManagePanel() {
-            document.getElementById('unbilledManageOverlay').classList.remove('active');
-            resetUnbilledForm();
-        }
-
-        function closeUnbilledManageOnOverlay(e) {
-            if (e.target.id === 'unbilledManageOverlay') closeUnbilledManagePanel();
-        }
-
-        function resetUnbilledForm() {
-            document.getElementById('unbilledEditId').value = '';
-            document.getElementById('unbilledLabel').value = '';
-            document.getElementById('unbilledSheetId').value = '';
-            document.getElementById('unbilledGid').value = '';
-            document.getElementById('unbilledSort').value = '';
-            document.getElementById('unbilledSaveBtn').textContent = 'Add month';
-        }
-
-        function editUnbilledMonth(id) {
-            const month = unbilledMonths.find(m => Number(m.id) === Number(id));
-            if (!month) return;
-            document.getElementById('unbilledEditId').value = String(month.id);
-            document.getElementById('unbilledLabel').value = month.label || '';
-            document.getElementById('unbilledSheetId').value = month.sheetId || '';
-            document.getElementById('unbilledGid').value = month.gid || '0';
-            document.getElementById('unbilledSort').value = month.sortOrder != null ? month.sortOrder : '';
-            document.getElementById('unbilledSaveBtn').textContent = 'Update month';
-        }
-
-        function renderUnbilledManageList() {
-            const list = document.getElementById('unbilledManageList');
-            if (!list) return;
-            if (!unbilledMonths.length) {
-                list.innerHTML = '<div class="meta">No months configured yet.</div>';
-                return;
-            }
-            list.innerHTML = unbilledMonths.map(m => `
-                <div class="unbilled-manage-item">
-                    <div>
-                        <strong>${escapeAttr(m.label)}</strong>
-                        <div class="meta">GID ${escapeAttr(m.gid || '0')} · order ${m.sortOrder ?? '-'}<br>${escapeAttr(m.sheetId)}</div>
-                    </div>
-                    <div style="display:flex; gap:6px; flex-shrink:0;">
-                        <button type="button" class="btn-mini secondary" data-edit="${m.id}">Edit</button>
-                        <button type="button" class="btn-mini danger" data-del="${m.id}">Remove</button>
-                    </div>
-                </div>
-            `).join('');
-            list.querySelectorAll('[data-edit]').forEach(btn => {
-                btn.addEventListener('click', () => editUnbilledMonth(btn.getAttribute('data-edit')));
-            });
-            list.querySelectorAll('[data-del]').forEach(btn => {
-                btn.addEventListener('click', () => deleteUnbilledMonth(btn.getAttribute('data-del')));
-            });
-        }
-
-        async function saveUnbilledMonth(e) {
-            e.preventDefault();
-            const id = document.getElementById('unbilledEditId').value.trim();
-            const sortRaw = document.getElementById('unbilledSort').value.trim();
-            const payload = {
-                label: document.getElementById('unbilledLabel').value.trim(),
-                sheetId: document.getElementById('unbilledSheetId').value.trim(),
-                gid: document.getElementById('unbilledGid').value.trim() || '0',
-                sortOrder: sortRaw ? Number(sortRaw) : undefined,
-                active: true
-            };
-            if (!payload.label || !payload.sheetId) {
-                alert('Label and Sheet ID are required.');
-                return;
-            }
-            const btn = document.getElementById('unbilledSaveBtn');
-            btn.disabled = true;
-            try {
-                const res = await fetch(id ? `/api/important-sheets/unbilled/${id}` : '/api/important-sheets/unbilled', {
-                    method: id ? 'PATCH' : 'POST',
-                    headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-                    credentials: 'same-origin',
-                    body: JSON.stringify(payload)
-                });
-                const data = await res.json();
-                if (!res.ok || data.status !== 'success') {
-                    throw new Error(data.message || 'Save failed');
-                }
-                resetUnbilledForm();
-                await loadUnbilledMonths();
-            } catch (err) {
-                alert(err.message || 'Save failed');
-            } finally {
-                btn.disabled = false;
-            }
-        }
-
-        async function deleteUnbilledMonth(id) {
-            if (!confirm('Remove this unbilled month from the list?')) return;
-            try {
-                const res = await fetch(`/api/important-sheets/unbilled/${id}`, {
-                    method: 'DELETE',
-                    headers: { Accept: 'application/json' },
-                    credentials: 'same-origin'
-                });
-                const data = await res.json();
-                if (!res.ok || data.status !== 'success') {
-                    throw new Error(data.message || 'Delete failed');
-                }
-                if (String(document.getElementById('unbilledEditId').value) === String(id)) {
-                    resetUnbilledForm();
-                }
-                await loadUnbilledMonths();
-            } catch (err) {
-                alert(err.message || 'Delete failed');
-            }
-        }
-
-        document.addEventListener('DOMContentLoaded', async () => {
-            const profile = await refreshProfileFromSession();
-            isSheetsAdmin = canManageImportantSheets(profile);
-            const manageBtn = document.getElementById('manageUnbilledBtn');
-            if (manageBtn && isSheetsAdmin) manageBtn.style.display = 'inline-flex';
-
-            async function fetchCellValue(sheetId, range, targetId) {
-                const url = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&range=${range}`;
-                try {
-                    const res = await fetch(url);
-                    const text = await res.text();
-                    const el = document.getElementById(targetId);
-                    if (el) el.textContent = text.replace(/"/g, '').trim() || 'N/A';
-                } catch (err) {
-                    const el = document.getElementById(targetId);
-                    if (el) el.textContent = 'N/A';
-                }
-            }
-
-            fetchCellValue('1g_YAYXocaaEDh42WpgT5jqzEwWMgwtvfrXP2J3Jh8lw', 'Q60', 'q60-value');
-            fetchCellValue('1gPNCdyhoGNZy5i6FFp2HBIHs4-4FelNWGWThmC8PeQE', 'J57', 'j57-value');
-            fetchCellValue('1It8j3Ic8mjoVf7ejljj1VrN7LEEnqg-9A8n7BY3UrQM', 'I56', 'less-unit-10');
-            fetchCellValue('1It8j3Ic8mjoVf7ejljj1VrN7LEEnqg-9A8n7BY3UrQM', 'M56', 'less-unit-0');
-
-            try {
-                const smUrl = 'https://docs.google.com/spreadsheets/d/18z-dWyTbw9jsrJtQ67UUL2TbT-QUgi_Q/export?format=csv&range=G63';
-                const smRes = await fetch(smUrl);
-                const smText = await smRes.text();
-                const smEl = document.getElementById('non-push-value');
-                if (smEl) {
-                    smEl.textContent = smText.replace(/"/g, '').trim();
-                    smEl.classList.add('highlight-value');
-                }
-            } catch (err) { /* ignore */ }
-
-            await loadUnbilledMonths();
-        });
-    </script>
-
-    <!-- Unbilled months: mzo_insight.important_unbilled_months (scripts/create_important_unbilled_months.sql) -->
-
+    var profile = {};
+    try { profile = JSON.parse(localStorage.getItem('mzo_user_profile') || '{}') || {}; } catch (e) {}
+    fetch('/api/session-check', { headers: { Accept: 'application/json' }, credentials: 'same-origin' })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (d) { if (d && d.profile) { profile = d.profile; try { localStorage.setItem('mzo_authenticated', 'true'); localStorage.setItem('mzo_user_profile', JSON.stringify(d.profile)); } catch (e) {} } })
+      .catch(function () {})
+      .then(function () { canManage = canManageSheets(profile); $('manageBtn').hidden = !canManage; return loadMonths(); });
+  });
+  </script>
 </body>
-
 </html>

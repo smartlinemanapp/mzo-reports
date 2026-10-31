@@ -1,79 +1,86 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="ui">
 <head>
-  <script src="mzo_theme.js?v=1"></script>
+  <script src="mzo_theme.js?v=3"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Panel - Structure Management</title>
     <style>
-        :root {
-            --primary-color: #005A9C; --secondary-color: #003366; --accent-color: #FDB813;
-            --light-gray: #f4f4f4; --medium-gray: #e0e0e0; --dark-gray: #333; --white: #ffffff;
-            --success-color: #28a745; --error-color: #dc3545;
-            --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-        }
-        body { font-family: var(--font-family); background-color: var(--light-gray); margin: 0; padding: 2rem; color: var(--dark-gray); }
-        .container { max-width: 1200px; margin: auto; background: var(--white); border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
-        .header { background-color: var(--secondary-color); color: var(--white); padding: 1rem 2rem; border-radius: 12px 12px 0 0; }
-        .header h1 { margin: 0; font-size: 1.75rem; }
-        .main-content { padding: 2rem; }
-        .structure-editor { display: flex; flex-direction: column; gap: 1.5rem; }
-        .structure-card { border: 1px solid var(--medium-gray); border-radius: 8px; background: #fdfdfd; }
-        .structure-header { background: var(--light-gray); padding: 0.75rem 1.5rem; font-weight: 600; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--medium-gray); }
-        .structure-body { padding: 1.5rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; }
+        body { margin: 0; font: 13px/1.5 var(--mzo-font); background: var(--mzo-bg); color: var(--mzo-text); }
+        .container { max-width: 1200px; margin: 0 auto; padding: 24px 28px 72px; }
+        .header { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; margin-bottom: 20px; }
+        .header h1 { margin: 0; font-size: 20px; line-height: 1.3; font-weight: 600; letter-spacing: -0.015em; }
+        .header p { margin: 3px 0 0; font-size: 13px; color: var(--mzo-muted); }
+        .main-content { padding: 0; }
+        .structure-editor { display: flex; flex-direction: column; gap: 16px; }
+        .section-card, .structure-card { background: var(--mzo-surface); border: 1px solid var(--mzo-border); border-radius: 10px; overflow: hidden; margin-bottom: 16px; }
+        .section-header, .structure-header { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; min-height: 50px; padding: 9px 12px 9px 16px; border-bottom: 1px solid var(--mzo-border); font-size: 14px; font-weight: 600; }
+        .section-body { padding: 0; }
+        .structure-body { padding: 16px; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
+        .toolbar-inline { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
         .form-group { display: flex; flex-direction: column; }
-        .form-group label { font-weight: 600; margin-bottom: 0.5rem; font-size: 0.9rem; }
-        .form-group input, .form-group textarea { width: 100%; padding: 0.75rem; font-size: 1rem; border: 1px solid var(--medium-gray); border-radius: 4px; box-sizing: border-box; }
-        .form-group textarea { min-height: 120px; resize: vertical; }
-        .btn { padding: 0.75rem 1.5rem; font-size: 1rem; font-weight: 600; border: none; border-radius: 4px; cursor: pointer; transition: background-color 0.2s; }
-        .btn-primary { background-color: var(--primary-color); color: var(--white); }
-        .btn-primary:hover { background-color: var(--secondary-color); }
-        .btn-danger { background-color: var(--error-color); color: var(--white); }
-        .btn-success { background-color: var(--success-color); color: var(--white); }
-        .toolbar { padding: 1rem 2rem; text-align: right; border-top: 1px solid var(--medium-gray); background: var(--light-gray); border-radius: 0 0 12px 12px; }
-        .notification { padding: 1rem; margin: 0 2rem 1rem; border-radius: 4px; text-align: center; font-weight: 600; display: none; }
-        .notification.success { background-color: #d4edda; color: #155724; }
-        .notification.error { background-color: #f8d7da; color: #721c24; }
-        .loader { text-align: center; padding: 3rem; }
-        .section-card { border: 1px solid var(--medium-gray); border-radius: 8px; background: #fdfdfd; margin-bottom: 1.5rem; overflow: hidden; }
-        .section-header { background: var(--light-gray); padding: 0.9rem 1.5rem; font-weight: 600; display: flex; justify-content: space-between; align-items: center; gap: 1rem; border-bottom: 1px solid var(--medium-gray); }
-        .section-body { padding: 1rem 1.5rem 1.5rem; }
-        .toolbar-inline { display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center; }
-        .search-input { min-width: 240px; padding: 0.75rem; font-size: 0.95rem; border: 1px solid var(--medium-gray); border-radius: 4px; }
-        .table-wrap { overflow-x: auto; border: 1px solid var(--medium-gray); border-radius: 8px; }
-        .user-table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
-        .user-table th, .user-table td { padding: 0.8rem 0.9rem; border-bottom: 1px solid var(--medium-gray); text-align: left; vertical-align: top; }
-        .user-table th { background: var(--light-gray); font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.04em; }
-        .user-table .actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
-        .muted { color: #666; font-size: 0.9rem; }
-        .badge { display: inline-block; padding: 0.2rem 0.5rem; border-radius: 999px; font-size: 0.75rem; font-weight: 700; }
-        .badge-admin { background: #dbeafe; color: #1d4ed8; }
-        .badge-user { background: #e5e7eb; color: #374151; }
-        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); display: none; align-items: center; justify-content: center; padding: 1rem; z-index: 1000; }
+        .form-group label { font-size: 12.5px; font-weight: 500; color: var(--mzo-text-2); margin-bottom: 4px; }
+        .form-group input, .form-group textarea, .search-input {
+          width: 100%; height: 32px; padding: 0 10px; font: 13px var(--mzo-font);
+          border: 1px solid var(--mzo-border-strong); border-radius: 7px;
+          background: var(--mzo-input); color: var(--mzo-text); outline: none;
+        }
+        .form-group textarea { height: auto; min-height: 110px; padding: 8px 10px; resize: vertical; line-height: 1.5; }
+        .form-group input:focus, .form-group textarea:focus, .search-input:focus { border-color: var(--mzo-accent); box-shadow: var(--mzo-ring); }
+        input::placeholder, textarea::placeholder { color: var(--mzo-faint); }
+        .search-input { width: 240px; }
+        .btn {
+          height: 32px; padding: 0 12px; display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+          font: 500 13px var(--mzo-font); white-space: nowrap; cursor: pointer;
+          border-radius: 7px; border: 1px solid var(--mzo-border-strong);
+          background: var(--mzo-surface); color: var(--mzo-text);
+          transition: background-color .12s, border-color .12s;
+        }
+        .btn:hover { background: var(--mzo-hover); }
+        .btn-primary, .btn-success { background: var(--mzo-fill); border-color: var(--mzo-fill); color: var(--mzo-on-fill); }
+        .btn-primary:hover, .btn-success:hover { background: var(--mzo-fill-hover); border-color: var(--mzo-fill-hover); }
+        .btn-danger { color: var(--mzo-bad); }
+        .btn-danger:hover { background: var(--mzo-bad-soft); }
+        .toolbar { position: sticky; bottom: 0; display: flex; justify-content: flex-end; gap: 8px; padding: 12px 0; margin-top: 8px; background: var(--mzo-bg); border-top: 1px solid var(--mzo-border); }
+        .notification { padding: 10px 14px; margin: 0 0 16px; border-radius: 8px; font-weight: 500; display: none; }
+        .notification.success { background: var(--mzo-ok-soft); color: var(--mzo-ok); }
+        .notification.error { background: var(--mzo-bad-soft); color: var(--mzo-bad); }
+        .loader { text-align: center; padding: 40px 16px; color: var(--mzo-muted); }
+        .table-wrap { overflow-x: auto; }
+        .user-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 13px; font-variant-numeric: tabular-nums; }
+        .user-table th, .user-table td { padding: 9px 12px; border-bottom: 1px solid var(--mzo-border); text-align: left; vertical-align: middle; }
+        .user-table th:first-child, .user-table td:first-child { padding-left: 16px; }
+        .user-table th { position: sticky; top: 0; background: var(--mzo-surface); font-size: 12px; font-weight: 500; color: var(--mzo-muted); white-space: nowrap; }
+        .user-table tbody tr:hover td { background: var(--mzo-row-hover); }
+        .user-table tbody tr:last-child td { border-bottom: 0; }
+        .user-table .actions { display: flex; gap: 6px; flex-wrap: wrap; }
+        .user-table .actions .btn { height: 28px; padding: 0 10px; font-size: 12.5px; }
+        .muted { color: var(--mzo-muted); }
+        .badge { display: inline-flex; align-items: center; height: 20px; padding: 0 7px; border-radius: 6px; font-size: 11.5px; font-weight: 500; background: var(--mzo-surface-2); color: var(--mzo-text-2); box-shadow: inset 0 0 0 1px var(--mzo-border); }
+        .badge-admin { background: var(--mzo-fill); color: var(--mzo-on-fill); box-shadow: none; }
+        .modal-overlay { position: fixed; inset: 0; background: var(--mzo-scrim); display: none; align-items: center; justify-content: center; padding: 16px; z-index: 1000; }
         .modal-overlay.active { display: flex; }
-        .modal-card { width: min(780px, 100%); max-height: 90vh; overflow-y: auto; background: var(--white); border-radius: 12px; box-shadow: 0 20px 50px rgba(0,0,0,0.18); }
-        .modal-header { padding: 1rem 1.5rem; border-bottom: 1px solid var(--medium-gray); display: flex; justify-content: space-between; align-items: center; }
-        .modal-body { padding: 1.25rem 1.5rem; display: grid; gap: 1rem; }
-        .modal-footer { padding: 1rem 1.5rem; border-top: 1px solid var(--medium-gray); display: flex; justify-content: flex-end; gap: 0.75rem; }
-        .form-grid { display: grid; grid-template-columns: repeat(2, minmax(220px, 1fr)); gap: 1rem; }
+        .modal-card { width: min(760px, 100%); max-height: 90vh; overflow-y: auto; background: var(--mzo-surface); border: 1px solid var(--mzo-border); border-radius: 12px; box-shadow: var(--mzo-shadow-pop); }
+        .modal-header { position: sticky; top: 0; z-index: 1; background: var(--mzo-surface); padding: 14px 16px 14px 20px; border-bottom: 1px solid var(--mzo-border); display: flex; justify-content: space-between; align-items: center; }
+        .modal-header h2 { margin: 0; font-size: 15px; font-weight: 600; }
+        .modal-body { padding: 18px 20px; display: grid; gap: 14px; }
+        .modal-footer { padding: 12px 20px; border-top: 1px solid var(--mzo-border); display: flex; justify-content: flex-end; gap: 8px; }
+        .form-grid { display: grid; grid-template-columns: repeat(2, minmax(200px, 1fr)); gap: 14px; }
         .form-grid .span-2 { grid-column: 1 / -1; }
-        .btn-secondary { background-color: #6b7280; color: var(--white); }
-        .btn-secondary:hover { background-color: #4b5563; }
-        @media (max-width: 768px) {
-            body { padding: 1rem; }
-            .main-content { padding: 1rem; }
-            .toolbar, .section-header, .toolbar-inline { flex-direction: column; align-items: stretch; }
-            .search-input { min-width: 0; width: 100%; }
+        @media (max-width: 760px) {
+            .container { padding: 16px 14px 56px; }
+            .section-header, .toolbar-inline { flex-direction: column; align-items: stretch; }
+            .search-input { width: 100%; }
             .form-grid { grid-template-columns: 1fr; }
         }
-    </style>
-  <link rel="stylesheet" href="mzo_theme.css?v=1" />
+</style>
+  <link rel="stylesheet" href="mzo_theme.css?v=3" />
 </head>
 <body>
 
 <div class="container">
     <div class="header">
-        <h1>Admin Panel: Structure Management</h1>
+        <div><h1>Structure</h1><p>Estimate structures and portal users</p></div>
     </div>
 
     <div id="notification" class="notification"></div>
@@ -81,11 +88,11 @@
     <div class="main-content">
         <div class="section-card">
             <div class="section-header">
-                <span>User Management</span>
+                <span>Users</span>
                 <div class="toolbar-inline">
                     <input type="text" id="userSearch" class="search-input" placeholder="Search users..." oninput="filterUsers()">
-                    <button class="btn btn-secondary" onclick="refreshUsers()">Refresh Users</button>
-                    <button class="btn btn-primary" onclick="openUserModal()">Add New User</button>
+                    <button class="btn btn-secondary" onclick="refreshUsers()">Refresh</button>
+                    <button class="btn btn-primary" onclick="openUserModal()">Add user</button>
                 </div>
             </div>
             <div class="section-body">
@@ -118,15 +125,15 @@
     </div>
 
     <div class="toolbar">
-        <button class="btn btn-primary" onclick="addNewStructure()">Add New Structure</button>
-        <button class="btn btn-success" onclick="saveAllChanges()">Save All Changes</button>
+        <button class="btn btn-primary" onclick="addNewStructure()">Add structure</button>
+        <button class="btn btn-success" onclick="saveAllChanges()">Save changes</button>
     </div>
 </div>
 
 <div id="userModal" class="modal-overlay" onclick="closeModalOnOverlay(event)">
     <div class="modal-card">
         <div class="modal-header">
-            <h2 id="userModalTitle">Add New User</h2>
+            <h2 id="userModalTitle">Add user</h2>
             <button class="btn btn-danger" type="button" onclick="closeUserModal()">Close</button>
         </div>
         <form id="userForm" onsubmit="saveUser(event)">

@@ -1,6 +1,7 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="ui">
 <head>
+  <script src="/mzo_theme.js?v=3"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>DTR Load Measurement</title>
@@ -38,28 +39,27 @@
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 <style>
   :root {
-    /* Professional, compact palette */
-    --bg-dark: #0b1220;      /* deep navy */
-    --bg-card: #0f1724;      /* slightly lighter card */
-    --bg-input: #0f2133;     /* input background */
-    --text-primary: #e6eef8; /* soft white/blue */
-    --text-secondary: #9fb0c8; /* muted text */
-    --accent: #2b8cff;       /* brand blue */
-    --accent-2: #1fb6ff;     /* lighter accent */
-    --accent-hover: #1677cc; /* hover darker */
-    --success: #27b36a;
-    --error: #ff6b6b;
-    --warning: #f6b24a;
-    --border: rgba(255,255,255,0.06);
-    --shadow: 0 6px 18px rgba(6,12,24,0.6);
-    --radius: 12px;
-    --compact-gap: 0.6rem;
+    --bg-dark: var(--mzo-bg);
+    --bg-card: var(--mzo-surface);
+    --bg-input: var(--mzo-input);
+    --text-primary: var(--mzo-text);
+    --text-secondary: var(--mzo-muted);
+    --accent: var(--mzo-accent);
+    --accent-2: var(--mzo-accent);
+    --accent-hover: var(--mzo-fill-hover);
+    --success: var(--mzo-ok);
+    --error: var(--mzo-bad);
+    --warning: var(--mzo-warn);
+    --border: var(--mzo-border);
+    --shadow: none;
+    --radius: 10px;
+    --compact-gap: 8px;
   }
 
   * { box-sizing: border-box; }
 
   body {
-    background: linear-gradient(135deg, var(--bg-dark) 0%, #0f172a 50%, #1e1b4b 100%);
+    background: linear-gradient(135deg, var(--bg-dark) 0%, var(--mzo-surface, #0f172a) 50%, #1e1b4b 100%);
     color: var(--text-primary);
     font-family: 'SF Pro Display', 'Segoe UI', 'Inter', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
     min-height: 100vh;
@@ -142,7 +142,7 @@
   .search-input:focus {
     outline: none;
     border-color: var(--accent);
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    box-shadow: 0 0 0 3px transparent;
   }
 
   .search-input::placeholder {
@@ -163,7 +163,7 @@
   }
 
   .btn-primary {
-    background: linear-gradient(180deg, var(--accent), var(--accent-2));
+    background: linear-gradient(180deg, var(--mzo-fill, var(--accent)), var(--accent-2));
     color: white;
     box-shadow: 0 6px 18px rgba(33, 110, 255, 0.12);
   }
@@ -274,7 +274,7 @@
   .form-control:focus, .form-select:focus {
     outline: none;
     border-color: var(--accent);
-    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.1);
+    box-shadow: 0 0 0 2px transparent;
   }
 
   .form-control::placeholder {
@@ -298,7 +298,7 @@
 
   .load-input.red { border-left: 3px solid #ef4444; }
   .load-input.yellow { border-left: 3px solid #eab308; }
-  .load-input.blue { border-left: 3px solid #3b82f6; }
+  .load-input.blue { border-left: 3px solid var(--mzo-text, #3b82f6); }
   .load-input.green { border-left: 3px solid #10b981; } /* Style for Neutral */
 
 
@@ -630,7 +630,7 @@
 }
 
 #allDataTable tbody tr:hover {
-  background-color: rgba(99, 102, 241, 0.15); /* Slightly more visible hover */
+  background-color: var(--mzo-surface-2, rgba(99, 102, 241, 0.15)); /* Slightly more visible hover */
 }
 
 #allDataTable tbody td {
@@ -659,7 +659,7 @@
 }
 
 /* Pagination styling */
-.page-item.active .page-link { background-color: var(--accent); border-color: var(--accent); }
+.page-item.active .page-link { background-color: var(--mzo-fill, var(--accent)); border-color: var(--accent); }
 .page-link { background-color: var(--bg-input); border-color: var(--border); color: var(--text-primary); }
 .page-link:hover { background-color: var(--bg-card); color: var(--accent); }
 .page-item.disabled .page-link { background-color: var(--bg-input); border-color: var(--border); color: var(--text-secondary); }
@@ -667,7 +667,7 @@
 /* Responsive styles for collapsed rows */
 table.dataTable.dtr-inline.collapsed>tbody>tr>td.dtr-control:before,
 table.dataTable.dtr-inline.collapsed>tbody>tr>th.dtr-control:before {
-  background-color: var(--accent);
+  background-color: var(--mzo-surface-2, var(--accent));
   border: 2px solid var(--bg-card);
   box-shadow: none;
   top: 50%;
@@ -711,27 +711,216 @@ table.dataTable.dtr-inline.collapsed>tbody>tr.parent>th.dtr-control:before {
   font-weight: 600;
 }
 </style>
+  <link rel="stylesheet" href="/mzo_theme.css?v=3" />
+  <style id="mzo-skin">
+/* MZO tool skin: Bootstrap components on the design tokens (page-local, html.ui) */
+html.ui body { margin: 0; padding: 0 !important; font: 13px/1.5 var(--mzo-font); background: var(--mzo-bg); color: var(--mzo-text); --bs-body-bg: var(--mzo-bg); --bs-body-color: var(--mzo-text); --bs-border-color: var(--mzo-border); --bs-emphasis-color: var(--mzo-text); --bs-secondary-color: var(--mzo-muted); }
+html.ui :is(.container, .container-fluid) { max-width: 1280px; margin: 0 auto; padding: 24px 28px 72px; background: transparent; border: 0; box-shadow: none; }
+html.ui :is(h1, h2, h3, h4, h5, h6) { color: var(--mzo-text); letter-spacing: -0.01em; text-shadow: none; }
+html.ui .tool-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px 24px; flex-wrap: wrap; margin: 0 0 20px; padding: 0; background: none; border: 0; }
+html.ui .tool-head h1 { margin: 0; font-size: 20px; line-height: 1.3; font-weight: 600; letter-spacing: -0.015em; }
+html.ui .tool-head p { margin: 3px 0 0; font-size: 13px; color: var(--mzo-muted); }
+html.ui .tool-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+html.ui i.fas, html.ui i.far, html.ui i.fa { color: inherit; }
+html.ui .text-muted, html.ui .form-text { color: var(--mzo-muted) !important; }
+html.ui .text-white { color: inherit !important; }
+html.ui .text-primary { color: var(--mzo-accent) !important; }
+html.ui .text-danger { color: var(--mzo-bad) !important; }
+html.ui .text-success { color: var(--mzo-ok) !important; }
+html.ui .text-warning { color: var(--mzo-warn) !important; }
+html.ui :is(.bg-primary, .bg-info, .bg-success, .bg-warning, .bg-dark, .bg-secondary, .bg-light, .bg-white):not(.badge) { background: var(--mzo-surface) !important; color: var(--mzo-text) !important; }
+html.ui .shadow, html.ui .shadow-sm, html.ui .shadow-lg { box-shadow: none !important; }
+
+/* Panels */
+html.ui .card { background: var(--mzo-surface); border: 1px solid var(--mzo-border); border-radius: 10px; box-shadow: none; overflow: hidden; color: var(--mzo-text); --bs-card-bg: var(--mzo-surface); }
+html.ui .card-header { display: flex; align-items: center; gap: 8px; min-height: 48px; padding: 10px 16px; background: var(--mzo-surface) !important; color: var(--mzo-text) !important; border: 0; border-bottom: 1px solid var(--mzo-border); box-shadow: none; font-size: 14px; font-weight: 600; }
+html.ui .card-header i { color: var(--mzo-muted) !important; }
+html.ui .card-body { padding: 16px; }
+html.ui .card-body:has(> .table-responsive:only-child), html.ui .card-body:has(> .table:only-child) { padding: 0; }
+html.ui .table > :not(caption) > * > :first-child { padding-left: 16px; }
+html.ui .table > :not(caption) > * > :last-child { padding-right: 16px; }
+html.ui .card-footer { background: var(--mzo-surface); border-top: 1px solid var(--mzo-border); }
+
+/* Form controls */
+html.ui :is(.form-control, .form-select) { min-height: 32px; height: 32px; padding: 0 10px; font: 13px var(--mzo-font); border-radius: 7px; border: 1px solid var(--mzo-border-strong); background-color: var(--mzo-input); color: var(--mzo-text); box-shadow: none; }
+html.ui .form-select { padding-right: 28px; background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%238e8e96' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.6' d='m4 6 4 4 4-4'/%3e%3c/svg%3e"); background-repeat: no-repeat; background-position: right 8px center; background-size: 14px; -webkit-appearance: none; appearance: none; }
+html.ui .form-control:not(.form-select) { background-image: none; }
+html.ui textarea.form-control { height: auto; padding: 8px 10px; }
+html.ui :is(.form-control, .form-select):focus { border-color: var(--mzo-accent); box-shadow: var(--mzo-ring); outline: none; }
+html.ui :is(.form-control, .form-select):disabled, html.ui .form-control[readonly] { background-color: var(--mzo-surface-2); color: var(--mzo-text-2); }
+html.ui .form-control::placeholder { color: var(--mzo-faint); }
+html.ui input[type="date"].form-control { color-scheme: inherit; }
+html.ui .form-label { margin-bottom: 4px; font-size: 12.5px; font-weight: 500; color: var(--mzo-text-2); }
+html.ui .input-group-text { height: 32px; padding: 0 10px; font-size: 12.5px; background: var(--mzo-surface-2); color: var(--mzo-muted); border: 1px solid var(--mzo-border-strong); border-radius: 7px; box-shadow: none; }
+html.ui .input-group > :not(:first-child) { border-top-left-radius: 0; border-bottom-left-radius: 0; }
+html.ui .input-group > :not(:last-child) { border-top-right-radius: 0; border-bottom-right-radius: 0; }
+html.ui :is(.form-check-input) { background-color: var(--mzo-input); border-color: var(--mzo-border-strong); }
+html.ui .form-check-input:checked { background-color: var(--mzo-fill); border-color: var(--mzo-fill); }
+html.ui .form-check-input:focus { box-shadow: var(--mzo-ring); border-color: var(--mzo-accent); }
+
+/* Buttons */
+html.ui .btn { --bs-btn-padding-y: 0; min-height: 32px; padding: 0 12px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; font: 500 13px/1 var(--mzo-font); white-space: nowrap; border-radius: 7px; border: 1px solid var(--mzo-border-strong); background: var(--mzo-surface); background-image: none; color: var(--mzo-text); box-shadow: none; transform: none; text-shadow: none; transition: background-color .12s, border-color .12s, color .12s; }
+html.ui .btn:hover { background: var(--mzo-hover); color: var(--mzo-text); border-color: var(--mzo-border-strong); transform: none; box-shadow: none; }
+html.ui .btn:focus-visible { box-shadow: var(--mzo-ring); }
+html.ui .btn-sm { min-height: 28px; padding: 0 10px; font-size: 12.5px; }
+html.ui .btn-lg { min-height: 38px; padding: 0 16px; font-size: 14px; }
+html.ui :is(.btn-primary, .btn-success, .btn-dark, .btn-info) { background: var(--mzo-fill); border-color: var(--mzo-fill); color: var(--mzo-on-fill); }
+html.ui :is(.btn-primary, .btn-success, .btn-dark, .btn-info):hover { background: var(--mzo-fill-hover); border-color: var(--mzo-fill-hover); color: var(--mzo-on-fill); }
+html.ui :is(.btn-primary, .btn-success, .btn-dark, .btn-info) i { color: inherit !important; }
+html.ui .btn-danger { background: var(--mzo-surface); color: var(--mzo-bad); }
+html.ui .btn-danger:hover { background: var(--mzo-bad-soft); color: var(--mzo-bad); }
+html.ui .btn-warning { background: var(--mzo-warn-soft); border-color: transparent; color: var(--mzo-warn); }
+html.ui .btn-link { border-color: transparent; background: none; color: var(--mzo-accent); }
+html.ui .btn-check:checked + .btn, html.ui .btn.active { background: var(--mzo-fill); border-color: var(--mzo-fill); color: var(--mzo-on-fill); box-shadow: none; }
+html.ui .btn-group > .btn:not(:first-child), html.ui .btn-group > .btn-check + .btn:not(:first-of-type) { margin-left: -1px; }
+html.ui .btn-close { opacity: .55; filter: none; box-shadow: none; }
+html[data-mzo-theme="dark"].ui .btn-close { filter: invert(1) grayscale(1) brightness(1.8); }
+
+/* Tabs */
+html.ui .nav-tabs { display: flex; flex-wrap: wrap; gap: 4px 20px; border-bottom: 1px solid var(--mzo-border); padding: 0; margin-bottom: 16px; }
+html.ui .nav-tabs .nav-item { margin: 0; }
+html.ui .nav-tabs .nav-link { position: static; top: 0; display: inline-flex; align-items: center; gap: 7px; margin: 0 0 -1px; padding: 9px 0; font-weight: 500; font-size: 13px; color: var(--mzo-muted); background: none; border: 0; border-bottom: 2px solid transparent; border-radius: 0; box-shadow: none; transform: none; }
+html.ui .nav-tabs .nav-link:hover { color: var(--mzo-text); background: none; }
+html.ui .nav-tabs .nav-link.active { color: var(--mzo-text); background: none; border-bottom-color: var(--mzo-text); box-shadow: none; }
+html.ui .nav-pills .nav-link { color: var(--mzo-muted); border-radius: 6px; }
+html.ui .nav-pills .nav-link.active { background: var(--mzo-surface-2); color: var(--mzo-text); box-shadow: inset 0 0 0 1px var(--mzo-border); }
+html.ui .tab-content { background: none; border: 0; box-shadow: none; padding: 0; min-height: 0; }
+
+/* Tables */
+html.ui .table-responsive { border: 1px solid var(--mzo-border); border-radius: 10px; background: var(--mzo-surface); }
+html.ui .card .table-responsive { border: 0; border-radius: 0; }
+html.ui .table { --bs-table-bg: transparent; --bs-table-color: var(--mzo-text); --bs-table-striped-bg: transparent; --bs-table-striped-color: var(--mzo-text); --bs-table-hover-bg: var(--mzo-row-hover); --bs-table-border-color: var(--mzo-border); --bs-table-accent-bg: transparent; margin: 0; width: 100%; font-size: 13px; color: var(--mzo-text); border: 0; border-collapse: separate; border-spacing: 0; font-variant-numeric: tabular-nums; }
+html.ui .table > :not(caption) > * > * { padding: 9px 12px; background: transparent; color: var(--mzo-text); border: 0; border-bottom: 1px solid var(--mzo-border); box-shadow: none; vertical-align: middle; }
+html.ui .table thead th, html.ui .table > thead > tr > th { position: sticky; top: 0; z-index: 1; background: var(--mzo-surface); color: var(--mzo-muted); font-size: 12px; font-weight: 500; white-space: nowrap; box-shadow: none; text-transform: none; letter-spacing: 0; }
+html.ui .table thead th i { color: var(--mzo-faint); font-size: 10px; }
+html.ui .table tbody tr:hover > * { background: var(--mzo-row-hover); }
+html.ui .table tbody tr:last-child > * { border-bottom: 0; }
+html.ui .table tfoot > tr > * { background: var(--mzo-surface-2); font-weight: 600; border-top: 1px solid var(--mzo-border); border-bottom: 0; }
+html.ui .table :is(.table-active, .table-primary, .table-info, .table-light, .table-secondary) > * { background: var(--mzo-surface-2); }
+html.ui .table-dark, html.ui .thead-dark, html.ui .table-light { --bs-table-bg: var(--mzo-surface); --bs-table-color: var(--mzo-text); }
+
+/* Badges, alerts, pagination */
+html.ui .badge { display: inline-flex; align-items: center; height: 20px; padding: 0 7px; border-radius: 6px; font-size: 11.5px; font-weight: 500; background: var(--mzo-surface-2) !important; color: var(--mzo-text-2) !important; box-shadow: inset 0 0 0 1px var(--mzo-border); }
+html.ui .badge:is(.bg-success, .text-bg-success) { background: var(--mzo-ok-soft) !important; color: var(--mzo-ok) !important; box-shadow: none; }
+html.ui .badge:is(.bg-danger, .text-bg-danger) { background: var(--mzo-bad-soft) !important; color: var(--mzo-bad) !important; box-shadow: none; }
+html.ui .badge:is(.bg-warning, .text-bg-warning) { background: var(--mzo-warn-soft) !important; color: var(--mzo-warn) !important; box-shadow: none; }
+html.ui .alert { border-radius: 8px; border: 1px solid var(--mzo-border); background: var(--mzo-surface-2); color: var(--mzo-text); box-shadow: none; }
+html.ui .alert-danger { background: var(--mzo-bad-soft); border-color: transparent; }
+html.ui .alert-success { background: var(--mzo-ok-soft); border-color: transparent; }
+html.ui .alert-warning { background: var(--mzo-warn-soft); border-color: transparent; }
+html.ui .page-link { background: var(--mzo-surface); color: var(--mzo-text); border-color: var(--mzo-border); }
+html.ui .page-item.active .page-link { background: var(--mzo-fill); border-color: var(--mzo-fill); color: var(--mzo-on-fill); }
+html.ui .page-item.disabled .page-link { background: var(--mzo-surface); color: var(--mzo-faint); }
+html.ui .dropdown-menu { background: var(--mzo-surface); border: 1px solid var(--mzo-border); border-radius: 8px; box-shadow: var(--mzo-shadow-pop); }
+html.ui .dropdown-item { color: var(--mzo-text); }
+html.ui .dropdown-item:hover { background: var(--mzo-hover); color: var(--mzo-text); }
+html.ui .list-group-item { background: var(--mzo-surface); color: var(--mzo-text); border-color: var(--mzo-border); }
+
+/* Modals */
+html.ui .modal-backdrop.show { opacity: 1; background: var(--mzo-scrim); }
+html.ui .modal-content { background: var(--mzo-surface); color: var(--mzo-text); border: 1px solid var(--mzo-border); border-radius: 12px; box-shadow: var(--mzo-shadow-pop); }
+html.ui .modal-header { padding: 14px 18px; background: var(--mzo-surface) !important; color: var(--mzo-text) !important; border-bottom: 1px solid var(--mzo-border); border-radius: 12px 12px 0 0; }
+html.ui .modal-title { font-size: 15px; font-weight: 600; color: var(--mzo-text) !important; }
+html.ui .modal-title i { color: var(--mzo-muted) !important; }
+html.ui .modal-body { padding: 18px; }
+html.ui .modal-footer { padding: 12px 18px; border-top: 1px solid var(--mzo-border); }
+
+/* Spinners, overlays */
+html.ui .spinner-border { color: var(--mzo-muted); }
+html.ui #loadingOverlay, html.ui .loading-overlay { background: color-mix(in srgb, var(--mzo-bg) 90%, transparent) !important; color: var(--mzo-muted) !important; font: 500 13px var(--mzo-font) !important; backdrop-filter: none !important; }
+
+/* Scrollbars */
+html.ui * { scrollbar-width: thin; scrollbar-color: var(--mzo-border-strong) transparent; }
+
+@media (max-width: 760px) {
+  html.ui :is(.container, .container-fluid) { padding: 16px 14px 56px; }
+  html.ui .tool-head { margin-bottom: 14px; }
+}
+
+/* Peak load measurements */
+html.ui body { background: var(--mzo-bg) !important; }
+html.ui .floating-shapes, html.ui .shape { display: none !important; }
+html.ui .container { max-width: 980px; }
+html.ui .main-card { background: none; border: 0; box-shadow: none; backdrop-filter: none; padding: 0; animation: none; }
+html.ui .main-card > .header { display: block; margin: 0 0 20px; padding: 0; background: none; border: 0; text-align: left; }
+html.ui .main-card > .header h1 { margin: 0; font-size: 20px; line-height: 1.3; font-weight: 600; letter-spacing: -0.015em; color: var(--mzo-text); background: none; -webkit-text-fill-color: currentColor; }
+html.ui .main-card > .header p { margin: 3px 0 0; color: var(--mzo-muted); font-size: 13px; }
+html.ui .search-container { display: flex; gap: 8px; margin-bottom: 16px; }
+html.ui .search-input { flex: 1; height: 32px; padding: 0 10px; font: 13px var(--mzo-font); border-radius: 7px; border: 1px solid var(--mzo-border-strong); background: var(--mzo-input); color: var(--mzo-text); box-shadow: none; }
+html.ui .search-input:focus { border-color: var(--mzo-accent); box-shadow: var(--mzo-ring); outline: none; }
+html.ui .search-input::placeholder { color: var(--mzo-faint); }
+html.ui .search-results-compact { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 0; margin: 0 0 16px; padding: 0; background: var(--mzo-surface); border: 1px solid var(--mzo-border); border-radius: 10px; box-shadow: none; overflow: hidden; }
+html.ui .search-result-item { padding: 10px 14px; border: 0; background: none; box-shadow: 1px 0 0 var(--mzo-border), 0 1px 0 var(--mzo-border); border-radius: 0; }
+html.ui .search-result-label { font-size: 12px; color: var(--mzo-muted); }
+html.ui .search-result-value { font-size: 13.5px; font-weight: 500; color: var(--mzo-text); font-variant-numeric: tabular-nums; }
+html.ui .form-section { background: var(--mzo-surface); border: 1px solid var(--mzo-border); border-radius: 10px; padding: 16px; box-shadow: none; animation: none; }
+html.ui .form-section h5 { margin: 0 0 14px; font-size: 14px; font-weight: 600; color: var(--mzo-text); }
+html.ui .form-row { gap: 12px; margin-bottom: 12px; align-items: end; }
+html.ui .form-group { margin-bottom: 0; }
+html.ui .load-grid { gap: 8px; margin-bottom: 12px; }
+html.ui .load-input { background: var(--mzo-input) !important; padding-left: 26px !important; background-repeat: no-repeat !important; background-position: 10px center !important; background-size: 8px 8px !important; }
+html.ui .load-input.red { background-image: radial-gradient(circle, #dc2626 60%, transparent 62%) !important; }
+html.ui .load-input.yellow { background-image: radial-gradient(circle, #ca8a04 60%, transparent 62%) !important; }
+html.ui .load-input.blue { background-image: radial-gradient(circle, #2563eb 60%, transparent 62%) !important; }
+html.ui .load-input.green { background-image: radial-gradient(circle, var(--mzo-faint) 60%, transparent 62%) !important; }
+html.ui .error-msg { padding: 10px 14px; border-radius: 8px; border: 0; background: var(--mzo-bad-soft); color: var(--mzo-bad); font-weight: 500; }
+html.ui .success-msg { padding: 10px 14px; border-radius: 8px; border: 0; background: var(--mzo-ok-soft); color: var(--mzo-ok); font-weight: 500; }
+html.ui .loading { border-color: var(--mzo-border-strong); border-top-color: var(--mzo-text); }
+html.ui .btn .spinner { border-color: rgba(255,255,255,.35); border-top-color: #fff; }
+html.ui .modal { background: var(--mzo-scrim); backdrop-filter: none; animation: none; }
+html.ui .modal-content { background: var(--mzo-surface); border: 1px solid var(--mzo-border); border-radius: 12px; box-shadow: var(--mzo-shadow-pop); padding: 0; animation: none; overflow: hidden; }
+html.ui .modal-header { display: flex; align-items: center; gap: 8px; }
+html.ui .modal-actions { padding: 12px 18px; border-top: 1px solid var(--mzo-border); gap: 8px; }
+html.ui .close { width: 30px; height: 30px; display: grid; place-items: center; border-radius: 6px; font-size: 20px; line-height: 1; color: var(--mzo-muted); background: none; border: 0; margin-left: auto; }
+html.ui .close:hover { background: var(--mzo-hover); color: var(--mzo-text); }
+html.ui #pinModal .modal-content { max-width: 340px; }
+html.ui #pinModal .modal-body { display: grid; gap: 10px; }
+html.ui #pinModal input[type="password"] { background: var(--mzo-input) !important; border: 1px solid var(--mzo-border-strong) !important; color: var(--mzo-text) !important; text-align: center; letter-spacing: .3em; font-size: 15px; height: 38px; }
+html.ui #pinModal .btn { min-height: 36px; }
+html.ui .kpi-cards { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; margin: 0 18px; background: var(--mzo-surface); border: 1px solid var(--mzo-border); border-radius: 10px; overflow: hidden; }
+html.ui .kpi-card { padding: 12px 14px; background: none; border: 0; border-radius: 0; box-shadow: 1px 0 0 var(--mzo-border); text-align: left; }
+html.ui .kpi-label { font-size: 12px; color: var(--mzo-muted); }
+html.ui .kpi-value { margin-top: 4px; font-size: 20px; font-weight: 600; color: var(--mzo-text); font-variant-numeric: tabular-nums; }
+html.ui .confirmation-grid { gap: 0; border: 1px solid var(--mzo-border); border-radius: 10px; overflow: hidden; }
+html.ui .confirmation-item { padding: 10px 12px; background: none; border: 0; border-radius: 0; box-shadow: 1px 0 0 var(--mzo-border), 0 1px 0 var(--mzo-border); }
+html.ui .confirmation-label { font-size: 12px; color: var(--mzo-muted); }
+html.ui .confirmation-value { font-weight: 500; color: var(--mzo-text); }
+html.ui .loading-overlay .loading-spinner { border-color: var(--mzo-border-strong); border-top-color: var(--mzo-text); }
+html.ui .blink-red { color: var(--mzo-bad); animation: none; }
+html.ui #allDataModal .modal-content { max-width: min(1200px, 96vw); }
+html.ui #allDataTable { border: 0 !important; }
+html.ui #allDataTable thead th { background: var(--mzo-surface) !important; color: var(--mzo-muted) !important; font-size: 12px; font-weight: 500; border-bottom: 1px solid var(--mzo-border) !important; }
+html.ui #allDataTable tbody td { color: var(--mzo-text) !important; border-bottom: 1px solid var(--mzo-border) !important; }
+html.ui #allDataTable tbody tr:hover td { background: var(--mzo-row-hover) !important; }
+html.ui .dataTables_info { color: var(--mzo-muted) !important; }
+html.ui .dataTables_filter input { height: 32px; background: var(--mzo-input) !important; color: var(--mzo-text) !important; border: 1px solid var(--mzo-border-strong) !important; border-radius: 7px !important; }
+html.ui .dtr-details { background: var(--mzo-surface-2); }
+html.ui .dtr-title { color: var(--mzo-text); font-weight: 500; }
+html.ui .dtr-data { color: var(--mzo-muted); }
+@media (max-width: 760px) {
+  html.ui .search-container { flex-direction: column; align-items: stretch; }
+  html.ui .search-input { flex: 0 0 auto; width: 100%; }
+  html.ui .kpi-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); margin: 0 14px; }
+  html.ui .load-grid { grid-template-columns: repeat(2, 1fr); }
+}
+  </style>
+  
 </head>
 <body>
 
-<div class="floating-shapes">
-  <div class="shape"></div>
-  <div class="shape"></div>
-  <div class="shape"></div>
-</div>
 
 <!-- PIN Entry Modal -->
 <div id="pinModal" class="modal">
   <div class="modal-content">
     <div class="modal-header">
-      <h5 class="modal-title">🔒 Enter PIN to Proceed</h5>
+      <h5 class="modal-title">Enter PIN</h5>
       <!-- No close button for PIN modal until authenticated -->
     </div>
     <div class="modal-body">
       <!-- Removed: <p style="color: var(--text-secondary); margin-bottom: 1rem;">Please enter your authorization PIN.</p> -->
       <input type="password" id="pinInput" class="form-control" placeholder="Enter PIN" maxlength="4">
       <button class="btn btn-primary" id="submitPinBtn" onclick="validatePin()">
-        🔑 Submit PIN
+        Submit PIN
       </button>
       <div id="pinError" class="error-msg" style="display:none;"></div>
     </div>
@@ -743,14 +932,14 @@ table.dataTable.dtr-inline.collapsed>tbody>tr.parent>th.dtr-control:before {
   <div class="container">
     <div class="main-card">
       <div class="header">
-        <h1>⚡ DTR Load Measurement</h1>
-        <p style="color: var(--text-secondary); margin: 0;">Search and update transformer load data</p>
+        <h1>Peak load measurements</h1>
+        <p>Find a DTR by code and record its load</p>
       </div>
 
 <div class="search-container">
   <input type="text" id="searchCode" class="search-input" placeholder="Enter DTR Code">
-  <button class="btn btn-primary" onclick="searchDTR()">🔍 Search</button>
-  <button class="btn btn-secondary" onclick="showAllLoadData()">📋 View All Load Data</button>
+  <button class="btn btn-primary" onclick="searchDTR()">Search</button>
+  <button class="btn btn-secondary" onclick="showAllLoadData()">All measurements</button>
 </div>
 
 
@@ -758,16 +947,16 @@ table.dataTable.dtr-inline.collapsed>tbody>tr.parent>th.dtr-control:before {
       <div id="result"></div>
 
       <div id="formSection" class="form-section" style="display:none;">
-        <h5 style="color: var(--text-primary);">✏️ Update Load Information</h5>
+        <h5>Update load</h5>
         
         <form id="dtrForm">
           <div class="form-row">
             <div class="form-group">
-              <label class="form-label">📅 Date and Time</label>
+              <label class="form-label">Date and Time</label>
               <input type="datetime-local" id="DATE_OF_MEASUREMENT" class="form-control">
             </div>
             <div class="form-group">
-              <label class="form-label">⚙️ Capacity (kVA)</label>
+              <label class="form-label">Capacity (kVA)</label>
               <select id="NEW_CAPA_KV" class="form-select">
                 <option value="">Select Capacity</option>
                 <option value="10kVA">10 kVA</option>
@@ -780,17 +969,17 @@ table.dataTable.dtr-inline.collapsed>tbody>tr.parent>th.dtr-control:before {
 
           <div class="form-row">
             <div class="form-group">
-              <label class="form-label">📍 Location Name</label>
+              <label class="form-label">Location Name</label>
               <input type="text" id="NEW_LOC_NAME" class="form-control" placeholder="Enter location">
             </div>
             <div class="form-group">
-              <label class="form-label">🔌 Feeder Name</label>
+              <label class="form-label">Feeder Name</label>
               <input type="text" id="NEW_FDR_NAME" class="form-control" placeholder="Enter feeder">
             </div>
           </div>
           
           <div class="form-group">
-            <label class="form-label">📊 Load Measurements (Amps)</label>
+            <label class="form-label">Load Measurements (Amps)</label>
             <div class="load-grid">
               <div class="form-group">
                 <input type="number" id="LOAD_R" class="form-control load-input red" placeholder="R Phase" step="0.1">
@@ -810,7 +999,7 @@ table.dataTable.dtr-inline.collapsed>tbody>tr.parent>th.dtr-control:before {
           <!-- Kiosk, LA, Neutral Flat Earthing Fields -->
           <div class="form-row">
             <div class="form-group">
-              <label class="form-label"><i class="fas fa-box"></i> Kiosk</label>
+              <label class="form-label">Kiosk</label>
               <select id="KIOSK" class="form-select">
                 <option value="">Select Kiosk Status</option>
                 <option value="Ok">Ok</option>
@@ -819,7 +1008,7 @@ table.dataTable.dtr-inline.collapsed>tbody>tr.parent>th.dtr-control:before {
               </select>
             </div>
             <div class="form-group">
-              <label class="form-label">⚡ LA</label>
+              <label class="form-label">LA</label>
               <select id="LA" class="form-select">
                 <option value="">Select LA Status</option>
                 <option value="Ok">Ok</option>
@@ -828,7 +1017,7 @@ table.dataTable.dtr-inline.collapsed>tbody>tr.parent>th.dtr-control:before {
               </select>
             </div>
             <div class="form-group">
-              <label class="form-label">🌍 Neutral Flat Earthing</label>
+              <label class="form-label">Neutral Flat Earthing</label>
               <select id="NEUTRAL_FLAT_EARTHING" class="form-select">
                 <option value="">Select Status</option>
                 <option value="Yes">Yes</option>
@@ -839,16 +1028,16 @@ table.dataTable.dtr-inline.collapsed>tbody>tr.parent>th.dtr-control:before {
           <!-- End Kiosk, LA, Neutral Flat Earthing Fields -->
           
           <div class="form-group">
-            <label class="form-label">💭 Remarks</label>
+            <label class="form-label">Remarks</label>
             <textarea id="REMARKS" class="form-control" rows="3" placeholder="Additional notes..."></textarea>
           </div>
           
           <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
             <button type="button" class="btn btn-success" style="flex: 1;" onclick="showConfirmation()">
-              ✅ Submit Data
+              Submit Data
             </button>
             <button type="button" class="btn btn-secondary" onclick="resetSearch()">
-              ❌ Cancel
+              Cancel
             </button>
           </div>
         </form>
@@ -861,7 +1050,7 @@ table.dataTable.dtr-inline.collapsed>tbody>tr.parent>th.dtr-control:before {
 <div id="confirmationModal" class="modal">
   <div class="modal-content">
     <div class="modal-header">
-      <h5 class="modal-title">✅ Confirm Submission</h5>
+      <h5 class="modal-title">Confirm Submission</h5>
       <button class="close" onclick="closeModal('confirmationModal')">&times;</button>
     </div>
     <div class="modal-body">
@@ -879,7 +1068,7 @@ table.dataTable.dtr-inline.collapsed>tbody>tr.parent>th.dtr-control:before {
 <div id="rejectionModal" class="modal">
   <div class="modal-content">
     <div class="modal-header">
-      <h5 class="modal-title" style="color: var(--error);">🚫 Update Rejected</h5>
+      <h5 class="modal-title" style="color: var(--error);">Update Rejected</h5>
       <button class="close" onclick="closeModal('rejectionModal')">&times;</button>
     </div>
     <div class="modal-body">
@@ -894,7 +1083,7 @@ table.dataTable.dtr-inline.collapsed>tbody>tr.parent>th.dtr-control:before {
 <div id="allDataModal" class="modal">
   <div class="modal-content">
     <div class="modal-header">
-      <h5 class="modal-title">📊 Load Measurement Data</h5>
+      <h5 class="modal-title">Load Measurement Data</h5>
       <!-- Buttons will be injected here by DataTables -->
       <div id="tableButtons" class="ms-auto me-3"></div>
       <button class="close" onclick="closeModal('allDataModal')">&times;</button>
@@ -1049,7 +1238,7 @@ async function validatePin() {
         return;
     }
 
-    showButtonLoading(submitPinBtn, '🔑 Submit PIN'); // Show loading on button
+    showButtonLoading(submitPinBtn, 'Submit PIN'); // Show loading on button
 
     try {
         const response = await fetch(pinSheetUrl);
@@ -1313,7 +1502,7 @@ function populateForm(data) {
  * @param {string} message - The error message to display.
  */
 function showError(message) {
-  document.getElementById("result").innerHTML = `<div class="error-msg">⚠️ ${message}</div>`;
+  document.getElementById("result").innerHTML = `<div class="error-msg">${message}</div>`;
 }
 
 /**
@@ -1321,7 +1510,7 @@ function showError(message) {
  * @param {string} message - The success message to display.
  */
 function showSuccess(message) {
-  document.getElementById("result").innerHTML = `<div class="success-msg">🎉 ${message}</div>`;
+  document.getElementById("result").innerHTML = `<div class="success-msg">${message}</div>`;
 }
 
 /**
@@ -1510,10 +1699,10 @@ for (const field of requiredFields) {
         confirmationActions.innerHTML = `
             <button class="btn btn-secondary" onclick="closeModal('confirmationModal')">Cancel</button>
             <button class="btn btn-primary" onclick="confirmAndSubmit(true, ${recordCount})">
-                🔄 Replace Last Entry
+                Replace Last Entry
             </button>
             <button class="btn btn-success" onclick="confirmAndSubmit(false, ${recordCount})">
-                ➕ Add as New Entry
+                Add as New Entry
             </button>
         `;
     } else {
@@ -1523,7 +1712,7 @@ for (const field of requiredFields) {
       confirmationActions.innerHTML = `
         <button class="btn btn-secondary" onclick="closeModal('confirmationModal')">Cancel</button>
         <button class="btn btn-success" onclick="confirmAndSubmit(false, 0)">
-            🚀 Confirm & Submit
+            Confirm & Submit
         </button>
       `;
     }
