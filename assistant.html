@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en" class="ui">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ask · MZO Reports</title>
+  <script src="/mzo_theme.js?v=3"></script>
+  <link rel="stylesheet" href="/mzo_theme.css?v=3" />
+  <script src="/mzo_ui.js?v=2" defer></script>
+  <script src="/mzo_data_hub.js" defer></script>
+  <script src="/mzo_scope.js?v=5" defer></script>
+  <script src="/lib/assistant_catalog.js?v=1" defer></script>
+  <style>
+    html.ui, html.ui body { height: 100%; }
+    body { display: flex; flex-direction: column; }
+    .as-wrap { flex: 1; min-height: 0; overflow-y: auto; }
+    .as-col { max-width: 760px; margin: 0 auto; padding: 28px 24px 24px; }
+    .as-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 24px; }
+    .as-head h1 { margin: 0; font-size: 20px; font-weight: 600; letter-spacing: -0.015em; }
+    .as-head p { margin: 3px 0 0; color: var(--mzo-muted); font-size: 13px; }
+
+    .as-empty { padding: 28px 0 8px; }
+    .as-empty h2 { margin: 0 0 4px; font-size: 15px; font-weight: 600; }
+    .as-empty p { margin: 0 0 16px; color: var(--mzo-muted); }
+    .as-sugs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+    .as-sug { text-align: left; padding: 11px 13px; border-radius: 9px; border: 1px solid var(--mzo-border); background: var(--mzo-surface); color: var(--mzo-text-2); font-size: 13px; line-height: 1.4; cursor: pointer; transition: background-color .12s, border-color .12s; }
+    .as-sug:hover { background: var(--mzo-hover); border-color: var(--mzo-border-strong); color: var(--mzo-text); }
+
+    .as-msgs { display: flex; flex-direction: column; gap: 18px; }
+    .as-user { align-self: flex-end; max-width: 80%; padding: 9px 13px; border-radius: 12px 12px 4px 12px; background: var(--mzo-surface-2); box-shadow: inset 0 0 0 1px var(--mzo-border); white-space: pre-wrap; word-break: break-word; }
+    .as-bot { max-width: 100%; line-height: 1.6; font-size: 13.5px; }
+    .as-bot p { margin: 0 0 8px; }
+    .as-bot p:last-child, .as-bot ul:last-child { margin-bottom: 0; }
+    .as-bot ul { margin: 0 0 8px; padding-left: 18px; }
+    .as-bot li { margin: 2px 0; }
+    .as-bot strong { font-weight: 600; }
+    .as-step { display: flex; align-items: center; gap: 8px; color: var(--mzo-muted); font-size: 12.5px; }
+    .as-step .ui-dot { width: 6px; height: 6px; }
+    .as-link {
+      display: flex; align-items: center; gap: 12px; width: 100%; max-width: 460px;
+      padding: 11px 12px 11px 14px; border-radius: 9px; border: 1px solid var(--mzo-border-strong);
+      background: var(--mzo-surface); color: var(--mzo-text); text-align: left; cursor: pointer; text-decoration: none;
+      transition: background-color .12s;
+    }
+    .as-link:hover { background: var(--mzo-hover); }
+    .as-link b { display: block; font-weight: 500; font-size: 13.5px; }
+    .as-link span { display: block; color: var(--mzo-muted); font-size: 12px; }
+    .as-link .ui-i { margin-left: auto; color: var(--mzo-muted); }
+    .as-note { color: var(--mzo-muted); font-size: 12.5px; }
+    .as-err { color: var(--mzo-bad); font-size: 12.5px; }
+    .as-typing { display: inline-flex; gap: 4px; padding: 6px 0; }
+    .as-typing i { width: 6px; height: 6px; border-radius: 50%; background: var(--mzo-faint); animation: as-b 1s infinite ease-in-out; }
+    .as-typing i:nth-child(2) { animation-delay: .15s; } .as-typing i:nth-child(3) { animation-delay: .3s; }
+    @keyframes as-b { 0%, 80%, 100% { opacity: .3; } 40% { opacity: 1; } }
+
+    .as-bar { border-top: 1px solid var(--mzo-border); background: var(--mzo-bg); }
+    .as-form { max-width: 760px; margin: 0 auto; padding: 12px 24px 16px; }
+    .as-box { display: flex; align-items: flex-end; gap: 8px; padding: 6px 6px 6px 12px; border-radius: 12px; border: 1px solid var(--mzo-border-strong); background: var(--mzo-surface); transition: border-color .12s, box-shadow .12s; }
+    .as-box:focus-within { border-color: var(--mzo-accent); box-shadow: var(--mzo-ring); }
+    .as-box textarea { flex: 1; min-height: 24px; max-height: 160px; padding: 6px 0; border: 0; outline: 0; resize: none; background: none; color: var(--mzo-text); font: 14px/1.5 var(--mzo-font); }
+    .as-box textarea::placeholder { color: var(--mzo-faint); }
+    .as-box textarea:focus, .as-box textarea:focus-visible { outline: none; box-shadow: none; }
+    .as-send { width: 34px; height: 34px; border: 0; border-radius: 9px; background: var(--mzo-fill); color: var(--mzo-on-fill); display: grid; place-items: center; cursor: pointer; flex: none; }
+    .as-send:disabled { opacity: .35; cursor: default; }
+    .as-foot { margin-top: 8px; text-align: center; color: var(--mzo-faint); font-size: 11.5px; }
+    @media (max-width: 760px) { .as-col { padding: 18px 14px; } .as-form { padding: 10px 14px 12px; } .as-sugs { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <div class="as-wrap" id="scroller">
+    <div class="as-col">
+      <header class="as-head">
+        <div>
+          <h1>Ask</h1>
+          <p id="meta">Answers come from the reports you can see.</p>
+        </div>
+        <button type="button" class="ui-btn ghost sm" id="newChat" hidden>New chat</button>
+      </header>
+      <section class="as-empty" id="empty">
+        <h2>What do you want to know?</h2>
+        <p>Ask about pending connections, losses, solar or load extension — or ask for a report with the right filters.</p>
+        <div class="as-sugs" id="sugs">
+          <button type="button" class="as-sug">What needs attention today?</button>
+          <button type="button" class="as-sug">Which division has the most NSC pending over 30 days?</button>
+          <button type="button" class="as-sug">Show Raiganj load extensions waiting over a year</button>
+          <button type="button" class="as-sug">How is AT&amp;C loss this year compared with last March?</button>
+        </div>
+      </section>
+      <div class="as-msgs" id="msgs" aria-live="polite"></div>
+    </div>
+  </div>
+  <div class="as-bar">
+    <form class="as-form" id="form">
+      <div class="as-box">
+        <textarea id="input" rows="1" placeholder="Ask a question" aria-label="Your question"></textarea>
+        <button type="submit" class="as-send" id="send" aria-label="Send" disabled>
+          <svg class="ui-i" viewBox="0 0 24 24"><path d="M12 19V5"/><path d="m5 12 7-7 7 7"/></svg>
+        </button>
+      </div>
+      <div class="as-foot">Answers can be wrong. Check the report before acting on a number.</div>
+    </form>
+  </div>
+
+  <script>
+  document.addEventListener('DOMContentLoaded', function () {
+    'use strict';
+    var $ = function (id) { return document.getElementById(id); };
+    var C = window.MZO_ASSISTANT_CATALOG;
+    var STORE = 'mzo_assistant_v1';
+    var MAX_ROUNDS = 8;
+    var state = { api: [], view: [] }; // api: Messages API history (sent back unchanged); view: what is on screen
+    var busy = false;
+    try { var saved = JSON.parse(sessionStorage.getItem(STORE) || 'null'); if (saved && Array.isArray(saved.api)) state = saved; } catch (e) {}
+    function persist() { try { sessionStorage.setItem(STORE, JSON.stringify(state)); } catch (e) {} }
+
+    var inShell = false;
+    try { inShell = window.self !== window.top && !!window.top.__MZO_SHELL__; } catch (e) {}
+    var scope = window.MzoScope ? window.MzoScope.getScope() : null;
+    var scopeLabel = scope && !scope.unscoped ? scope.label : '';
+    if (scopeLabel) $('meta').textContent = 'Answers come from the reports you can see · ' + scopeLabel;
+
+    /* ---------------- rendering ---------------- */
+    function md(text) {
+      // Small, safe markdown: paragraphs, "- " bullets, **bold**.
+      var lines = UI.esc(text).split(/\n/), out = '', list = false;
+      lines.forEach(function (l) {
+        var b = l.match(/^\s*[-•*]\s+(.*)$/);
+        if (b) { if (!list) { out += '<ul>'; list = true; } out += '<li>' + b[1] + '</li>'; return; }
+        if (list) { out += '</ul>'; list = false; }
+        if (l.trim()) out += '<p>' + l + '</p>';
+      });
+      if (list) out += '</ul>';
+      return out.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+    }
+    function item(v) {
+      if (v.t === 'user') return '<div class="as-user">' + UI.esc(v.text) + '</div>';
+      if (v.t === 'bot') return '<div class="as-bot">' + md(v.text) + '</div>';
+      if (v.t === 'step') return '<div class="as-step"><span class="ui-dot"></span>' + UI.esc(v.text) + '</div>';
+      if (v.t === 'link') return '<a class="as-link" href="' + UI.esc(fullLink(v.link)) + '" data-link="' + UI.esc(v.link) + '"><div><b>' + UI.esc(v.label) + '</b><span>' + UI.esc(v.title) + '</span></div><svg class="ui-i"><use href="#ui-arrow"/></svg></a>';
+      if (v.t === 'note') return '<div class="as-note">' + UI.esc(v.text) + '</div>';
+      if (v.t === 'err') return '<div class="as-err">' + UI.esc(v.text) + '</div>';
+      return '';
+    }
+    function render(typing) {
+      $('empty').hidden = state.view.length > 0;
+      $('newChat').hidden = state.view.length === 0;
+      $('msgs').innerHTML = state.view.map(item).join('') + (typing ? '<div class="as-typing" aria-label="Working"><i></i><i></i><i></i></div>' : '');
+      var sc = $('scroller'); sc.scrollTop = sc.scrollHeight;
+    }
+    function add(v) { state.view.push(v); persist(); render(busy); }
+
+    function fullLink(link) { return '/app.html#~' + link; }
+    $('msgs').addEventListener('click', function (e) {
+      var a = e.target.closest('a[data-link]');
+      if (!a) return;
+      if (inShell && typeof window.parent.openPage === 'function') { e.preventDefault(); window.parent.openPage(a.getAttribute('data-link')); }
+    });
+
+    /* ---------------- data for tools ---------------- */
+    var cache = {};
+    function dataset(key) {
+      var hub = window.mzoDataHub;
+      if (!hub) return Promise.resolve(null);
+      return Promise.resolve(hub._peek(key)).catch(function () { return null; }).then(function (t) {
+        if (t) { hub.waitForDataset(key).catch(function () {}); return t; }
+        return Promise.resolve(hub.waitForDataset(key)).catch(function () {}).then(function () { return hub._peek(key); });
+      });
+    }
+    function rowsFor(name, key, build) {
+      if (cache[name]) return Promise.resolve(cache[name]);
+      return dataset(key).then(function (text) {
+        if (!text) throw new Error('The ' + name + ' data could not be loaded.');
+        var rows = build(UI.csv(text));
+        if (window.MzoScope) rows = window.MzoScope.filterRows(rows);
+        cache[name] = rows;
+        return rows;
+      });
+    }
+    function median(nums) { if (!nums.length) return null; var s = nums.slice().sort(function (a, b) { return a - b; }); return s[Math.floor(s.length / 2)]; }
+    function officeRow(d, code, name, regionRaw, divRaw) {
+      var o = UI.office(code, name), S = window.MzoScope;
+      d._region = o.region || (S && regionRaw ? S.regionNameOf(regionRaw) : '') || '';
+      d._divn = o.division || (S && divRaw ? S.divisionNameOf(divRaw) : '') || '';
+      d._supp = o.ccc || '';
+      d.CCC_CODE = code || '';
+      return d;
+    }
+
+    var ADAPTERS = {
+      nsc: {
+        title: 'Pending NSC', key: 'CACHE_NSC_v5',
+        build: function (list) {
+          var by = new Map();
+          list.forEach(function (r) { var a = String(r.APPL_NO || '').trim().toLowerCase(); if (a) by.set(a, r); });
+          return Array.from(by.values()).map(function (r) {
+            var poles = parseInt(r.NO_OF_POLES, 10) || 0, w = String(r.SCN_WITHELD_DATE || '').trim(), delay = parseFloat(r.DelayInSC);
+            return officeRow({ delay: isNaN(delay) ? null : delay, poles: poles, pole: poles > 0, withheld: w !== '' && w !== '0', cls: String(r.CONN_CLASS || '').trim().toUpperCase(), phase: String(r.APPLIED_PHASE || '').trim().toUpperCase() }, r.CCC_CODE, r.SUPP_OFF, r.REGION, r.DIVN_NAME);
+          });
+        },
+        views: { over_30_days: function (d) { return (d.delay || 0) > 30; }, pole_cases: function (d) { return d.pole; }, rescued_from_withheld: function (d) { return d.withheld; }, industrial: function (d) { return d.cls === 'I'; }, commercial_three_phase: function (d) { return d.cls === 'C' && d.phase === 'III'; } },
+        measure: function (rows) {
+          return { applications: rows.length, over_30_days: rows.filter(function (d) { return (d.delay || 0) > 30; }).length, pole_cases: rows.filter(function (d) { return d.pole; }).length, poles_needed: rows.reduce(function (a, d) { return a + d.poles; }, 0), median_days_since_payment: median(rows.map(function (d) { return d.delay; }).filter(function (x) { return x != null; })) };
+        }
+      },
+      load_extension: {
+        title: 'Pending load extension', key: 'CACHE_LOAD_EXT',
+        build: function (list) {
+          var asOn = '';
+          return list.filter(function (r) { return r.APPL_NO || r.CON_ID; }).map(function (r) {
+            var applied = parseFloat(r.LOAD_APPLIED) || 0, curr = parseFloat(r.CURR_LOAD) || 0, age = parseInt(r.AGE_MONTHS, 10) || 0, cls = String(r.CONN_CLASS || '').trim().toUpperCase();
+            var rate = cls === 'I' ? 75 : (cls === 'C' || cls === 'A') ? 60 : 30;
+            return officeRow({ age: age, cls: cls, phase: String(r.CONN_PHASE || '').trim().toUpperCase(), applied: applied, loss: applied > curr ? Math.round(((applied - curr) * rate * age) / 850) : 0, asOn: r.report_date || asOn }, r['CCC CODE']);
+          });
+        },
+        views: { over_1_year: function (d) { return d.age >= 12; }, industrial: function (d) { return d.cls === 'I'; }, three_phase: function (d) { return d.phase === 'III'; }, above_10kw: function (d) { return d.applied > 10000; } },
+        measure: function (rows) {
+          return { applications: rows.length, over_1_year: rows.filter(function (d) { return d.age >= 12; }).length, est_fixed_charge_loss: UI.inr(rows.reduce(function (a, d) { return a + d.loss; }, 0)), median_wait_months: median(rows.map(function (d) { return d.age; })) };
+        }
+      },
+      solar: {
+        title: 'Solar connections', key: 'CACHE_SOLAR',
+        build: function (list) {
+          return list.filter(function (r) { return r.SOLAR_APPL_NO || r.CON_ID; }).map(function (r) {
+            var s = String(r.REPLACE_STATUS || '').trim().toUpperCase();
+            var st = (s === 'SUCCESS' || s === 'EFFECTED' || s === 'DONE') ? 'connected' : (!s || s === '(NULL)' || s === 'NOT YET' || s === 'PENDING') ? 'pending' : 'meter_issue';
+            var sch = String(r.REMARKS || '').trim().toUpperCase(); if (!sch || sch === 'OTHER' || sch === '(NULL)') sch = 'OTHERS';
+            return officeRow({ st: st, scheme: sch, days: st === 'connected' ? null : UI.days(r.CREATION_DATE) }, r['CCC CODE'], r.SUPP_OFF);
+          });
+        },
+        views: { connected: function (d) { return d.st === 'connected'; }, pending: function (d) { return d.st === 'pending'; }, meter_issue: function (d) { return d.st === 'meter_issue'; }, pm_surya_ghar: function (d) { return d.scheme === 'PMSGMBY'; } },
+        measure: function (rows) {
+          var c = function (st) { return rows.filter(function (d) { return d.st === st; }).length; };
+          return { applications: rows.length, connected: c('connected'), pending: c('pending'), meter_issue: c('meter_issue'), median_days_pending: median(rows.filter(function (d) { return d.st === 'pending' && d.days != null; }).map(function (d) { return d.days; })) };
+        }
+      }
+    };
+
+    function clean(v) { return String(v || '').replace(/\s+(region|division|div\.?|ccc)$/i, '').trim(); }
+    function sameOffice(a, b) { return String(a || '').toLowerCase() === String(b || '').toLowerCase(); }
+    function normRegion(v) { v = clean(v); return v ? UI.regionName(v) : ''; }
+
+    function queryTable(input) {
+      var A = ADAPTERS[input.report];
+      if (!A) return Promise.reject(new Error('That report cannot be counted yet.'));
+      return rowsFor(input.report, A.key, A.build).then(function (all) {
+        var region = normRegion(input.region), division = clean(input.division), ccc = clean(input.ccc);
+        var rows = all.filter(function (d) {
+          return (!region || sameOffice(d._region, region)) && (!division || sameOffice(d._divn, division)) && (!ccc || sameOffice(d._supp, ccc));
+        });
+        if (input.view) {
+          if (!A.views[input.view]) throw new Error('Unknown view "' + input.view + '" for ' + A.title + '.');
+          rows = rows.filter(A.views[input.view]);
+        }
+        var out = { report: A.title, office: [ccc && ccc + ' CCC', division && division + ' division', region && region + ' region'].filter(Boolean)[0] || 'Malda Zone', view: input.view || 'all', totals: A.measure(rows) };
+        if (!rows.length && (region || division || ccc) && !all.some(function (d) { return sameOffice(d._region, region) || sameOffice(d._divn, division) || sameOffice(d._supp, ccc); })) out.note = 'No rows matched that office name. Check the spelling against the office list.';
+        var g = input.group_by;
+        if (g && g !== 'none') {
+          var key = g === 'region' ? '_region' : g === 'division' ? '_divn' : '_supp', groups = {};
+          rows.forEach(function (d) { var n = d[key] || 'Unmapped'; (groups[n] || (groups[n] = [])).push(d); });
+          var list = Object.keys(groups).map(function (n) { var m = A.measure(groups[n]); m.office = n; return m; })
+            .sort(function (a, b) { return (b.applications || 0) - (a.applications || 0); });
+          out.by_office = list.slice(0, 20);
+          if (list.length > 20) out.more_offices = list.length - 20;
+        }
+        if (scopeLabel) out.scope = 'Only ' + scopeLabel + ' is visible to this user.';
+        return out;
+      });
+    }
+
+    /* Losses: the sheet already holds totals per office and month. */
+    var LOSS_TREE = {
+      Malda: { row: 'MALDA REGION', divs: { Malda: { row: 'Malda Div Total', cccs: ['RATHBARI', 'FULBARI', 'MOKDAMPUR', 'KALIACHAK', 'SUJAPUR', 'MOTHABARI', 'MATHURAPUR', 'BAISNABNAGAR', 'GOLAPGANJ'] }, Gazole: { row: 'Gazole Div Total', cccs: ['OLD MALDA', 'AIHO', 'GAZOLE', 'BAMANGOLA', 'PANDUA'] }, Chanchal: { row: 'Chanchal Div Total', cccs: ['SAMSI', 'PARANPUR', 'CHANCHAL', 'H.C. PUR', 'BHALUKA', 'MALATIPUR', 'KUSHIDA'] } } },
+      Raiganj: { row: 'U/DINAJPUR REGION', divs: { Raiganj: { row: 'Raiganj Div Total', cccs: ['RAIGANJ', 'KALIAGANJ', 'HEMTABAD', 'BIRNAGAR', 'ITAHAR', 'KARANDEGHI'] }, Islampur: { row: 'Islampur Div Total', cccs: ['DALKHOLA', 'KANKI', 'GOALPOKHAR', 'ISLAMPUR', 'CHOPRA'] } } },
+      Balurghat: { row: 'D/DINAJPUR REGION', divs: { Balurghat: { row: 'Balurghat Div Total', cccs: ['BALURGHAT', 'HILI', 'KUMARGUNJ', 'TAPAN', 'PATIRAM'] }, Buniadpur: { row: 'Buniadpur Div Total', cccs: ['BUNIADPUR', 'HARIRAMPUR', 'GANGARAMPUR', 'KUSHMUNDI'] } } }
+    };
+    var LOSS_NAME = { 'H.C. PUR': 'Harishchandrapur', MOKDAMPUR: 'Mokdumpur', BAISNABNAGAR: 'Baishnabnagar', KARANDEGHI: 'Karandighi', KUMARGUNJ: 'Kumarganj', KUSHMUNDI: 'Kushmandi', BAMANGOLA: 'Bamongola', GOALPOKHAR: 'Goalpokher', KALIAGANJ: 'Kaliyaganj' };
+    var lossData = null;
+    function lossRows() {
+      if (lossData) return Promise.resolve(lossData);
+      return Promise.all([dataset('CACHE_LOSS'), dataset('CACHE_LOSS_TARGET')]).then(function (t) {
+        if (!t[0]) throw new Error('The loss data could not be loaded.');
+        var by = {}, periods = {}, pct = function (v) { var x = parseFloat(String(v || '').replace('%', '')); return isFinite(x) ? x : null; };
+        UI.csv(t[0]).forEach(function (r) {
+          var y = parseInt(r.YEAR, 10), m = parseInt(r.MONTH, 10), n = String(r.CCC || '').trim();
+          if (!y || !m || !n) return;
+          periods[y * 100 + m] = 1;
+          (by[n] || (by[n] = {}))[y * 100 + m] = { atc_loss_pct: pct(r['CUM. AT&C LOSS']), dist_loss_pct: pct(r['CUM. DIST. LOSS']), collection_eff_pct: pct(r['COLL. EFF.']), input_mu: parseFloat(r['CUM. INPUT (MU)']) || null, collected_mu: parseFloat(r['CUM. COLLEC. (MU)']) || null };
+        });
+        var targets = {};
+        UI.csv(t[1] || '').forEach(function (r) { var n = String(r.CCC || '').trim(); if (n) targets[n] = { atc_target_pct: pct(r['CUM. AT&C LOSS']), dist_target_pct: pct(r['CUM. DIST. LOSS']) }; });
+        lossData = { by: by, targets: targets, periods: Object.keys(periods).map(Number).sort(function (a, b) { return b - a; }) };
+        return lossData;
+      });
+    }
+    function lossCccRaw(divNode, name) { return divNode.cccs.filter(function (c) { return sameOffice(c, name) || sameOffice(LOSS_NAME[c], name) || sameOffice(UI.title(c), name); })[0]; }
+    function queryLoss(input) {
+      return lossRows().then(function (L) {
+        var region = normRegion(input.region), division = clean(input.division), ccc = clean(input.ccc);
+        if (!region && !division && scope && !scope.unscoped) { region = (scope.regions && scope.regions.size === 1) ? Array.from(scope.regions)[0] : ''; division = (scope.divisions && scope.divisions.size === 1) ? Array.from(scope.divisions)[0] : ''; }
+        if (division && !region) Object.keys(LOSS_TREE).forEach(function (r) { if (LOSS_TREE[r].divs[UI.title(division)]) region = r; });
+        division = division ? UI.title(division) : '';
+        var sel = { row: 'MALDA ZONE', label: 'Malda Zone', kids: Object.keys(LOSS_TREE).map(function (r) { return { row: LOSS_TREE[r].row, label: r + ' region' }; }) };
+        if (region && LOSS_TREE[region]) {
+          var R = LOSS_TREE[region];
+          sel = { row: R.row, label: region + ' region', kids: Object.keys(R.divs).map(function (d) { return { row: R.divs[d].row, label: d + ' division' }; }) };
+          if (division && R.divs[division]) {
+            var D = R.divs[division];
+            sel = { row: D.row, label: division + ' division', kids: D.cccs.map(function (c) { return { row: c, label: (LOSS_NAME[c] || UI.title(c)) + ' CCC' }; }) };
+            var raw = ccc && lossCccRaw(D, ccc);
+            if (raw) sel = { row: raw, label: (LOSS_NAME[raw] || UI.title(raw)) + ' CCC', kids: [] };
+          }
+        }
+        var k = L.periods[0];
+        if (input.month && /^\d{4}-\d{1,2}$/.test(input.month)) { var p = input.month.split('-'); var want = +p[0] * 100 + +p[1]; if (L.periods.indexOf(want) !== -1) k = want; }
+        var y = Math.floor(k / 100), m = k % 100, march = (m >= 4 ? y : y - 1) * 100 + 3;
+        var at = function (row, key) { return (L.by[row] || {})[key] || null; };
+        var pick = function (row) {
+          var now = at(row, k) || {}, mar = at(row, march) || {}, ly = at(row, k - 100) || {}, tg = L.targets[row] || {};
+          return { atc_loss_pct: now.atc_loss_pct, change_vs_last_march_pts: now.atc_loss_pct != null && mar.atc_loss_pct != null ? +(now.atc_loss_pct - mar.atc_loss_pct).toFixed(2) : null, change_vs_same_month_last_year_pts: now.atc_loss_pct != null && ly.atc_loss_pct != null ? +(now.atc_loss_pct - ly.atc_loss_pct).toFixed(2) : null, atc_target_pct: tg.atc_target_pct, dist_loss_pct: now.dist_loss_pct, collection_eff_pct: now.collection_eff_pct, input_mu: now.input_mu, collected_mu: now.collected_mu };
+        };
+        var MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        var out = { report: 'Losses', note: 'Values are cumulative from April of the financial year to the month shown.', office: sel.label, month: MON[m - 1] + ' ' + y, latest_month_available: MON[L.periods[0] % 100 - 1] + ' ' + Math.floor(L.periods[0] / 100), totals: pick(sel.row) };
+        if (input.group_by && input.group_by !== 'none' && sel.kids.length) out.by_office = sel.kids.map(function (c) { var v = pick(c.row); v.office = c.label; return v; }).sort(function (a, b) { return (b.atc_loss_pct || 0) - (a.atc_loss_pct || 0); });
+        return out;
+      });
+    }
+
+    function briefing() {
+      return fetch('/api/executive/briefing', { credentials: 'same-origin' }).then(function (r) { if (!r.ok) throw new Error('Briefing unavailable'); return r.json(); }).then(function (j) {
+        var b = j && j.briefing || {};
+        return { generated: b.generatedAt, items: (b.items || []).map(function (i) {
+          var zero = !String(i.metric || '').replace(/[^\d.]/g, '') || Number(String(i.metric).replace(/[^\d.]/g, '')) === 0;
+          return { priority: zero ? 'clear' : i.priority, item: i.title, value: i.metric, report_link: i.deepLink, top_divisions: (i.hotspots || []).filter(function (h) { return h.count > 0; }).slice(0, 4).map(function (h) { return h.division + ' ' + h.count; }) };
+        }) };
+      });
+    }
+
+    /* ---------------- tools ---------------- */
+    function runTool(use) {
+      var input = use.input || {};
+      var done = function (obj) { return { type: 'tool_result', tool_use_id: use.id, content: JSON.stringify(obj) }; };
+      var fail = function (msg) { return { type: 'tool_result', tool_use_id: use.id, content: msg, is_error: true }; };
+      try {
+        if (use.name === 'open_report') {
+          var r = C.report(input.report);
+          if (!r) return Promise.resolve(fail('Unknown report: ' + input.report));
+          if (input.view && !(r.views && r.views[input.view])) return Promise.resolve(fail('Report ' + r.key + ' has no view "' + input.view + '". Views: ' + Object.keys(r.views || {}).join(', ')));
+          var link = C.buildLink(r.key, { region: normRegion(input.region), division: clean(input.division), ccc: clean(input.ccc), view: input.view, search: input.search });
+          add({ t: 'link', link: link, label: String(input.label || r.title).slice(0, 90), title: r.title });
+          return Promise.resolve(done({ shown_to_user: true, report: r.title, link: link }));
+        }
+        if (use.name === 'query_report') {
+          var label = (ADAPTERS[input.report] || {}).title || (input.report === 'loss' ? 'Losses' : input.report);
+          add({ t: 'step', text: 'Counting ' + label + [input.ccc, input.division, input.region].filter(Boolean).slice(0, 1).map(function (o) { return ' · ' + clean(o); }).join('') });
+          var q = input.report === 'loss' ? queryLoss(input) : queryTable(input);
+          return q.then(done, function (e) { return fail(e.message || 'Could not count that.'); });
+        }
+        if (use.name === 'get_briefing') {
+          add({ t: 'step', text: 'Reading today\'s briefing' });
+          return briefing().then(done, function (e) { return fail(e.message); });
+        }
+        return Promise.resolve(fail('Unknown tool ' + use.name));
+      } catch (e) { return Promise.resolve(fail(e.message || 'Tool failed')); }
+    }
+
+    /* ---------------- conversation ---------------- */
+    function post() {
+      return fetch('/api/assistant', {
+        method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify({ messages: state.api, context: { scope: scopeLabel } })
+      }).then(function (r) {
+        return r.json().catch(function () { return { status: 'error', message: 'The assistant could not answer right now.' }; }).then(function (j) {
+          if (r.status === 401) { j.message = 'Your session has ended. Sign in again.'; }
+          j.httpStatus = r.status; return j;
+        });
+      });
+    }
+
+    function ask(text) {
+      text = String(text || '').trim();
+      if (!text || busy) return;
+      if (state.api.length > 48) { add({ t: 'note', text: 'This conversation is getting long. Start a new chat for best results.' }); }
+      busy = true; setSend();
+      add({ t: 'user', text: text });
+      state.api.push({ role: 'user', content: text });
+      persist();
+      var round = 0;
+      (function loop() {
+        render(true);
+        post().then(function (res) {
+          if (res.status !== 'success') {
+            // Drop the unanswered turn so the history stays valid.
+            while (state.api.length && state.api[state.api.length - 1].role === 'user') state.api.pop();
+            add({ t: 'err', text: res.message || 'The assistant could not answer right now.' });
+            return finish();
+          }
+          var content = res.content || [];
+          state.api.push({ role: 'assistant', content: content }); // unchanged, thinking blocks included
+          content.forEach(function (b) { if (b.type === 'text' && b.text.trim()) add({ t: 'bot', text: b.text }); });
+          if (res.stop_reason === 'refusal') { add({ t: 'note', text: 'I can\'t help with that one.' }); return finish(); }
+          if (res.stop_reason === 'max_tokens') { add({ t: 'note', text: 'The answer was cut short. Try a narrower question.' }); return finish(); }
+          var uses = content.filter(function (b) { return b.type === 'tool_use'; });
+          if (res.stop_reason !== 'tool_use' || !uses.length) return finish();
+          if (++round > MAX_ROUNDS) { add({ t: 'note', text: 'That took too many steps. Try asking more specifically.' }); state.api.push({ role: 'user', content: uses.map(function (u) { return { type: 'tool_result', tool_use_id: u.id, content: 'Stopped: too many steps.', is_error: true }; }) }); state.api.push({ role: 'assistant', content: [{ type: 'text', text: '(stopped)' }] }); return finish(); }
+          Promise.all(uses.map(runTool)).then(function (results) {
+            state.api.push({ role: 'user', content: results }); // all results in one message
+            persist();
+            loop();
+          });
+        }, function () {
+          while (state.api.length && state.api[state.api.length - 1].role === 'user' && typeof state.api[state.api.length - 1].content === 'string') state.api.pop();
+          add({ t: 'err', text: 'Could not reach the server. Check the connection and try again.' });
+          finish();
+        });
+      })();
+    }
+    function finish() { busy = false; persist(); render(false); setSend(); $('input').focus(); }
+
+    /* ---------------- input ---------------- */
+    var input = $('input');
+    function setSend() { $('send').disabled = busy || !input.value.trim(); }
+    function grow() { input.style.height = 'auto'; input.style.height = Math.min(160, input.scrollHeight) + 'px'; }
+    input.addEventListener('input', function () { grow(); setSend(); });
+    input.addEventListener('keydown', function (e) { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); $('form').requestSubmit(); } });
+    $('form').addEventListener('submit', function (e) { e.preventDefault(); var t = input.value; input.value = ''; grow(); ask(t); });
+    $('sugs').addEventListener('click', function (e) { var b = e.target.closest('.as-sug'); if (b) ask(b.textContent); });
+    $('newChat').addEventListener('click', function () { if (busy) return; state = { api: [], view: [] }; persist(); render(false); input.focus(); });
+
+    render(false);
+    var q = new URLSearchParams(location.search).get('q');
+    if (q) { history.replaceState(null, '', location.pathname); ask(q); } else input.focus();
+  });
+  </script>
+</body>
+</html>

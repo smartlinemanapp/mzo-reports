@@ -71,7 +71,7 @@
 // v200: feeder outage sheet-links date is the latest report month
 // v208: Enable widget=true for Puja sheets so all sheet tabs are displayed
 // v209: Mobile masthead clean layout and logo sizing across all themes
-const CACHE_NAME = 'mzo-reports-cache-v257';
+const CACHE_NAME = 'mzo-reports-cache-v259';
 
 // Assets to precache during installation (avoid pinning data-hub — it changes with dataset keys)
 const PRECACHE_ASSETS = [
@@ -180,12 +180,19 @@ function isNetworkFirstPath(pathname) {
     pathname === '/dd/dd_visit.html' ||
     pathname === '/puja.html' ||
     pathname === '/nsc.html' ||
+    pathname === '/nsc_simple.html' ||
+    pathname === '/nsc_pipeline.html' ||
+    pathname === '/nsc_classic.html' ||
+    pathname === '/lib/nsc_rows.js' ||
     pathname === '/login.html' ||
     pathname.startsWith('/nsc/') ||
     pathname === '/withheld.html' ||
     pathname === '/historical_nsc.html' ||
     pathname === '/pending_load_extension.html' ||
     pathname === '/index.html' ||
+    pathname === '/app.html' ||
+    pathname === '/assistant.html' ||
+    pathname === '/lib/assistant_catalog.js' ||
     pathname === '/sheet_links.html' ||
     pathname === '/sheet_open.html' ||
     pathname === '/weekly.html' ||
@@ -222,6 +229,7 @@ function isNetworkFirstPath(pathname) {
     pathname === '/mzo_data_hub.js' ||
     pathname === '/mzo_theme.js' ||
     pathname === '/mzo_theme.css' ||
+    pathname === '/mzo_ui.js' ||
     pathname === '/mzo_presets_hub.js' ||
     pathname === '/mzo_docket_briefing.js' ||
     pathname === '/mzo_scope.js' ||
@@ -241,7 +249,7 @@ function isNetworkFirstPath(pathname) {
 
 function skipPresentZoom(pathname) {
   const p = String(pathname || '');
-  if (p === '/login.html' || p === '/offline.html') return true;
+  if (p === '/login.html' || p === '/offline.html' || p === '/app.html') return true;
   if (p.startsWith('/power_map/') || p.startsWith('/sld/')) return true;
   if (p === '/accident/map.html') return true;
   return false;

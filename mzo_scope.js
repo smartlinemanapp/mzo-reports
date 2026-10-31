@@ -674,24 +674,25 @@
     if (document.getElementById('mzo-scope-banner')) return;
     const bar = document.createElement('div');
     bar.id = 'mzo-scope-banner';
+    bar.setAttribute('role', 'note');
     bar.style.cssText = [
-      'font-size:12px',
+      'font-size:12.5px',
       'line-height:1.3',
-      'padding:6px 12px',
-      'background:rgba(79,70,229,0.12)',
-      'color:#3730a3',
-      'border-bottom:1px solid rgba(79,70,229,0.2)',
+      'padding:7px 12px',
+      'margin:0 0 16px',
+      'background:var(--mzo-surface-2,#f5f5f4)',
+      'color:var(--mzo-text-2,#3f3f46)',
+      'border:1px solid var(--mzo-border,#e7e7e5)',
+      'border-radius:8px',
       'display:flex',
       'align-items:center',
       'gap:8px',
       'font-family:inherit'
     ].join(';');
-    const label = document.createTextNode('Showing ' + scope.label + ' — set by admin');
-    const icon = document.createElement('span');
-    icon.textContent = '◎';
-    icon.style.fontWeight = '700';
-    bar.appendChild(icon);
-    bar.appendChild(label);
+    const dot = document.createElement('span');
+    dot.style.cssText = 'width:6px;height:6px;border-radius:50%;background:var(--mzo-accent,#0f766e);flex:none';
+    bar.appendChild(dot);
+    bar.appendChild(document.createTextNode('Showing ' + scope.label + ' — set by admin'));
     const header = document.querySelector('.header, .dashboard-header, header, .app-header');
     if (header && header.parentNode) {
       header.parentNode.insertBefore(bar, header.nextSibling);

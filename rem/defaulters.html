@@ -1,1925 +1,321 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html lang="en" class="ui">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="https://cdn.jsdelivr.net/npm/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box
-        }
-
-        body {
-            font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-            min-height: 100vh;
-            padding: 12px;
-            color: #e2e8f0
-        }
-
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            background: #1e293b;
-            border-radius: 16px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, .3);
-            overflow: hidden
-        }
-
-        /* Header */
-        .header {
-            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
-            padding: 16px 24px;
-            border-bottom: 1px solid #334155;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .header-left {
-            text-align: left;
-        }
-
-        .header-right {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .header h1 {
-            font-size: 1.5rem;
-            font-weight: 700;
-            letter-spacing: -.5px;
-            margin-bottom: 2px;
-        }
-
-        .update-date {
-            font-size: .8rem;
-            opacity: .6;
-            font-style: italic;
-        }
-
-        .summary-icon-button {
-            background: rgba(245, 158, 11, 0.15);
-            color: #f59e0b;
-            border: 1px solid rgba(245, 158, 11, 0.3);
-            padding: 8px 14px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: .9rem;
-            font-weight: 600;
-            transition: all .2s;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .summary-icon-button:hover {
-            background: rgba(245, 158, 11, 0.25);
-            transform: translateY(-1px);
-        }
-
-        .reset-button {
-            background: rgba(148, 163, 184, 0.1);
-            color: #94a3b8;
-            border: 1px solid rgba(148, 163, 184, 0.2);
-            padding: 8px 14px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: .85rem;
-            font-weight: 500;
-            transition: all .2s;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .reset-button:hover {
-            background: rgba(248, 113, 113, 0.1);
-            color: #f87171;
-            border-color: rgba(248, 113, 113, 0.3);
-            transform: translateY(-1px);
-        }
-
-        .summary-icon-button {
-            background: #f59e0b;
-            color: #fff;
-            border: none;
-            padding: 6px 10px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 1.1rem;
-            font-weight: 600;
-            transition: all .2s;
-            box-shadow: 0 2px 8px rgba(245, 158, 11, .3);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            line-height: 1
-        }
-
-        .summary-icon-button:hover {
-            background: #d97706;
-            transform: translateY(-1px)
-        }
-
-        /* KPI Cards */
-        .kpi-grid {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 10px;
-            padding: 16px 20px;
-            background: #0f172a
-        }
-
-        .kpi-card {
-            background: #1e293b;
-            padding: 16px 12px;
-            border-radius: 12px;
-            text-align: center;
-            cursor: pointer;
-            border: 2px solid transparent;
-            transition: all .25s ease;
-            position: relative;
-            overflow: hidden
-        }
-
-        .kpi-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
-            border-radius: 12px 12px 0 0
-        }
-
-        .kpi-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(0, 0, 0, .3)
-        }
-
-        .kpi-card.active {
-            border-color: var(--card-accent);
-            box-shadow: 0 0 20px rgba(var(--card-accent-rgb), .25)
-        }
-
-        .kpi-card .card-value {
-            font-size: 1.6rem;
-            font-weight: 700;
-            color: #f8fafc;
-            margin-bottom: 2px
-        }
-
-        .kpi-card .card-label {
-            font-size: .7rem;
-            text-transform: uppercase;
-            letter-spacing: .8px;
-            color: #94a3b8;
-            font-weight: 600;
-            margin-bottom: 4px
-        }
-
-        .kpi-card .card-osd {
-            font-size: .75rem;
-            color: #94a3b8;
-            font-weight: 500
-        }
-
-        .kpi-card .card-osd span {
-            color: #f87171;
-            font-weight: 600
-        }
-
-        /* Card accent colors */
-        .kpi-total {
-            --card-accent: #3b82f6;
-            --card-accent-rgb: 59, 130, 246
-        }
-
-        .kpi-total::before {
-            background: #3b82f6
-        }
-
-        .kpi-dom {
-            --card-accent: #f59e0b;
-            --card-accent-rgb: 245, 158, 11
-        }
-
-        .kpi-dom::before {
-            background: #f59e0b
-        }
-
-        .kpi-com {
-            --card-accent: #10b981;
-            --card-accent-rgb: 16, 185, 129
-        }
-
-        .kpi-com::before {
-            background: #10b981
-        }
-
-        .kpi-ind {
-            --card-accent: #8b5cf6;
-            --card-accent-rgb: 139, 92, 246
-        }
-
-        .kpi-ind::before {
-            background: #8b5cf6
-        }
-
-        .kpi-agri {
-            --card-accent: #06b6d4;
-            --card-accent-rgb: 6, 182, 212
-        }
-
-        .kpi-agri::before {
-            background: #06b6d4
-        }
-
-        /* Filters */
-        .filters-section {
-            padding: 14px 20px;
-            background: #1e293b;
-            border-bottom: 1px solid #1e293b
-        }
-
-        .filters-row {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            align-items: center;
-            margin-bottom: 10px
-        }
-
-        .filters-row label {
-            display: flex;
-            align-items: center;
-            font-weight: 500;
-            color: #94a3b8;
-            cursor: pointer;
-            font-size: .85rem;
-            gap: 6px
-        }
-
-        .filters-row input[type="checkbox"] {
-            width: 16px;
-            height: 16px;
-            accent-color: #3b82f6
-        }
-
-        select,
-        input[type="text"] {
-            padding: 8px 12px;
-            border: 1px solid #334155;
-            border-radius: 8px;
-            font-size: .85rem;
-            background: #0f172a;
-            color: #e2e8f0;
-            transition: all .2s;
-            font-family: inherit
-        }
-
-        select:focus,
-        input[type="text"]:focus {
-            outline: none;
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, .15)
-        }
-
-        .filters-row select {
-            min-width: 160px;
-            width: auto
-        }
-
-        .search-download-row {
-            display: flex;
-            gap: 10px;
-            align-items: center
-        }
-
-        .search-download-row .search-box {
-            flex: 1
-        }
-
-        .search-download-row .search-box input {
-            width: 100%
-        }
-
-        .download-button {
-            background: linear-gradient(135deg, #10b981, #059669);
-            color: #fff;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: .85rem;
-            font-weight: 600;
-            transition: all .2s;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            font-family: inherit;
-            white-space: nowrap
-        }
-
-        .download-button:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(16, 185, 129, .3)
-        }
-
-        /* Table */
-        .table-container {
-            padding: 0 20px 16px;
-            overflow-x: auto;
-            overflow-y: auto;
-            max-height: 65vh
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            background: #1e293b;
-            font-size: .85rem
-        }
-
-        th {
-            background: #0f172a;
-            padding: 10px 8px;
-            text-align: left;
-            font-weight: 600;
-            color: #94a3b8;
-            border-bottom: 2px solid #334155;
-            position: sticky;
-            top: 0;
-            z-index: 10;
-            font-size: .75rem;
-            text-transform: uppercase;
-            letter-spacing: .5px
-        }
-
-        td {
-            padding: 8px;
-            border-bottom: 1px solid rgba(51, 65, 85, .5);
-            color: #cbd5e1
-        }
-
-        tr:hover {
-            background: rgba(51, 65, 85, .4)
-        }
-
-        .amount {
-            font-weight: 600;
-            text-align: right;
-            font-variant-numeric: tabular-nums
-        }
-
-        .last-payment {
-            color: #f87171;
-            font-weight: 500
-        }
-
-        .type-badge {
-            display: inline-block;
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-size: .7rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: .5px
-        }
-
-        .type-dom {
-            background: rgba(245, 158, 11, .15);
-            color: #fbbf24
-        }
-
-        .type-com {
-            background: rgba(16, 185, 129, .15);
-            color: #34d399
-        }
-
-        .type-ind {
-            background: rgba(139, 92, 246, .15);
-            color: #a78bfa
-        }
-
-        .type-agri {
-            background: rgba(6, 182, 212, .15);
-            color: #22d3ee
-        }
-
-        .sortable-header {
-            cursor: pointer;
-            position: sticky;
-            top: 0;
-            z-index: 10
-        }
-
-        .sort-icon {
-            font-size: .7em;
-            transition: transform .2s;
-            display: inline-block;
-            margin-left: 4px
-        }
-
-        .sort-asc .sort-icon {
-            transform: rotate(180deg)
-        }
-
-        /* Pagination */
-        .pagination-controls {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 12px 20px;
-            background: #0f172a;
-            gap: 8px;
-            border-top: 1px solid #334155
-        }
-
-        .pagination-controls button {
-            background: #334155;
-            color: #e2e8f0;
-            border: none;
-            padding: 8px 14px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: .85rem;
-            font-weight: 500;
-            transition: all .2s;
-            font-family: inherit
-        }
-
-        .pagination-controls button:hover:not(:disabled) {
-            background: #3b82f6;
-            transform: translateY(-1px)
-        }
-
-        .pagination-controls button:disabled {
-            opacity: .4;
-            cursor: not-allowed
-        }
-
-        .pagination-controls span {
-            font-size: .85rem;
-            color: #94a3b8;
-            font-weight: 500
-        }
-
-        /* Modal */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, .6);
-            z-index: 1000;
-            overflow-y: auto;
-            backdrop-filter: blur(4px)
-        }
-
-        .modal-content {
-            position: relative;
-            margin: 40px auto;
-            background: #1e293b;
-            border-radius: 16px;
-            max-width: 700px;
-            width: 92%;
-            box-shadow: 0 25px 60px rgba(0, 0, 0, .4);
-            animation: modalIn .25s ease;
-            display: flex;
-            flex-direction: column;
-            max-height: calc(100vh - 80px)
-        }
-
-        @keyframes modalIn {
-            from {
-                opacity: 0;
-                transform: scale(.95) translateY(10px)
-            }
-
-            to {
-                opacity: 1;
-                transform: scale(1) translateY(0)
-            }
-        }
-
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 16px 20px;
-            flex-shrink: 0;
-            border-bottom: 1px solid #334155
-        }
-
-        .modal-title {
-            font-size: 1.2rem;
-            font-weight: 700;
-            color: #f8fafc
-        }
-
-        .close-btn {
-            background: none;
-            border: none;
-            font-size: 1.8rem;
-            cursor: pointer;
-            color: #64748b;
-            padding: 0;
-            width: 32px;
-            height: 32px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 8px;
-            transition: all .2s
-        }
-
-        .close-btn:hover {
-            color: #f8fafc;
-            background: #334155
-        }
-
-        .modal-body-scrollable {
-            overflow-y: auto;
-            padding: 16px 20px;
-            flex: 1;
-            min-height: 0;
-            max-height: 60vh
-        }
-
-        .detail-grid {
-            display: grid;
-            grid-template-columns: 1fr 2fr;
-            gap: 12px;
-            align-items: center
-        }
-
-        .detail-label {
-            font-weight: 600;
-            color: #64748b;
-            font-size: .85rem
-        }
-
-        .detail-value {
-            color: #e2e8f0;
-            word-wrap: break-word;
-            font-size: .9rem
-        }
-
-        /* Summary Modal */
-        .class-toggle {
-            display: flex;
-            background: #0f172a;
-            border-radius: 8px;
-            padding: 3px;
-            gap: 2px
-        }
-
-        .class-toggle-btn {
-            padding: 5px 10px;
-            border: none;
-            background: transparent;
-            color: #64748b;
-            font-weight: 600;
-            cursor: pointer;
-            border-radius: 6px;
-            transition: all .2s;
-            font-size: .8rem;
-            font-family: inherit
-        }
-
-        .class-toggle-btn.active {
-            background: #334155;
-            color: #f8fafc
-        }
-
-        .modal-tabs {
-            display: flex;
-            border-bottom: 1px solid #334155;
-            padding: 0 20px;
-            flex-shrink: 0
-        }
-
-        .modal-tab-btn {
-            padding: 10px 14px;
-            cursor: pointer;
-            border: none;
-            background: transparent;
-            color: #64748b;
-            font-weight: 600;
-            font-size: .85rem;
-            border-bottom: 2px solid transparent;
-            transition: all .2s;
-            font-family: inherit
-        }
-
-        .modal-tab-btn:hover {
-            color: #e2e8f0
-        }
-
-        .modal-tab-btn.active {
-            color: #3b82f6;
-            border-bottom-color: #3b82f6
-        }
-
-        .modal-tab-panel {
-            display: none;
-            flex: 1;
-            min-height: 0;
-            overflow: hidden
-        }
-
-        .modal-tab-panel.active {
-            display: flex;
-            flex-direction: column
-        }
-
-        .summary-modal-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: .85rem
-        }
-
-        .summary-modal-table th,
-        .summary-modal-table td {
-            border: 1px solid #334155;
-            padding: 8px 10px;
-            text-align: left
-        }
-
-        .summary-modal-table th {
-            background: #0f172a;
-            font-weight: 600;
-            color: #94a3b8;
-            position: sticky;
-            top: 0;
-            z-index: 1
-        }
-
-        .summary-modal-table tr.total-row {
-            background: rgba(59, 130, 246, 0.1);
-            font-weight: 700;
-            color: #f8fafc;
-        }
-
-        .summary-modal-table tr.total-row td {
-            border-top: 2px solid #3b82f6;
-        }
-
-        /* Loading */
-        .loading-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(15, 23, 42, .9);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 2000;
-            flex-direction: column;
-            gap: 16px
-        }
-
-        .spinner {
-            border: 4px solid #334155;
-            border-top: 4px solid #3b82f6;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin .8s linear infinite
-        }
-
-        @keyframes spin {
-            to {
-                transform: rotate(360deg)
-            }
-        }
-
-        .loading-text {
-            font-size: 1rem;
-            color: #94a3b8;
-            font-weight: 500
-        }
-
-        .loading,
-        .error {
-            text-align: center;
-            padding: 40px;
-            font-size: 1rem
-        }
-
-        .loading {
-            color: #64748b
-        }
-
-        .error {
-            color: #f87171;
-            font-weight: 600
-        }
-
-        /* Responsive */
-        @media(max-width:1024px) {
-            .kpi-grid {
-                grid-template-columns: repeat(3, 1fr)
-            }
-        }
-
-        @media(max-width:768px) {
-            body {
-                padding: 6px
-            }
-
-            .kpi-grid {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 8px;
-                padding: 12px
-            }
-
-            .kpi-card .card-value {
-                font-size: 1.3rem
-            }
-
-            .header h1 {
-                font-size: 1.3rem
-            }
-
-            .filters-row {
-                flex-direction: column;
-                align-items: stretch
-            }
-
-            .filters-row select {
-                width: 100%;
-                min-width: unset
-            }
-
-            .search-download-row {
-                flex-direction: column
-            }
-
-            .detail-grid {
-                grid-template-columns: 1fr
-            }
-
-            .modal-content {
-                width: 96%;
-                margin: 20px auto
-            }
-
-            .pagination-controls {
-                flex-wrap: wrap
-            }
-
-            th,
-            td {
-                padding: 6px 4px;
-                font-size: .8rem
-            }
-        }
-
-        @media(max-width:480px) {
-            .kpi-grid {
-                grid-template-columns: 1fr 1fr
-            }
-
-            .kpi-card .card-value {
-                font-size: 1.1rem
-            }
-
-            .kpi-card .card-label {
-                font-size: .65rem
-            }
-        }
-
-        .copy-button {
-            background: rgba(59, 130, 246, 0.1);
-            color: #3b82f6;
-            border: 1px solid rgba(59, 130, 246, 0.3);
-            padding: 5px 12px;
-            border-radius: 20px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            font-size: 0.8rem;
-            transition: all 0.2s;
-            margin-right: 12px;
-        }
-
-        .copy-button:hover {
-            background: rgba(59, 130, 246, 0.2);
-        }
-
-        .copy-button.success {
-            background: #10b981!important;
-            color: white!important;
-            border-color: #10b981!important;
-        }
-
-        /* Match Disconnection Tracker chrome */
-        body {
-            font-family: 'Roboto', sans-serif;
-            background: #e9ecef;
-            color: #212529;
-            padding: 12px;
-        }
-        .container {
-            background: transparent;
-            box-shadow: none;
-            border-radius: 0;
-            overflow: visible;
-        }
-        .page-top { position: relative; }
-        .header {
-            background: #1e3a8a;
-            color: #fff;
-            padding: 0.7rem 1.25rem;
-            border: 0;
-            border-radius: 12px;
-            box-shadow: 0 3px 6px rgba(0,0,0,0.16);
-            margin-bottom: 0.75rem;
-        }
-        .header h1 { font-size: 1.2rem; margin: 0; color: #fff; }
-        .update-date { color: rgba(255,255,255,0.9); opacity: 1; font-style: normal; font-size: 0.78rem; }
-        .filter-toggle {
-            display: none;
-            align-items: center;
-            justify-content: center;
-            min-height: 30px;
-            padding: 4px 8px;
-            border: 1px solid rgba(255,255,255,0.45);
-            background: transparent;
-            color: #fff;
-            border-radius: 6px;
-            cursor: pointer;
-        }
-        .filter-toggle[aria-expanded="true"] { background: #fff; color: #1e3a8a; }
-        .header .reset-button,
-        .header .summary-icon-button {
-            background: transparent;
-            color: #fff;
-            border: 1px solid rgba(255,255,255,0.45);
-            box-shadow: none;
-            padding: 4px 10px;
-            font-size: 0.8rem;
-            border-radius: 6px;
-        }
-        .header .reset-button:hover,
-        .header .summary-icon-button:hover {
-            background: #fff;
-            color: #1e3a8a;
-            transform: none;
-        }
-        .kpi-grid {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 10px;
-            padding: 0 0 12px;
-            background: transparent;
-        }
-        .kpi-card {
-            background: #fff;
-            border: 1px solid #dee2e6;
-            border-left: 5px solid var(--card-accent, #1e3a8a);
-            border-radius: 12px;
-            text-align: left;
-            padding: 0.7rem 0.8rem;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.12);
-        }
-        .kpi-card::before { display: none; }
-        .kpi-card:hover { transform: translateY(-2px); box-shadow: 0 3px 6px rgba(0,0,0,0.16); }
-        .kpi-card.active {
-            background: rgba(79, 70, 229, 0.08);
-            border-color: #4f46e5;
-            box-shadow: none;
-        }
-        .kpi-card .card-value { color: #212529; font-size: 1.35rem; }
-        .kpi-card .card-label { color: #6c757d; margin-bottom: 2px; }
-        .kpi-card.kpi-total .card-label { color: #1d4ed8; }
-        .kpi-card.kpi-ind .card-label { color: #7c3aed; }
-        .kpi-card.kpi-com .card-label { color: #059669; }
-        .kpi-card.kpi-dom .card-label { color: #d97706; }
-        .kpi-card.kpi-agri .card-label { color: #0891b2; }
-        .kpi-card .card-osd { color: #6c757d; }
-        .kpi-card .card-osd span { color: #e11d48; }
-        .top-chip {
-            display: inline-block;
-            margin-left: 4px;
-            padding: 1px 5px;
-            border-radius: 4px;
-            font-size: 0.58rem;
-            font-weight: 700;
-            letter-spacing: 0.03em;
-            background: #fff7ed;
-            color: #c2410c;
-            vertical-align: middle;
-        }
-        .filters-section {
-            background: #fff;
-            border: 1px solid #dee2e6;
-            border-radius: 12px;
-            padding: 0.85rem 1rem;
-            margin-bottom: 12px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.12);
-        }
-        .filters-row label { color: #334155; }
-        select, input[type="text"] {
-            background: #fff;
-            color: #212529;
-            border: 1px solid #cbd5e1;
-        }
-        .table-container { padding: 0 0 12px; max-height: none; }
-        table { background: #fff; border-radius: 12px; overflow: hidden; }
-        th {
-            background: #f8fafc;
-            color: #64748b;
-            border-bottom: 2px solid #dee2e6;
-        }
-        td { color: #212529; border-bottom: 1px solid #e2e8f0; }
-        tr:hover { background: rgba(79, 70, 229, 0.04); }
-        .last-payment { color: #e11d48; }
-        .type-dom { background: rgba(245, 158, 11, 0.15); color: #b45309; }
-        .type-com { background: rgba(16, 185, 129, 0.15); color: #047857; }
-        .type-ind { background: rgba(139, 92, 246, 0.15); color: #6d28d9; }
-        .type-agri { background: rgba(6, 182, 212, 0.15); color: #0e7490; }
-        .pagination-controls {
-            background: transparent;
-            border-top: 0;
-        }
-        .pagination-controls button {
-            background: #fff;
-            color: #334155;
-            border: 1px solid #cbd5e1;
-        }
-        .pagination-controls button:hover:not(:disabled) { background: #1e3a8a; color: #fff; }
-        .pagination-controls span { color: #64748b; }
-        .modal { background: rgba(15, 23, 42, 0.55); }
-        .modal-content { background: #fff; box-shadow: 0 20px 50px rgba(0,0,0,0.25); }
-        .modal-header, .modal-tabs { border-color: #e2e8f0; }
-        .modal-title { color: #0f172a; }
-        .close-btn { color: #64748b; }
-        .close-btn:hover { color: #0f172a; background: #f1f5f9; }
-        .detail-label { color: #64748b; }
-        .detail-value { color: #0f172a; }
-        .class-toggle { background: #f1f5f9; }
-        .class-toggle-btn { color: #64748b; }
-        .class-toggle-btn.active { background: #1e3a8a; color: #fff; }
-        .modal-tab-btn { color: #64748b; }
-        .modal-tab-btn.active { color: #1e3a8a; border-bottom-color: #1e3a8a; }
-        .summary-modal-table th, .summary-modal-table td { border-color: #e2e8f0; color: #212529; }
-        .summary-modal-table th { background: #f8fafc; color: #64748b; }
-        .summary-modal-table tr.total-row { background: #eff6ff; color: #1e3a8a; }
-        .loading-overlay { background: rgba(15, 23, 42, 0.7); }
-        .loading { color: #64748b; }
-        .download-button { background: #1e3a8a; }
-        .download-button:hover { box-shadow: none; transform: none; background: #1e40af; }
-        .copy-button { background: #eff6ff; color: #1d4ed8; border-color: #bfdbfe; }
-        #detailModal .modal-content { max-width: 860px; }
-        #detailModal .modal-header { padding: 8px 12px; }
-        #detailModal .modal-title { font-size: 0.95rem; }
-        #detailModal .modal-body-scrollable { padding: 8px 10px 10px; }
-        #detailModal .consumer-sheets {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 8px;
-        }
-        #detailModal .consumer-kv {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 0;
-        }
-        #detailModal .consumer-kv th,
-        #detailModal .consumer-kv td {
-            padding: 2px 7px;
-            font-size: 0.74rem;
-            line-height: 1.25;
-            vertical-align: top;
-            border: 1px solid #e5e7eb;
-        }
-        #detailModal .consumer-kv th {
-            width: 38%;
-            font-weight: 600;
-            color: #64748b;
-            background: #f8fafc;
-            white-space: nowrap;
-            text-align: left;
-        }
-        #detailModal .consumer-kv td {
-            font-weight: 500;
-            color: #0f172a;
-            word-break: break-word;
-        }
-        #detailModal .consumer-kv .cd-section th {
-            width: auto;
-            background: #e8eef9;
-            color: #1e3a8a;
-            font-size: 0.66rem;
-            letter-spacing: 0.04em;
-            text-transform: uppercase;
-            padding: 4px 7px;
-        }
-        #detailModal .cd-osd { color: #e11d48; font-weight: 700; }
-        #detailModal .cd-phone { color: #1d4ed8; text-decoration: none; }
-        @media (min-width: 768px) {
-            #detailModal .consumer-sheets {
-                grid-template-columns: 1fr 1fr;
-                align-items: start;
-            }
-        }
-
-        @media (max-width: 767px) {
-            body { padding: 8px; }
-            .page-top { position: sticky; top: 0; z-index: 40; }
-            .header {
-                margin: 0;
-                padding: 6px 8px;
-                border-radius: 10px;
-                min-height: 42px;
-            }
-            .header h1 { font-size: 0.92rem; white-space: nowrap; }
-            .update-date, .btn-label { display: none; }
-            .filter-toggle { display: inline-flex; }
-            .header .reset-button, .header .summary-icon-button { padding: 4px 8px; }
-            .filters-section {
-                display: none;
-                position: absolute;
-                left: 0;
-                right: 0;
-                top: calc(100% + 6px);
-                z-index: 45;
-                margin: 0;
-                max-height: 70vh;
-                overflow: auto;
-                box-shadow: 0 10px 24px rgba(15, 23, 42, 0.16);
-            }
-            .page-top.filters-open .filters-section { display: block; }
-            .kpi-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; padding-top: 8px; }
-            .kpi-card { padding: 0.4rem 0.55rem; border-left-width: 3px; border-radius: 8px; }
-            .kpi-card:hover { transform: none; }
-            .kpi-card .card-value { font-size: 0.95rem; }
-            .kpi-card .card-label { font-size: 0.6rem; }
-            .filters-row { flex-direction: row; }
-            .filters-row select { width: auto; min-width: 0; flex: 1 1 140px; }
-        }
-        @media (min-width: 768px) and (max-width: 1024px) {
-            .kpi-grid { grid-template-columns: repeat(3, 1fr); }
-        }
-    </style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>REM defaulters · MZO Reports</title>
+  <script src="/mzo_theme.js?v=3"></script>
+  <link rel="stylesheet" href="/mzo_theme.css?v=3" />
+  <script src="/mzo_ui.js?v=2" defer></script>
+  <script src="/mzo_data_hub.js" defer></script>
+  <script src="/mzo_scope.js?v=5" defer></script>
+  <style>
+    .rd-copy { margin-left: auto; margin-right: 2px; }
+  </style>
 </head>
-
 <body>
-    <div class="container">
-        <div class="page-top" id="remDefHeader">
-        <div class="header">
-            <div class="header-left">
-                <h1>REM Defaulters</h1>
-                <div class="update-date" id="updateDate">Last Updated: Loading...</div>
-            </div>
-            <div class="header-right">
-                <button type="button" class="filter-toggle" id="filterToggle" aria-expanded="false" aria-controls="remDefFilters" title="Filters">
-                    <i class="bx bx-slider-alt"></i>
-                </button>
-                <button class="reset-button" onclick="resetAllFilters()" title="Reset All Filters">
-                    ↺ <span class="btn-label">Reset</span>
-                </button>
-                <button class="summary-icon-button" onclick="showSummaryModal()" title="Show Summary">
-                    <i class="bx bx-bar-chart-alt-2"></i> <span class="btn-label">Summary</span>
-                </button>
-            </div>
-        </div>
+  <main class="ui-page">
+    <header class="ui-head">
+      <div>
+        <h1>REM defaulters</h1>
+        <p id="meta">Loading…</p>
+      </div>
+      <div class="ui-actions">
+        <button type="button" class="ui-btn icon" id="refreshBtn" aria-label="Refresh" title="Refresh"><svg class="ui-i"><use href="#ui-refresh"/></svg></button>
+      </div>
+    </header>
 
-        <!-- Filters -->
-        <div class="filters-section" id="remDefFilters">
-            <div class="filters-row">
-                <label><input type="checkbox" id="schoolFilter"> School</label>
-                <label><input type="checkbox" id="partyOfficeFilter"> Party Office</label>
-                <label><input type="checkbox" id="towerFilter"> Tower</label>
-                <select id="regionFilter">
-                    <option value="">All Regions</option>
-                </select>
-                <select id="divisionFilter">
-                    <option value="">All Divisions</option>
-                </select>
-                <select id="cccFilter">
-                    <option value="">All CCC</option>
-                </select>
-                <select id="classFilter">
-                    <option value="">All Classes</option>
-                </select>
-                <select id="osdRangeFilter">
-                    <option value="">All OSD Ranges</option>
-                    <option value="100000">&gt; 1 Lakh</option>
-                    <option value="50000">&gt; 50K</option>
-                    <option value="25000">&gt; 25K</option>
-                    <option value="10000">&gt; 10K</option>
-                </select>
-                <select id="lastPaymentFilter">
-                    <option value="">All Last Payments</option>
-                    <option value="year">&gt; 1 Year</option>
-                    <option value="6months">&gt; 6 Months</option>
-                    <option value="3months">&gt; 3 Months</option>
-                    <option value="1month">&gt; 1 Month</option>
-                </select>
-            </div>
-            <div class="search-download-row">
-                <div class="search-box">
-                    <input type="text" id="searchInput" placeholder="Search by CON_ID, Name, Address, CCC...">
-                </div>
-                <button class="download-button" onclick="downloadFilteredCSV()">&#x2193; Download</button>
-            </div>
-        </div>
-        </div>
-
-        <div class="kpi-grid">
-            <div class="kpi-card kpi-total active" id="cardTotal" onclick="toggleCardFilter('all')">
-                <div class="card-label">Total</div>
-                <div class="card-value" id="valTotal">—</div>
-                <div class="card-osd">OSD: <span id="osdTotal">—</span></div>
-            </div>
-            <div class="kpi-card kpi-ind" id="cardIND" onclick="toggleCardFilter('IND')">
-                <div class="card-label">Industrial</div>
-                <div class="card-value" id="valIND">—</div>
-                <div class="card-osd">OSD: <span id="osdIND">—</span></div>
-            </div>
-            <div class="kpi-card kpi-com" id="cardCOM" onclick="toggleCardFilter('COM')">
-                <div class="card-label">Commercial</div>
-                <div class="card-value" id="valCOM">—</div>
-                <div class="card-osd">OSD: <span id="osdCOM">—</span></div>
-            </div>
-            <div class="kpi-card kpi-dom" id="cardDOM" onclick="toggleCardFilter('DOM')">
-                <div class="card-label">Domestic <span class="top-chip">TOP 200</span></div>
-                <div class="card-value" id="valDOM">—</div>
-                <div class="card-osd">OSD: <span id="osdDOM">—</span></div>
-            </div>
-            <div class="kpi-card kpi-agri" id="cardAGRI" onclick="toggleCardFilter('AGRI')">
-                <div class="card-label">Agricultural <span class="top-chip">TOP 200</span></div>
-                <div class="card-value" id="valAGRI">—</div>
-                <div class="card-osd">OSD: <span id="osdAGRI">—</span></div>
-            </div>
-        </div>
-
-        <!-- Table -->
-        <div class="table-container">
-            <div id="loadingMessage" class="loading">Loading data...</div>
-            <div id="errorMessage" class="error" style="display:none;"></div>
-            <table id="dataTable" style="display:none;">
-                <thead>
-                    <tr>
-                        <th>Sl</th>
-                        <th>Con ID</th>
-                        <th>CCC</th>
-                        <th>Name</th>
-                        <th>Type</th>
-                        <th>MRU</th>
-                        <th>Mobile</th>
-                        <th id="osdHeader" class="sortable-header">OSD (₹) <span class="sort-icon">&#9660;</span></th>
-                        <th>Locked OSD</th>
-                        <th id="lastPaymentHeader" class="sortable-header">Last Payment <span class="sort-icon"></span>
-                        </th>
-                    </tr>
-                </thead>
-                <tbody id="tableBody"></tbody>
-            </table>
-        </div>
-
-        <div class="pagination-controls">
-            <button id="prevPageBtn" disabled>← Prev</button>
-            <span id="pageInfo">Page 1 of 1</span>
-            <button id="nextPageBtn" disabled>Next →</button>
-        </div>
+    <div class="ui-filters">
+      <label class="ui-search"><svg class="ui-i"><use href="#ui-search"/></svg><input class="ui-input" id="q" type="search" placeholder="Consumer ID, name or address" autocomplete="off" /></label>
+      <span class="ui-select"><select id="regionFilter" aria-label="Region"><option value="">All regions</option></select></span>
+      <span class="ui-select"><select id="divisionFilter" aria-label="Division"><option value="">All divisions</option></select></span>
+      <span class="ui-select"><select id="cccFilter" aria-label="CCC"><option value="">All CCCs</option></select></span>
+      <span class="ui-select"><select id="classFilter" aria-label="Base class"><option value="">All base classes</option></select></span>
+      <span class="ui-select"><select id="tagFilter" aria-label="Consumer type">
+        <option value="">Any consumer</option>
+        <option value="school">Schools</option>
+        <option value="party">Party offices</option>
+        <option value="tower">Telecom towers</option>
+      </select></span>
+      <button type="button" class="ui-btn ghost" id="clearBtn" hidden><svg class="ui-i"><use href="#ui-x"/></svg>Clear</button>
     </div>
 
-    <!-- Detail Modal -->
-    <div id="detailModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <div class="modal-title">Consumer Details</div>
-                <div style="display: flex; align-items: center; margin-left: auto;">
-                    <button id="copyBtn" class="copy-button" onclick="copyConsumerToWhatsApp()" title="Copy for WhatsApp">
-                        <i class='bx bx-copy'></i><i class='bx bxl-whatsapp'></i>
-                    </button>
-                    <button class="close-btn" onclick="closeModal()">&times;</button>
-                </div>
-            </div>
-            <div id="modalBody" class="modal-body-scrollable"></div>
+    <section class="ui-stats" style="--n:5" id="stats" aria-label="By type">
+      <button type="button" class="ui-stat" data-t=""><div class="k">All defaulters</div><div class="v"><span class="ui-skel"></span></div><div class="s">&nbsp;</div></button>
+      <button type="button" class="ui-stat" data-t="DOM"><div class="k">Domestic</div><div class="v"><span class="ui-skel"></span></div><div class="s">&nbsp;</div></button>
+      <button type="button" class="ui-stat" data-t="COM"><div class="k">Commercial</div><div class="v"><span class="ui-skel"></span></div><div class="s">&nbsp;</div></button>
+      <button type="button" class="ui-stat" data-t="IND"><div class="k">Industrial</div><div class="v"><span class="ui-skel"></span></div><div class="s">&nbsp;</div></button>
+      <button type="button" class="ui-stat" data-t="AGRI"><div class="k">Agriculture</div><div class="v"><span class="ui-skel"></span></div><div class="s">&nbsp;</div></button>
+    </section>
+
+    <div class="ui-grid">
+      <section class="ui-panel">
+        <div class="ui-panel-h">
+          <h2>By office</h2>
+          <div class="ui-tabs" role="tablist" id="levelTabs">
+            <button type="button" class="ui-tab" role="tab" data-l="region" aria-selected="true">Region</button>
+            <button type="button" class="ui-tab" role="tab" data-l="division">Division</button>
+            <button type="button" class="ui-tab" role="tab" data-l="ccc">CCC</button>
+          </div>
         </div>
+        <div id="officeTable" style="--max-h:520px"><div class="ui-empty">Loading…</div></div>
+      </section>
+      <div>
+        <section class="ui-panel">
+          <div class="ui-panel-h"><h2>Last payment</h2></div>
+          <div class="ui-panel-b"><div id="payHist"></div></div>
+        </section>
+        <section class="ui-panel">
+          <div class="ui-panel-h"><h2>Outstanding size</h2></div>
+          <div class="ui-panel-b"><div id="osdHist"></div></div>
+        </section>
+      </div>
     </div>
 
-    <!-- Summary Modal -->
-    <div id="summaryModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <div class="modal-title">Summary</div>
-                <div class="class-toggle" id="summaryClassToggle">
-                    <button class="class-toggle-btn active" onclick="showSummaryModal('all')">All</button>
-                    <button class="class-toggle-btn" onclick="showSummaryModal('DOM')">DOM</button>
-                    <button class="class-toggle-btn" onclick="showSummaryModal('COM')">COM</button>
-                    <button class="class-toggle-btn" onclick="showSummaryModal('IND')">IND</button>
-                    <button class="class-toggle-btn" onclick="showSummaryModal('AGRI')">AGRI</button>
-                </div>
-                <button class="close-btn" onclick="closeSummaryModal()">&times;</button>
-            </div>
-            <div class="modal-tabs">
-                <button class="modal-tab-btn active" onclick="openSummaryTab(event,'Region')">Region</button>
-                <button class="modal-tab-btn" onclick="openSummaryTab(event,'Division')">Division</button>
-                <button class="modal-tab-btn" onclick="openSummaryTab(event,'CCC')">CCC</button>
-            </div>
-            <div id="Region" class="modal-tab-panel active">
-                <div id="regionSummaryBody" class="modal-body-scrollable"></div>
-            </div>
-            <div id="Division" class="modal-tab-panel">
-                <div id="divisionSummaryBody" class="modal-body-scrollable"></div>
-            </div>
-            <div id="CCC" class="modal-tab-panel">
-                <div id="cccSummaryBody" class="modal-body-scrollable"></div>
-            </div>
-        </div>
-    </div>
+    <section class="ui-panel">
+      <div class="ui-panel-h">
+        <h2>Consumers <small id="count"></small></h2>
+        <button type="button" class="ui-btn sm" id="exportBtn"><svg class="ui-i"><use href="#ui-download"/></svg>Export CSV</button>
+      </div>
+      <div id="table"><div class="ui-empty">Loading…</div></div>
+    </section>
+  </main>
 
-    <!-- Loading Overlay -->
-    <div id="loadingOverlay" class="loading-overlay">
-        <div class="spinner"></div>
-        <div class="loading-text" id="loadingText">Loading data... Please wait.</div>
-    </div>
+  <script>
+  document.addEventListener('DOMContentLoaded', function () {
+    'use strict';
+    var $ = function (id) { return document.getElementById(id); };
+    var TYPE = { DOM: 'Domestic', COM: 'Commercial', IND: 'Industrial', AGRI: 'Agriculture' };
+    var PAY = [
+      { key: 'p0', label: 'Within a month', test: function (m, d) { return d != null && d <= 30; } },
+      { key: 'p1', label: '1–3 months', test: function (m, d) { return d > 30 && m < 3; } },
+      { key: 'p2', label: '3–6 months', test: function (m) { return m >= 3 && m < 6; } },
+      { key: 'p3', label: '6–12 months', test: function (m) { return m >= 6 && m < 12; } },
+      { key: 'p4', label: 'Over a year', test: function (m) { return m >= 12; } },
+      { key: 'p5', label: 'No payment date', test: function (m, d) { return d == null; } }
+    ];
+    var OSD = [
+      { key: 'o0', label: 'Over ₹1 lakh', min: 1e5, max: Infinity },
+      { key: 'o1', label: '₹50K – 1 lakh', min: 5e4, max: 1e5 },
+      { key: 'o2', label: '₹25K – 50K', min: 2.5e4, max: 5e4 },
+      { key: 'o3', label: '₹10K – 25K', min: 1e4, max: 2.5e4 },
+      { key: 'o4', label: 'Under ₹10K', min: -Infinity, max: 1e4 }
+    ];
+    var parts = { DOM: [], AGRI: [], IC: [] }, all = [], f = { q: '', type: '', pay: '', osd: '' }, level = 'region', scope = null;
 
-    <script src="../mzo_data_hub.js"></script>
-    <script src="../mzo_scope.js?v=4"></script>
-    <script>
-        const mapping = {
-            "MALDA REGION": {
-                "MALDA DIVISION": { "MANIKCHAK CCC": "6611101", "GOLAPGANJ CCC": "6611102", "BAISHNABNAGAR CCC": "6611103", "KALIACHAK CCC": "6611104", "MOTHABARI CCC": "6611105", "SUJAPUR CCC": "6611106", "RATHBARI CCC": "6611107", "FULBARI CCC": "6611108", "MOKDUMPUR CCC": "6611109" },
-                "CHANCHAL DIVISION": { "BHALUKA CCC": "6612101", "SAMSI CCC": "6612102", "PARANPUR CCC": "6612103", "CHANCHAL CCC": "6612104", "MALATIPUR CCC": "6612105", "HARISHCHANDRAPUR CCC": "6612106", "KUSHIDA CCC": "6612107" },
-                "GAZOLE DIVISION": { "GAZOL CCC": "6613101", "AIHO. CCC": "6613102", "PANDUA CCC": "6613103", "BAMONGOLA CCC": "6613104", "OLD MALDA CCC": "6613105" }
-            },
-            "UTTAR DINAJPUR REGION": {
-                "RAIGANJ DIVISION": { "ITAHAR CCC": "6621101", "HEMTABAD CCC": "6621102", "KALIYAGANJ CCC": "6621103", "RAIGANJ CCC": "6621104", "BIRNAGAR CCC": "6621105", "KARANDIGHI CCC": "6621106" },
-                "ISLAMPUR DIVISION": { "ISLAMPUR CCC": "6622101", "CHOPRA CCC": "6622102", "DALKHOLA CCC": "6622103", "GOALPOKHER CCC": "6622104", "KANKI CCC": "6622105" }
-            },
-            "DAKSHIN DINAJPUR REGION": {
-                "BALURGHAT DIVISION": { "BALURGHAT CCC": "6631101", "TAPAN CCC": "6631102", "KUMARGANJ CCC": "6631103", "HILI CCC": "6631104", "PATIRAM CCC": "6631105" },
-                "BUNIADPUR DIVISION": { "BUNIADPUR CCC": "6632101", "KUSMANDI CCC": "6632102", "HARIRAMPUR CCC": "6632103", "GANGARAMPUR CCC": "6632104" }
-            }
+    function tsv(text) {
+      var lines = String(text || '').replace(/\r/g, '').split('\n').filter(function (l) { return l.trim(); });
+      if (!lines.length) return [];
+      var head = lines[0].split('\t').map(function (h) { return h.trim(); });
+      var gi = head.indexOf('GOVT_STAT'), ai = head.indexOf('ADDRESS'), yn = /^(YES|NO)$/i;
+      return lines.slice(1).map(function (l) {
+        var v = l.split('\t'), o = {};
+        // Some sheet rows carry an extra empty cell after NAME, shifting every later column right by one.
+        if (gi > 0 && ai > 0 && !yn.test((v[gi] || '').trim()) && yn.test((v[gi + 1] || '').trim()) && !(v[ai] || '').trim()) v.splice(ai, 1);
+        head.forEach(function (h, i) { if (h) o[h] = v[i] ? v[i].trim() : ''; });
+        return o;
+      });
+    }
+    function ymd(s) { s = String(s || '').trim(); if (s.length !== 8) return null; var d = new Date(+s.slice(0, 4), +s.slice(4, 6) - 1, +s.slice(6, 8)); return isNaN(d) ? null : d; }
+    function monthsSince(d) {
+      if (!d) return null;
+      var now = new Date(); now.setHours(0, 0, 0, 0);
+      var m = (now.getFullYear() - d.getFullYear()) * 12 + now.getMonth() - d.getMonth();
+      if (now.getDate() < d.getDate()) m--;
+      return m;
+    }
+
+    function enrich(rows, type) {
+      return rows.filter(function (r) { return r.CON_ID || r.CCC_CODE; }).map(function (r) {
+        var code = String(r.CCC_CODE || '').trim(), o = UI.office(code);
+        var bc = String(r.BASE_CLASS || '').trim().toUpperCase();
+        var last = ymd(r.LAST_PDT), days = last ? Math.max(0, Math.round((Date.now() - last.getTime()) / 864e5)) : null, m = monthsSince(last);
+        var txt = ((r.NAME || '') + ' ' + (r.ADDRESS || '')).toLowerCase();
+        return {
+          raw: r, con: String(r.CON_ID || '').trim(), name: UI.title(r.NAME || ''), address: r.ADDRESS || '', code: code,
+          _region: o.region, _divn: o.division, _supp: o.ccc || code, CCC_CODE: code,
+          type: type === 'IC' ? (bc === 'I' ? 'IND' : 'COM') : type, base: bc,
+          osd: parseFloat(r.NOTOSD_UPD) || 0, locked: parseFloat(r.LOCKED_OSD) || 0,
+          last: last, lastDays: days, lastMonths: m, mobile: r.REG_MOB_NO,
+          payKey: PAY.filter(function (p) { return p.test(m, days); })[0].key,
+          school: txt.indexOf('school') !== -1, party: txt.indexOf('party') !== -1,
+          tower: ['indus', 'bharti', 'jio', 'bsnl', 'telecom'].some(function (k) { return txt.indexOf(k) !== -1; }),
+          upd: r.UPD_DT
         };
+      });
+    }
 
-        const IC_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQOynlOrqc0iXUKYDgqh-tTjIgDA5WidJDcDhYM7MhfKIZzZ7iduFD2LN4fYRXmVvcLCz1X-OJfcmRx/pub?gid=0&single=true&output=tsv';
-        const AGRI_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRFk-wa_x-dsthFXNsWa9wRxWOQrMD-yEiucvA2FtJIbwnTiGqVs3OT_eXxqyAOBqvGSDRiG-Hr0hK1/pub?gid=0&single=true&output=tsv';
-        const DOM_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRFk-wa_x-dsthFXNsWa9wRxWOQrMD-yEiucvA2FtJIbwnTiGqVs3OT_eXxqyAOBqvGSDRiG-Hr0hK1/pub?gid=1106133732&single=true&output=tsv';
+    function rebuild() {
+      all = parts.DOM.concat(parts.AGRI, parts.IC);
+      if (window.MzoScope) all = window.MzoScope.filterRows(all);
+      all.forEach(function (r) { r.osdKey = OSD.filter(function (b) { return r.osd >= b.min && r.osd < b.max; })[0].key; });
+      var upd = all.reduce(function (m, r) { return r.upd && r.upd > m ? r.upd : m; }, '');
+      $('meta').textContent = (upd ? 'Updated ' + UI.fmtDate(ymd(upd)) + ' · ' : '') + UI.n(all.length) + ' consumers' + (parts.IC.length ? '' : ' · loading commercial and industrial…');
+      fillFilters();
+    }
 
-        let allData = [];
-        let filteredData = [];
-        let cccCodeToNames = {};
-        let currentPage = 1;
-        const rowsPerPage = 20;
-        let currentSortColumn = 'NOTOSD_UPD';
-        let currentSortDirection = 'desc';
-        let activeCardFilter = 'all'; // 'all', 'DOM', 'COM', 'IND', 'AGRI'
+    function uniq(rows, k) { var s = {}; rows.forEach(function (r) { if (r[k]) s[r[k]] = 1; }); return Object.keys(s).sort(); }
+    function fillFilters() {
+      var reg = $('regionFilter').value, div = $('divisionFilter').value;
+      UI.fill('regionFilter', uniq(all, '_region'), 'All regions');
+      var r1 = all.filter(function (r) { return !reg || r._region === reg; });
+      UI.fill('divisionFilter', uniq(r1, '_divn'), 'All divisions');
+      var r2 = r1.filter(function (r) { return !div || r._divn === div; });
+      UI.fill('cccFilter', uniq(r2, '_supp'), 'All CCCs');
+      UI.fill('classFilter', uniq(all, 'base'), 'All base classes');
+      if (!scope) scope = UI.lockScope();
+    }
 
-        function createCCCMapping() {
-            Object.keys(mapping).forEach(region => {
-                Object.keys(mapping[region]).forEach(division => {
-                    Object.keys(mapping[region][division]).forEach(ccc => {
-                        const code = mapping[region][division][ccc];
-                        cccCodeToNames[code] = { region, division, ccc: ccc.replace(' CCC', '') };
-                    });
-                });
-            });
+    // Office, class, tag and search (stat totals use this set).
+    function base() {
+      var reg = $('regionFilter').value, div = $('divisionFilter').value, ccc = $('cccFilter').value, bc = $('classFilter').value, tag = $('tagFilter').value, q = f.q.toLowerCase();
+      return all.filter(function (r) {
+        if ((reg && r._region !== reg) || (div && r._divn !== div) || (ccc && r._supp !== ccc) || (bc && r.base !== bc) || (tag && !r[tag])) return false;
+        return !q || r.con.indexOf(q) !== -1 || r.name.toLowerCase().indexOf(q) !== -1 || r.address.toLowerCase().indexOf(q) !== -1 || String(r._supp).toLowerCase().indexOf(q) !== -1;
+      });
+    }
+
+    function render() {
+      var b = base();
+      var pre = b.filter(function (r) { return (!f.pay || r.payKey === f.pay) && (!f.osd || r.osdKey === f.osd); });
+      var v = pre.filter(function (r) { return !f.type || r.type === f.type; });
+
+      [].forEach.call(document.querySelectorAll('#stats .ui-stat'), function (el) {
+        var t = el.getAttribute('data-t'), rows = t ? pre.filter(function (r) { return r.type === t; }) : pre;
+        var amt = rows.reduce(function (a, r) { return a + r.osd; }, 0);
+        el.querySelector('.v').textContent = UI.inr(amt);
+        el.querySelector('.s').textContent = UI.n(rows.length) + ' consumers';
+        el.setAttribute('aria-pressed', String(f.type === t));
+      });
+
+      var key = level === 'region' ? '_region' : level === 'division' ? '_divn' : '_supp', g = {};
+      v.forEach(function (r) {
+        var name = r[key] || 'Unmapped';
+        var o = g[name] || (g[name] = { name: name, parent: level === 'ccc' ? r._divn : level === 'division' ? r._region : '', n: 0, osd: 0, yr: 0 });
+        o.n++; o.osd += r.osd; if (r.lastMonths != null && r.lastMonths >= 12) o.yr++;
+      });
+      var list = Object.keys(g).map(function (k) { return g[k]; }), tot = v.reduce(function (a, r) { return a + r.osd; }, 0);
+      var max = Math.max.apply(null, list.map(function (o) { return o.osd; }).concat([0]));
+      UI.table('officeTable', {
+        rows: list, sort: { key: 'osd', dir: 'desc' }, count: false, empty: 'No defaulters for these filters.',
+        columns: [
+          { key: 'name', label: level === 'ccc' ? 'CCC' : level === 'division' ? 'Division' : 'Region', fmt: function (x, o) { return '<span class="ui-strong">' + UI.esc(x) + '</span>' + (o.parent ? '<span class="sub">' + UI.esc(o.parent) + '</span>' : ''); } },
+          { key: 'n', label: 'Consumers', num: true, fmt: UI.n },
+          { key: 'osd', label: 'Outstanding', num: true, fmt: UI.inr },
+          { key: 'share', label: 'Share', sortVal: function (o) { return o.osd; }, fmt: function (_, o) { return UI.bar(o.osd, max, UI.pct(o.osd, tot)); }, width: '26%', hideSm: true },
+          { key: 'yr', label: 'No pay > 1 yr', num: true, fmt: UI.n, hideSm: true }
+        ],
+        onRow: level === 'ccc' ? null : function (o) { drill(o.name); }
+      });
+
+      var forHist = b.filter(function (r) { return !f.type || r.type === f.type; });
+      UI.hist('payHist', PAY.map(function (p) { return { key: p.key, label: p.label, value: forHist.filter(function (r) { return r.payKey === p.key && (!f.osd || r.osdKey === f.osd); }).length }; }),
+        { active: f.pay, onClick: function (row) { f.pay = f.pay === row.key ? '' : row.key; render(); } });
+      UI.hist('osdHist', OSD.map(function (o) { return { key: o.key, label: o.label, value: forHist.filter(function (r) { return r.osdKey === o.key && (!f.pay || r.payKey === f.pay); }).length }; }),
+        { active: f.osd, onClick: function (row) { f.osd = f.osd === row.key ? '' : row.key; render(); } });
+
+      $('count').textContent = UI.n(v.length);
+      UI.table('table', { rows: v, sort: { key: 'osd', dir: 'desc' }, limit: 50, resetPage: true, empty: 'No consumers match these filters.', columns: COLS, onRow: detail });
+      window.__view = v;
+      $('clearBtn').hidden = !(f.q || f.type || f.pay || f.osd || $('classFilter').value || $('tagFilter').value || ($('regionFilter').value && !$('regionFilter').disabled) || ($('divisionFilter').value && !$('divisionFilter').disabled) || ($('cccFilter').value && !$('cccFilter').disabled));
+    }
+
+    function lastLabel(r) { return r.lastDays == null ? '—' : r.lastDays <= 30 ? 'This month' : r.lastMonths <= 0 ? '1 mo ago' : r.lastMonths >= 12 ? Math.floor(r.lastMonths / 12) + 'y ' + (r.lastMonths % 12 ? r.lastMonths % 12 + 'mo ' : '') + 'ago' : r.lastMonths + ' mo ago'; }
+    var COLS = [
+      { key: 'con', label: 'Consumer', fmt: function (x, r) { return '<span class="ui-strong">' + UI.esc(x || '—') + '</span><span class="sub">' + UI.esc(r.name) + '</span>'; } },
+      { key: '_supp', label: 'CCC', fmt: function (x, r) { return UI.esc(x || r.code) + '<span class="sub">' + UI.esc(r._divn) + '</span>'; } },
+      { key: 'type', label: 'Type', hideSm: true, fmt: function (x) { return UI.esc(TYPE[x] || x); } },
+      { key: 'osd', label: 'Outstanding', num: true, fmt: UI.inr },
+      { key: 'locked', label: 'Locked', num: true, hideSm: true, fmt: function (x) { return x ? UI.inr(x) : '<span class="ui-muted">—</span>'; } },
+      { key: 'last', label: 'Last payment', num: true, sortVal: function (r) { return r.last ? r.last.getTime() : 0; }, fmt: function (_, r) { return UI.esc(lastLabel(r)); } },
+      { key: 'mobile', label: 'Mobile', hideSm: true }
+    ];
+
+    function fd(s) { var d = ymd(s); return d ? UI.fmtDate(d) : ''; }
+    function detail(r) {
+      var x = r.raw;
+      var pairs = [
+        ['Consumer ID', r.con], ['Name', r.name], ['Address', r.address], ['Mobile', r.mobile], ['Installation', x.INST_NO], ['MRU', x.MRU],
+        ['CCC', r._supp], ['Division', r._divn], ['Region', r._region],
+        ['Type', TYPE[r.type]], ['Base class', r.base], ['Class', x.CLASS_DESC], ['Govt.', x.GOVT_STAT],
+        ['Outstanding', UI.inr(r.osd)], ['Locked OSD', r.locked ? UI.inr(r.locked) : ''], ['Bill date', fd(x.BDATE)],
+        ['Last payment', r.last ? lastLabel(r) + ' (' + UI.fmtDate(r.last) + ')' : 'None recorded'], ['Notice issued', fd(x.NOT_ISSUE_DT)],
+        ['Report date', fd(x.UPD_DT)], ['Disconnected', x.DISC_FLAG]
+      ];
+      UI.drawer(r.name || 'Consumer', r.con + ' · ' + [r._supp, r._divn].filter(Boolean).join(', '), pairs);
+      var head = document.querySelector('#ui-drawer header'), btn = head.querySelector('.rd-copy');
+      if (!btn) {
+        btn = document.createElement('button'); btn.type = 'button'; btn.className = 'ui-btn sm rd-copy';
+        btn.innerHTML = UI.icon('copy') + 'Copy';
+        head.insertBefore(btn, head.lastElementChild);
+      }
+      btn.onclick = function () {
+        var text = '*REM defaulter*\n' + pairs.filter(function (p) { return !UI.blank(p[1]); }).map(function (p) { return '*' + p[0] + ':* ' + p[1]; }).join('\n');
+        UI.copy(text).then(function () { UI.toast('Details copied'); });
+      };
+    }
+
+    function drill(name) {
+      if (level === 'region') { $('regionFilter').value = name; $('divisionFilter').value = ''; level = 'division'; }
+      else { $('divisionFilter').value = name; level = 'ccc'; }
+      $('cccFilter').value = '';
+      fillFilters(); marks(); setLevel(level);
+    }
+    function setLevel(l) {
+      level = l;
+      [].forEach.call(document.querySelectorAll('#levelTabs .ui-tab'), function (t) { t.setAttribute('aria-selected', String(t.getAttribute('data-l') === l)); });
+      render();
+    }
+    function marks() { ['regionFilter', 'divisionFilter', 'cccFilter', 'classFilter', 'tagFilter'].forEach(function (id) { UI.mark($(id)); }); }
+
+    ['regionFilter', 'divisionFilter', 'cccFilter'].forEach(function (id) {
+      $(id).addEventListener('change', function () {
+        if (id === 'regionFilter') $('divisionFilter').value = '';
+        if (id !== 'cccFilter') $('cccFilter').value = '';
+        fillFilters(); marks(); render();
+      });
+    });
+    ['classFilter', 'tagFilter'].forEach(function (id) { $(id).addEventListener('change', function () { UI.mark(this); render(); }); });
+    $('q').addEventListener('input', UI.debounce(function () { f.q = this.value.trim(); render(); }, 160));
+    $('stats').addEventListener('click', function (e) { var s = e.target.closest('.ui-stat'); if (!s) return; var t = s.getAttribute('data-t'); f.type = f.type === t ? '' : t; render(); });
+    $('levelTabs').addEventListener('click', function (e) { var t = e.target.closest('.ui-tab'); if (t) setLevel(t.getAttribute('data-l')); });
+    $('clearBtn').addEventListener('click', function () {
+      f.q = ''; f.type = ''; f.pay = ''; f.osd = ''; $('q').value = ''; $('classFilter').value = ''; $('tagFilter').value = '';
+      ['regionFilter', 'divisionFilter', 'cccFilter'].forEach(function (id) { if (!$(id).disabled) $(id).value = ''; });
+      fillFilters(); marks(); setLevel(scope && (scope.level === 'division' || scope.level === 'ccc') ? 'ccc' : 'region');
+    });
+    $('exportBtn').addEventListener('click', function () {
+      var v = window.__view || [];
+      var keys = []; v.forEach(function (r) { Object.keys(r.raw).forEach(function (k) { if (keys.indexOf(k) === -1) keys.push(k); }); });
+      UI.exportCsv('rem-defaulters.csv', [{ key: 't', label: 'TYPE', csv: function (r) { return r.type; } }, { key: 'c', label: 'CCC', csv: function (r) { return r._supp; } }]
+        .concat(keys.map(function (k) { return { key: k, label: k, csv: function (r) { return r.raw[k]; } }; })), v);
+    });
+
+    // DOM + AGRI paint first; the larger I&C sheet joins when ready.
+    var SRC = { DOM: 'CACHE_REM_DOM', AGRI: 'CACHE_REM_AGRI', IC: 'CACHE_REM_DEFAULTERS' }, first = true;
+    function onData(part) {
+      return function (text, info) {
+        if (!text) { if (info && info.error && !all.length) { $('meta').textContent = 'Could not load data'; $('table').innerHTML = $('officeTable').innerHTML = '<div class="ui-empty">Could not load data.</div>'; } return; }
+        parts[part] = enrich(tsv(text), part);
+        rebuild();
+        if (first) {
+          first = false;
+          if (scope && (scope.level === 'division' || scope.level === 'ccc')) level = 'ccc'; else if (scope && scope.level === 'region') level = 'division';
+          [].forEach.call(document.querySelectorAll('#levelTabs .ui-tab'), function (t) { t.setAttribute('aria-selected', String(t.getAttribute('data-l') === level)); });
         }
-
-        function formatDate(dateStr) {
-            if (!dateStr || dateStr.length !== 8) return 'N/A';
-            return `${dateStr.substring(6, 8)}/${dateStr.substring(4, 6)}/${dateStr.substring(0, 4)}`;
-        }
-
-        function getMonthsSince(dateStr) {
-            if (!dateStr || dateStr.length !== 8) return 'N/A';
-            const pastDate = new Date(parseInt(dateStr.substring(0, 4)), parseInt(dateStr.substring(4, 6)) - 1, parseInt(dateStr.substring(6, 8)));
-            const now = new Date();
-            pastDate.setHours(0, 0, 0, 0); now.setHours(0, 0, 0, 0);
-            const diffDays = Math.ceil(Math.abs(now - pastDate) / 864e5);
-            if (diffDays <= 30) return "Within 1 month";
-            let months = (now.getFullYear() - pastDate.getFullYear()) * 12 + now.getMonth() - pastDate.getMonth();
-            if (now.getDate() < pastDate.getDate()) months--;
-            if (months <= 0) return "Within 1 month";
-            return `${months}M ago`;
-        }
-
-        function formatIndianCurrency(amount) {
-            const num = parseFloat(amount);
-            if (isNaN(num)) return '0';
-            if (num >= 1e7) return (num / 1e7).toFixed(2) + ' Cr';
-            if (num >= 1e5) return (num / 1e5).toFixed(2) + ' L';
-            return new Intl.NumberFormat('en-IN').format(num);
-        }
-
-        function parseTsv(tsvData) {
-            const lines = tsvData.trim().split('\n');
-            const headers = lines[0].split('\t').map(h => h.trim());
-            return lines.slice(1).map(line => {
-                const values = line.split('\t');
-                const record = {};
-                headers.forEach((h, i) => { record[h] = values[i] ? values[i].trim() : ''; });
-                return record;
-            });
-        }
-
-        function showLoadingOverlay(msg) {
-            document.getElementById('loadingOverlay').style.display = 'flex';
-            document.getElementById('loadingText').textContent = msg;
-        }
-        function hideLoadingOverlay() { document.getElementById('loadingOverlay').style.display = 'none'; }
-
-        async function loadData() {
-            // Check if DataHub has the data before showing "Loading from network"
-            showLoadingOverlay('Checking local cache...');
-            document.getElementById('loadingMessage').style.display = 'block';
-            document.getElementById('dataTable').style.display = 'none';
-            document.getElementById('errorMessage').style.display = 'none';
-
-            let icPromise = null, agriPromise = null, domPromise = null;
-
-            try {
-                // Determine if we should use Hub or Network for each
-                const fetchSource = async (key, fallbackUrl) => {
-                    try {
-                        const hub = window.mzoDataHub || mzoDataHub;
-                        if (hub && typeof hub.get === 'function') {
-                            const cached = await hub.get(key);
-                            if (cached) {
-                                console.log(`Found ${key} in local cache.`);
-                                return cached;
-                            }
-                        }
-                    } catch (e) {
-                        console.warn(`DataHub error for ${key}, falling back...`, e);
-                    }
-
-                    console.log(`${key} missing from cache or Hub error, fetching from network...`);
-                    const res = await fetch(fallbackUrl);
-                    if (!res.ok) throw new Error(`Network fetch failed for ${key}`);
-                    return await res.text();
-                };
-
-                // Trigger all fetches
-                agriPromise = fetchSource('CACHE_REM_AGRI', AGRI_URL);
-                domPromise = fetchSource('CACHE_REM_DOM', DOM_URL);
-                icPromise = fetchSource('CACHE_REM_DEFAULTERS', IC_URL); // Background
-
-                const [agriTsv, domTsv] = await Promise.all([agriPromise, domPromise]);
-
-                showLoadingOverlay('Analysing initial data...');
-                const agriData = parseTsv(agriTsv);
-                const domData = parseTsv(domTsv);
-
-                agriData.forEach(d => d.TYPE = 'AGRI');
-                domData.forEach(d => d.TYPE = 'DOM');
-
-                allData = [...agriData, ...domData];
-                if (window.MzoScope) allData = window.MzoScope.filterRows(allData);
-
-                createCCCMapping();
-                initializeFilters();
-                if (window.MzoScope) window.MzoScope.lockFilters();
-
-                filterAndSortData();
-                updateKPICards();
-
-                document.getElementById('loadingMessage').style.display = 'none';
-                document.getElementById('dataTable').style.display = 'table';
-                hideLoadingOverlay();
-
-                // Process I&C in background
-                processBackgroundData(icPromise);
-
-            } catch (error) {
-                console.error('Initial load failure:', error);
-                document.getElementById('loadingMessage').style.display = 'none';
-                document.getElementById('errorMessage').style.display = 'block';
-                document.getElementById('errorMessage').textContent = 'Error loading data. ' + error.message;
-                hideLoadingOverlay();
-            }
-        }
-
-        async function processBackgroundData(icDataPromise) {
-            try {
-                console.log('Waiting for background I&C dataset...');
-                const icTsv = await icDataPromise;
-                console.log('I&C dataset loaded, parsing...');
-
-                const icData = parseTsv(icTsv);
-                // Tag each record with a TYPE
-                icData.forEach(d => {
-                    const bc = (d.BASE_CLASS || '').trim().toUpperCase();
-                    d.TYPE = bc === 'I' ? 'IND' : 'COM';
-                });
-
-                allData = [...allData, ...icData];
-                if (window.MzoScope) allData = window.MzoScope.filterRows(allData);
-
-                // Silently update the UI
-                const currentClassFilter = document.getElementById('classFilter').value;
-                const baseClasses = [...new Set(allData.map(d => d.BASE_CLASS).filter(Boolean))].sort();
-                const classSelect = document.getElementById('classFilter');
-                classSelect.innerHTML = '<option value="">All Classes</option>';
-                baseClasses.forEach(cls => {
-                    const o = document.createElement('option'); o.value = cls; o.textContent = cls;
-                    if (cls === currentClassFilter) o.selected = true;
-                    classSelect.appendChild(o);
-                });
-
-                filterAndSortData();
-                updateKPICards();
-                console.log('Background dataset integrated successfully.');
-            } catch (err) {
-                console.error("Failed to load background I&C dataset", err);
-            }
-        }
-
-        function toggleCardFilter(type) {
-            if (activeCardFilter === type) {
-                activeCardFilter = 'all'; // deselect
-            } else {
-                activeCardFilter = type;
-            }
-            // Update card active states
-            document.querySelectorAll('.kpi-card').forEach(c => c.classList.remove('active'));
-            const cardId = activeCardFilter === 'all' ? 'cardTotal' : `card${activeCardFilter}`;
-            document.getElementById(cardId).classList.add('active');
-
-            currentPage = 1;
-            filterAndSortData();
-        }
-
-        function initializeFilters() {
-            const regionFilter = document.getElementById('regionFilter');
-            const divisionFilter = document.getElementById('divisionFilter');
-            const cccFilter = document.getElementById('cccFilter');
-            const classFilter = document.getElementById('classFilter');
-
-            Object.keys(mapping).forEach(region => {
-                const o = document.createElement('option'); o.value = region; o.textContent = region;
-                regionFilter.appendChild(o);
-            });
-
-            const baseClasses = [...new Set(allData.map(d => d.BASE_CLASS).filter(Boolean))].sort();
-            baseClasses.forEach(cls => {
-                const o = document.createElement('option'); o.value = cls; o.textContent = cls;
-                classFilter.appendChild(o);
-            });
-
-            regionFilter.addEventListener('change', () => { updateDivisionFilter(); currentPage = 1; filterAndSortData(); });
-            divisionFilter.addEventListener('change', () => { updateCCCFilter(); currentPage = 1; filterAndSortData(); });
-            cccFilter.addEventListener('change', () => { currentPage = 1; filterAndSortData(); });
-            classFilter.addEventListener('change', () => { currentPage = 1; filterAndSortData(); });
-            document.getElementById('osdRangeFilter').addEventListener('change', () => { currentPage = 1; filterAndSortData(); });
-            document.getElementById('lastPaymentFilter').addEventListener('change', () => { currentPage = 1; filterAndSortData(); });
-            document.getElementById('searchInput').addEventListener('input', () => { currentPage = 1; filterAndSortData(); });
-            ['schoolFilter', 'partyOfficeFilter', 'towerFilter'].forEach(id => {
-                document.getElementById(id).addEventListener('change', () => { currentPage = 1; filterAndSortData(); });
-            });
-
-            document.querySelectorAll('.sortable-header').forEach(header => {
-                header.addEventListener('click', () => {
-                    const sortKey = header.id === 'osdHeader' ? 'NOTOSD_UPD' : 'LAST_PDT';
-                    if (currentSortColumn === sortKey) {
-                        currentSortDirection = currentSortDirection === 'asc' ? 'desc' : 'asc';
-                    } else {
-                        currentSortColumn = sortKey;
-                        currentSortDirection = 'desc';
-                    }
-                    filterAndSortData();
-                });
-            });
-
-            document.getElementById('prevPageBtn').addEventListener('click', () => { if (currentPage > 1) { currentPage--; renderTable(); } });
-            document.getElementById('nextPageBtn').addEventListener('click', () => {
-                if (currentPage < Math.ceil(filteredData.length / rowsPerPage)) { currentPage++; renderTable(); }
-            });
-        }
-
-        function updateDivisionFilter() {
-            const r = document.getElementById('regionFilter');
-            const d = document.getElementById('divisionFilter');
-            d.innerHTML = '<option value="">All Divisions</option>';
-            if (r.value && mapping[r.value]) {
-                Object.keys(mapping[r.value]).forEach(div => {
-                    const o = document.createElement('option'); o.value = div; o.textContent = div; d.appendChild(o);
-                });
-            }
-            updateCCCFilter();
-        }
-
-        function updateCCCFilter() {
-            const r = document.getElementById('regionFilter');
-            const d = document.getElementById('divisionFilter');
-            const c = document.getElementById('cccFilter');
-            c.innerHTML = '<option value="">All CCC</option>';
-            if (r.value && d.value && mapping[r.value] && mapping[r.value][d.value]) {
-                Object.keys(mapping[r.value][d.value]).forEach(ccc => {
-                    const o = document.createElement('option'); o.value = ccc; o.textContent = ccc; c.appendChild(o);
-                });
-            }
-        }
-
-        function resetAllFilters() {
-            // Uncheck checkboxes
-            ['schoolFilter', 'partyOfficeFilter', 'towerFilter'].forEach(id => {
-                document.getElementById(id).checked = false;
-            });
-            // Reset selectors
-            ['regionFilter', 'divisionFilter', 'cccFilter', 'classFilter', 'osdRangeFilter', 'lastPaymentFilter'].forEach(id => {
-                document.getElementById(id).selectedIndex = 0;
-            });
-            // Re-populate division/ccc based on reset
-            updateDivisionFilter();
-            // Reset search box
-            document.getElementById('searchInput').value = '';
-            // Reset active card filter
-            activeCardFilter = 'all';
-            document.querySelectorAll('.kpi-card').forEach(c => c.classList.remove('active'));
-            document.getElementById('cardTotal').classList.add('active');
-
-            currentPage = 1;
-            filterAndSortData();
-        }
-
-        function updateKPICards() {
-            // Count from the data BEFORE card filter but AFTER dropdown/search filters
-            const baseFiltered = getBaseFilteredData();
-            let totals = { all: { count: 0, osd: 0 }, DOM: { count: 0, osd: 0 }, COM: { count: 0, osd: 0 }, IND: { count: 0, osd: 0 }, AGRI: { count: 0, osd: 0 } };
-            baseFiltered.forEach(d => {
-                const osd = parseFloat(d.NOTOSD_UPD || 0);
-                totals.all.count++; totals.all.osd += osd;
-                if (totals[d.TYPE]) { totals[d.TYPE].count++; totals[d.TYPE].osd += osd; }
-            });
-            ['Total', 'DOM', 'COM', 'IND', 'AGRI'].forEach(key => {
-                const k = key === 'Total' ? 'all' : key;
-                document.getElementById(`val${key}`).textContent = formatIndianCurrency(totals[k].count);
-                document.getElementById(`osd${key}`).textContent = formatIndianCurrency(totals[k].osd);
-            });
-
-            // Update date
-            const maxDate = allData.reduce((max, d) => { const dt = d.UPD_DT; return (dt && dt > max) ? dt : max; }, '');
-            document.getElementById('updateDate').textContent = `Last Updated: ${formatDate(maxDate)}`;
-        }
-
-        function getBaseFilteredData() {
-            const regionVal = document.getElementById('regionFilter').value;
-            const divisionVal = document.getElementById('divisionFilter').value;
-            const cccVal = document.getElementById('cccFilter').value;
-            const classVal = document.getElementById('classFilter').value;
-            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-            const osdRangeStr = document.getElementById('osdRangeFilter').value;
-            const osdMinLimit = osdRangeStr ? parseFloat(osdRangeStr) : 0;
-            const schoolChecked = document.getElementById('schoolFilter').checked;
-            const partyChecked = document.getElementById('partyOfficeFilter').checked;
-            const towerChecked = document.getElementById('towerFilter').checked;
-            const lastPaymentVal = document.getElementById('lastPaymentFilter').value;
-
-            return allData.filter(item => {
-                const loc = cccCodeToNames[item.CCC_CODE];
-                if (regionVal && (!loc || loc.region !== regionVal)) return false;
-                if (divisionVal && (!loc || loc.division !== divisionVal)) return false;
-                if (cccVal && (!loc || loc.ccc !== cccVal.replace(' CCC', ''))) return false;
-                if (classVal && item.BASE_CLASS !== classVal) return false;
-
-                const osdVal = parseFloat(item.NOTOSD_UPD || 0);
-                if (osdMinLimit > 0 && osdVal < osdMinLimit) return false;
-
-                if (lastPaymentVal) {
-                    const lpd = item.LAST_PDT;
-                    if (!lpd || lpd.length !== 8) return false;
-                    const pastDate = new Date(parseInt(lpd.substring(0, 4)), parseInt(lpd.substring(4, 6)) - 1, parseInt(lpd.substring(6, 8)));
-                    const now = new Date();
-                    pastDate.setHours(0, 0, 0, 0); now.setHours(0, 0, 0, 0);
-                    const diffDays = Math.ceil(Math.abs(now - pastDate) / 864e5);
-                    let months = (now.getFullYear() - pastDate.getFullYear()) * 12 + now.getMonth() - pastDate.getMonth();
-                    if (now.getDate() < pastDate.getDate()) months--;
-
-                    if (lastPaymentVal === 'year' && months < 12) return false;
-                    if (lastPaymentVal === '6months' && months < 6) return false;
-                    if (lastPaymentVal === '3months' && months < 3) return false;
-                    if (lastPaymentVal === '1month' && diffDays <= 30) return false;
-                }
-
-                if (searchTerm) {
-                    const fields = [item.CON_ID, item.NAME, item.ADDRESS].join(' ').toLowerCase();
-                    if (!fields.includes(searchTerm) && (!loc || !loc.ccc.toLowerCase().includes(searchTerm))) return false;
-                }
-
-                if (schoolChecked) {
-                    const n = (item.NAME || '').toLowerCase(), a = (item.ADDRESS || '').toLowerCase();
-                    if (!n.includes('school') && !a.includes('school')) return false;
-                }
-                if (partyChecked) {
-                    const n = (item.NAME || '').toLowerCase(), a = (item.ADDRESS || '').toLowerCase();
-                    if (!n.includes('party') && !a.includes('party')) return false;
-                }
-                if (towerChecked) {
-                    const n = (item.NAME || '').toLowerCase(), a = (item.ADDRESS || '').toLowerCase();
-                    const kw = ['indus', 'bharti', 'jio', 'bsnl', 'telecom'];
-                    if (!kw.some(k => n.includes(k) || a.includes(k))) return false;
-                }
-                return true;
-            });
-        }
-
-        function filterAndSortData() {
-            let data = getBaseFilteredData();
-
-            // Apply card filter
-            if (activeCardFilter !== 'all') {
-                data = data.filter(d => d.TYPE === activeCardFilter);
-            }
-
-            // Sort
-            data.sort((a, b) => {
-                const valA = currentSortColumn === 'LAST_PDT' ? parseInt(a[currentSortColumn] || '0') : parseFloat(a[currentSortColumn] || 0);
-                const valB = currentSortColumn === 'LAST_PDT' ? parseInt(b[currentSortColumn] || '0') : parseFloat(b[currentSortColumn] || 0);
-                return currentSortDirection === 'asc' ? valA - valB : valB - valA;
-            });
-
-            filteredData = data;
-
-            // Update sort icons
-            document.querySelectorAll('.sortable-header').forEach(header => {
-                const icon = header.querySelector('.sort-icon');
-                const key = header.id === 'osdHeader' ? 'NOTOSD_UPD' : 'LAST_PDT';
-
-                if (header.id === 'osdHeader') {
-                    const osdSelect = document.getElementById('osdRangeFilter');
-                    const text = osdSelect.options[osdSelect.selectedIndex].text;
-                    const suffix = text !== 'All OSD Ranges' ? `\n${text}` : '';
-                    header.childNodes[0].nodeValue = `OSD (₹)${suffix} `;
-                }
-
-                if (currentSortColumn === key) {
-                    icon.innerHTML = currentSortDirection === 'asc' ? '&#9650;' : '&#9660;';
-                    header.classList.toggle('sort-asc', currentSortDirection === 'asc');
-                } else {
-                    icon.innerHTML = '';
-                    header.classList.remove('sort-asc');
-                }
-            });
-
-            currentPage = 1;
-            updateKPICards();
-            renderTable();
-        }
-
-        function renderTable() {
-            const tbody = document.getElementById('tableBody');
-            tbody.innerHTML = '';
-            const start = (currentPage - 1) * rowsPerPage;
-            const page = filteredData.slice(start, start + rowsPerPage);
-
-            page.forEach((item, i) => {
-                const loc = cccCodeToNames[item.CCC_CODE];
-                const typeClass = `type-${item.TYPE.toLowerCase()}`;
-                const row = document.createElement('tr');
-                row.onclick = () => showDetails(item);
-                row.style.cursor = 'pointer';
-                row.innerHTML = `
-                    <td>${start + i + 1}</td>
-                    <td>${item.CON_ID || 'N/A'}</td>
-                    <td>${loc ? loc.ccc : 'N/A'}</td>
-                    <td>${item.NAME || 'N/A'}</td>
-                    <td><span class="type-badge ${typeClass}">${item.TYPE}</span></td>
-                    <td>${item.MRU || 'N/A'}</td>
-                    <td>${item.REG_MOB_NO || 'N/A'}</td>
-                    <td class="amount">${formatIndianCurrency(item.NOTOSD_UPD)}</td>
-                    <td class="amount">${formatIndianCurrency(item.LOCKED_OSD)}</td>
-                    <td class="last-payment">${getMonthsSince(item.LAST_PDT)}</td>
-                `;
-                tbody.appendChild(row);
-            });
-            updatePaginationControls();
-        }
-
-        function updatePaginationControls() {
-            const total = Math.ceil(filteredData.length / rowsPerPage);
-            document.getElementById('pageInfo').textContent = `Page ${currentPage} of ${total || 1}`;
-            document.getElementById('prevPageBtn').disabled = currentPage === 1;
-            document.getElementById('nextPageBtn').disabled = currentPage >= total || total === 0;
-        }
-
-        function convertToCSV(data, headers) {
-            const rows = [headers.join(',')];
-            data.forEach(row => {
-                rows.push(headers.map(h => `"${('' + (row[h] || '')).replace(/"/g, '""')}"`).join(','));
-            });
-            return rows.join('\n');
-        }
-
-        function downloadFilteredCSV() {
-            if (!filteredData.length) return;
-            const headers = Object.keys(allData[0]);
-            const blob = new Blob([convertToCSV(filteredData, headers)], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = 'rem_osd_filtered.csv';
-            document.body.appendChild(link); link.click(); document.body.removeChild(link);
-        }
-
-        function showDetails(item) {
-            const loc = cccCodeToNames[item.CCC_CODE];
-            const esc = (value) => String(value == null ? '' : value)
-                .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-            const text = (value) => esc(String(value || '').trim() || 'N/A');
-            const row = (label, html) => '<tr><th>' + esc(label) + '</th><td>' + html + '</td></tr>';
-            const section = (title) => '<tr class="cd-section"><th colspan="2">' + esc(title) + '</th></tr>';
-            const sheet = (rows) => '<table class="consumer-kv"><tbody>' + rows.join('') + '</tbody></table>';
-            const phone = String(item.REG_MOB_NO || '').trim();
-            const phoneHtml = phone && phone !== 'N/A'
-                ? '<a class="cd-phone" href="tel:' + esc(phone) + '">' + esc(phone) + '</a>'
-                : 'N/A';
-            const fields = [
-                { label: 'Consumer ID', val: item.CON_ID },
-                { label: 'Name', val: item.NAME },
-                { label: 'Address', val: item.ADDRESS },
-                { label: 'Region', val: loc ? loc.region : 'N/A' },
-                { label: 'Division', val: loc ? loc.division : 'N/A' },
-                { label: 'CCC', val: loc ? loc.ccc : 'N/A' },
-                { label: 'MRU', val: item.MRU },
-                { label: 'Mobile No', val: item.REG_MOB_NO },
-                { label: 'Installation No', val: item.INST_NO },
-                { label: 'Base Class', val: item.BASE_CLASS },
-                { label: 'Type', val: item.TYPE },
-                { label: 'Class Desc', val: item.CLASS_DESC },
-                { label: 'Govt Status', val: item.GOVT_STAT },
-                { label: 'Outstanding Dues', val: formatIndianCurrency(item.NOTOSD_UPD) },
-                { label: 'Locked OSD', val: formatIndianCurrency(item.LOCKED_OSD) },
-                { label: 'Bill Date', val: formatDate(item.BDATE) },
-                { label: 'Last Payment', val: `${getMonthsSince(item.LAST_PDT)} (${formatDate(item.LAST_PDT)})` },
-                { label: 'Report Date', val: formatDate(item.UPD_DT) },
-                { label: 'Notice Issue Date', val: formatDate(item.NOT_ISSUE_DT) },
-                { label: 'Disconnection Flag', val: item.DISC_FLAG }
-            ];
-            const title = document.querySelector('#detailModal .modal-title');
-            if (title) title.textContent = (item.NAME || 'Consumer') + (item.CON_ID ? ' · ' + item.CON_ID : '');
-
-            document.getElementById('modalBody').innerHTML =
-                '<div class="consumer-sheets">' +
-                sheet([
-                    section('Consumer'),
-                    row('Consumer ID', text(item.CON_ID)),
-                    row('Name', text(item.NAME)),
-                    row('Address', text(item.ADDRESS)),
-                    row('Mobile', phoneHtml),
-                    row('Installation', text(item.INST_NO)),
-                    row('MRU', text(item.MRU)),
-                    row('CCC', text(loc ? loc.ccc : '')),
-                    row('Division', text(loc ? loc.division : '')),
-                    row('Region', text(loc ? loc.region : ''))
-                ]) +
-                sheet([
-                    section('Dues'),
-                    row('Type', text(item.TYPE)),
-                    row('Base class', text(item.BASE_CLASS)),
-                    row('Class', text(item.CLASS_DESC)),
-                    row('Govt', text(item.GOVT_STAT)),
-                    row('Outstanding', '<span class="cd-osd">' + text(formatIndianCurrency(item.NOTOSD_UPD)) + '</span>'),
-                    row('Locked OSD', text(formatIndianCurrency(item.LOCKED_OSD))),
-                    row('Bill date', text(formatDate(item.BDATE))),
-                    row('Last payment', text(getMonthsSince(item.LAST_PDT) + ' (' + formatDate(item.LAST_PDT) + ')')),
-                    row('Report date', text(formatDate(item.UPD_DT))),
-                    row('Notice', text(formatDate(item.NOT_ISSUE_DT))),
-                    row('Disconnected', text(item.DISC_FLAG))
-                ]) +
-                '</div>';
-
-            window.lastViewedConsumer = fields;
-            document.getElementById('detailModal').style.display = 'block';
-        }
-
-        async function copyConsumerToWhatsApp() {
-            if (!window.lastViewedConsumer) return;
-            
-            const header = `*REM OSD DEFAULTER DETAILS*\n----------------------------\n`;
-            const body = window.lastViewedConsumer.map(f => `*${f.label}:* ${f.val || 'N/A'}`).join('\n');
-            const footer = `\n----------------------------\n_Generated via MZO App_`;
-            
-            const text = header + body + footer;
-
-            try {
-                await navigator.clipboard.writeText(text);
-                const btn = document.getElementById('copyBtn');
-                const originalHtml = btn.innerHTML;
-                btn.classList.add('success');
-                btn.innerHTML = `<i class='bx bx-check'></i>`;
-                setTimeout(() => {
-                    btn.classList.remove('success');
-                    btn.innerHTML = originalHtml;
-                }, 1500);
-            } catch (err) {
-                console.error('Failed to copy: ', err);
-            }
-        }
-
-        function showSummaryModal(classType = 'all') {
-            document.querySelectorAll('#summaryClassToggle .class-toggle-btn').forEach(btn => btn.classList.remove('active'));
-            document.querySelector(`#summaryClassToggle .class-toggle-btn[onclick="showSummaryModal('${classType}')"]`).classList.add('active');
-
-            const base = getBaseFilteredData();
-            const data = classType === 'all' ? base : base.filter(d => d.TYPE === classType);
-
-            const osdSelect = document.getElementById('osdRangeFilter');
-            const text = osdSelect.options[osdSelect.selectedIndex].text;
-            const filterSuffix = text !== 'All OSD Ranges' ? `<br><span style="font-size:0.75rem;color:#fbbf24;font-weight:600">${text}</span>` : '';
-
-            renderGroupSummary(data, 'region', 'regionSummaryBody', 'Region', filterSuffix);
-            renderGroupSummary(data, 'division', 'divisionSummaryBody', 'Division', filterSuffix);
-            renderGroupSummary(data, 'ccc', 'cccSummaryBody', 'CCC', filterSuffix);
-
-            document.getElementById('summaryModal').style.display = 'block';
-        }
-
-        function renderGroupSummary(data, locKey, bodyId, headerName, filterSuffix = '') {
-            const summary = {};
-            data.forEach(item => {
-                const loc = cccCodeToNames[item.CCC_CODE];
-                if (!loc) return;
-                const name = loc[locKey];
-                if (!summary[name]) summary[name] = { count: 0, totalOSD: 0 };
-                summary[name].count++;
-                summary[name].totalOSD += parseFloat(item.NOTOSD_UPD || 0);
-            });
-            const arr = Object.entries(summary).map(([name, v]) => ({ name, ...v })).sort((a, b) => b.totalOSD - a.totalOSD);
-            const grandTotalOSD = arr.reduce((s, r) => s + r.totalOSD, 0);
-            const grandTotalCount = arr.reduce((s, r) => s + r.count, 0);
-
-            let html = `<table class="summary-modal-table"><thead><tr><th>Sl</th><th>${headerName}</th><th>Count</th><th>Total OSD (₹)${filterSuffix}</th><th>% of Total</th></tr></thead><tbody>`;
-            arr.forEach((item, i) => {
-                const pct = grandTotalOSD > 0 ? ((item.totalOSD / grandTotalOSD) * 100).toFixed(1) : '0.0';
-                html += `<tr><td>${i + 1}</td><td>${item.name}</td><td>${item.count}</td><td class="amount">${formatIndianCurrency(item.totalOSD)}</td><td class="amount">${pct}%</td></tr>`;
-            });
-
-            // Add Total Row
-            html += `
-                <tr class="total-row">
-                    <td></td>
-                    <td>TOTAL</td>
-                    <td>${grandTotalCount.toLocaleString()}</td>
-                    <td class="amount">${formatIndianCurrency(grandTotalOSD)}</td>
-                    <td class="amount">100%</td>
-                </tr>
-            `;
-
-            html += '</tbody></table>';
-            document.getElementById(bodyId).innerHTML = html;
-        }
-
-        function openSummaryTab(evt, tabName) {
-            document.querySelectorAll('.modal-tab-panel').forEach(p => { p.style.display = 'none'; p.classList.remove('active'); });
-            document.querySelectorAll('.modal-tab-btn').forEach(b => b.classList.remove('active'));
-            const panel = document.getElementById(tabName);
-            if (panel) { panel.style.display = 'block'; panel.classList.add('active'); }
-            evt.currentTarget.classList.add('active');
-        }
-
-        function closeModal() { document.getElementById('detailModal').style.display = 'none'; }
-        function closeSummaryModal() { document.getElementById('summaryModal').style.display = 'none'; }
-
-        window.onclick = function (event) {
-            if (event.target === document.getElementById('detailModal')) closeModal();
-            else if (event.target === document.getElementById('summaryModal')) closeSummaryModal();
-        };
-
-        (function () {
-            const head = document.getElementById('remDefHeader');
-            const toggle = document.getElementById('filterToggle');
-            if (!head || !toggle) return;
-            function setOpen(open) {
-                head.classList.toggle('filters-open', open);
-                toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
-            }
-            toggle.addEventListener('click', (e) => {
-                e.stopPropagation();
-                setOpen(!head.classList.contains('filters-open'));
-            });
-            document.addEventListener('click', (e) => {
-                if (!head.classList.contains('filters-open')) return;
-                if (head.contains(e.target)) return;
-                setOpen(false);
-            });
-            document.addEventListener('keydown', (e) => {
-                if (e.key === 'Escape') setOpen(false);
-            });
-        })();
-
-        window.onload = loadData;
-    </script>
+        render();
+      };
+    }
+    function loadAll(force) {
+      return Promise.all(Object.keys(SRC).map(function (p) {
+        if (!force) return UI.load(SRC[p], onData(p));
+        return Promise.resolve(window.mzoDataHub.waitForDataset(SRC[p], { forceCheck: true })).catch(function () {})
+          .then(function () { return window.mzoDataHub._peek(SRC[p]); }).then(function (t) { if (t) onData(p)(t, {}); });
+      }));
+    }
+    $('refreshBtn').addEventListener('click', function () { var b = this; b.classList.add('spin'); loadAll(true).then(function () { b.classList.remove('spin'); }); });
+    loadAll(false);
+  });
+  </script>
 </body>
-
 </html>

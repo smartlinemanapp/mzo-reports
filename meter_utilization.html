@@ -1,2612 +1,418 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="ui">
 <head>
-  <script src="mzo_theme.js?v=1"></script>
   <meta charset="utf-8" />
-  <meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport" />
-  <title>Meter Utilization Dashboard | MZO</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <script src="mzo_data_hub.js"></script>
-  <script src="mzo_scope.js?v=12"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Meter utilization · MZO Reports</title>
+  <script src="/mzo_theme.js?v=3"></script>
+  <link rel="stylesheet" href="/mzo_theme.css?v=3" />
+  <script src="/mzo_ui.js?v=1" defer></script>
+  <script src="/mzo_data_hub.js" defer></script>
+  <script src="/mzo_scope.js?v=12" defer></script>
   <style>
-    :root {
-      --primary: #2563eb;
-      --primary-light: #60a5fa;
-      --primary-dark: #1e40af;
-      --bg-color: #f8fafc;
-      --card-bg: rgba(255, 255, 255, 0.9);
-      --text-main: #0f172a;
-      --text-muted: #64748b;
-      --success: #10b981;
-      --warning: #f59e0b;
-      --danger: #ef4444;
-      --border-color: #e2e8f0;
-      --radius: 16px;
-      --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-      --glass: rgba(255, 255, 255, 0.7);
-      --glass-border: rgba(255, 255, 255, 0.5);
-    }
-
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      font-family: 'Outfit', sans-serif;
-      background: #f8fafc;
-      color: var(--text-main);
-      line-height: 1.35;
-      min-height: 100vh;
-      overflow-x: hidden;
-    }
-
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 8px 10px 16px;
-      width: 100%;
-    }
-
-    /* Header — same compact bar as Pending NSC */
-    .header {
-      background: #2563eb;
-      color: #fff;
-      padding: 0 10px;
-      position: sticky;
-      top: 0;
-      width: 100%;
-      z-index: 1000;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 8px;
-      flex-wrap: nowrap;
-      overflow: visible;
-      height: 42px;
-      min-height: 42px;
-      box-shadow: 0 2px 6px rgba(15, 23, 42, 0.16);
-    }
-
-    .header-bar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-      flex: 1 1 auto;
-      min-width: 0;
-      flex-wrap: nowrap;
-    }
-
-    .filter-toggle {
-      display: none;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      flex-shrink: 0;
-      padding: 0 8px;
-      min-width: 30px;
-      min-height: 30px;
-      border-radius: 8px;
-      border: 1px solid rgba(255, 255, 255, 0.45);
-      background: transparent;
-      color: #fff;
-      font-family: inherit;
-      font-size: 12px;
-      font-weight: 600;
-      cursor: pointer;
-    }
-
-    .header-left {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      flex-wrap: nowrap;
-      min-width: 0;
-      flex: 1 1 auto;
-    }
-
-    .header-left h1 {
-      font-size: 0.92rem;
-      font-weight: 600;
-      color: #fff;
-      letter-spacing: 0.01em;
-      line-height: 1.15;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      margin: 0;
-    }
-
-    .sync-status {
-      font-size: 0.68rem;
-      color: rgba(255, 255, 255, 0.9);
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      flex-wrap: nowrap;
-      white-space: nowrap;
-    }
-
-    .sync-indicator {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: var(--success);
-      box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
-      flex-shrink: 0;
-    }
-
-    .filters {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-      flex-wrap: nowrap;
-      justify-content: flex-end;
-      flex: 0 1 auto;
-      min-width: 0;
-    }
-
-    .btn-office-pref {
-      padding: 8px 12px;
-      border-radius: 12px;
-      border: 1px solid var(--border-color);
-      background: #fff;
-      color: var(--text-main);
-      font-family: inherit;
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      transition: background 0.15s, border-color 0.15s, color 0.15s;
-      white-space: nowrap;
-      min-height: 40px;
-    }
-    .btn-office-pref:hover {
-      border-color: var(--primary);
-      color: var(--primary-dark);
-      background: #eff6ff;
-    }
-    .btn-office-pref i {
-      color: var(--primary);
-    }
-
-    select {
-      padding: 8px 12px;
-      border-radius: 12px;
-      border: 1px solid var(--border-color);
-      background: white;
-      font-family: inherit;
-      font-size: 13px;
-      color: var(--text-main);
-      cursor: pointer;
-      outline: none;
-      transition: all 0.2s;
-      max-width: 100%;
-      min-height: 40px;
-    }
-
-    select:focus {
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-    }
-
-    .header .filters select,
-    .header .search-box {
-      min-height: 30px;
-      border-radius: 8px;
-    }
-    .header .filters select { padding: 2px 8px; font-size: 12px; }
-    .header .search-box { padding: 0 8px; }
-    .header .search-box input { padding: 4px 6px; font-size: 12px; }
-
-    /* Search Bar Styles */
-    .search-box {
-      display: flex;
-      align-items: center;
-      background: white;
-      border: 1px solid var(--border-color);
-      border-radius: 12px;
-      padding: 4px 12px;
-      width: min(280px, 100%);
-      min-height: 40px;
-      transition: border-color 0.2s, box-shadow 0.2s;
-      flex: 1 1 180px;
-    }
-
-    .search-box:focus-within {
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-    }
-
-    .search-box input {
-      border: none;
-      background: none;
-      outline: none;
-      padding: 6px 8px;
-      font-size: 14px;
-      width: 100%;
-      min-width: 0;
-      font-family: inherit;
-    }
-
-    .search-box i {
-      color: var(--text-muted);
-      font-size: 14px;
-      flex-shrink: 0;
-    }
-
-    /* Download Button Styles */
-    .download-btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 30px;
-      height: 30px;
-      padding: 0;
-      border-radius: 8px;
-      background: white;
-      border: 1px solid var(--border-color);
-      color: var(--text-main);
-      font-size: 0.85rem;
-      cursor: pointer;
-    }
-
-    .download-btn:hover {
-      background: #f8fafc;
-      border-color: var(--primary);
-      color: var(--primary);
-      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-    }
-
-    .download-btn i {
-      font-size: 14px;
-    }
-
-    /* Status Modal Specifics */
-    .status-result {
-      text-align: center;
-      padding: 20px 0;
-    }
-
-    .status-badge-large {
-      display: inline-block;
-      padding: 8px 16px;
-      border-radius: 24px;
-      font-weight: 700;
-      font-size: 16px;
-      margin-bottom: 24px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    .detail-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 16px;
-      text-align: left;
-      background: #f8fafc;
-      padding: 24px;
-      border-radius: 16px;
-    }
-
-    .detail-item label {
-      display: block;
-      font-size: 11px;
-      font-weight: 600;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      margin-bottom: 4px;
-    }
-
-    .detail-item span {
-      font-size: 15px;
-      font-weight: 600;
-      color: var(--text-main);
-    }
-
-    /* KPI Grid — compact colored cards, same density as Pending NSC */
-    .kpi-grid {
-      display: grid;
-      grid-template-columns: repeat(5, minmax(0, 1fr));
-      gap: 8px;
-      margin-bottom: 8px;
-    }
-
-    .kpi-card {
-      padding: 8px 10px;
-      border-radius: 8px;
-      border: 0;
-      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.12);
-      position: relative;
-      overflow: hidden;
-      color: #fff;
-      min-height: 68px;
-    }
-    .kpi-grid .kpi-card:nth-child(1) { background: linear-gradient(180deg, #245488 0%, #1a3d66 100%); }
-    .kpi-grid .kpi-card:nth-child(2) { background: linear-gradient(180deg, #1a6b58 0%, #0f4d3f 100%); }
-    .kpi-grid .kpi-card:nth-child(3) { background: linear-gradient(180deg, #9a6230 0%, #73441c 100%); }
-    .kpi-grid .kpi-card:nth-child(4) { background: linear-gradient(180deg, #1a6578 0%, #11495a 100%); }
-    .kpi-grid .kpi-card:nth-child(5) { background: linear-gradient(180deg, #4c4580 0%, #37325f 100%); }
-
-    .kpi-label {
-      font-size: 0.68rem;
-      font-weight: 600;
-      color: rgba(255, 255, 255, 0.88);
-      margin-bottom: 2px;
-      text-transform: none;
-      letter-spacing: 0.01em;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .kpi-value {
-      font-size: 1.35rem;
-      font-weight: 700;
-      color: #fff;
-      line-height: 1.05;
-      letter-spacing: -0.03em;
-    }
-
-    .kpi-trend {
-      font-size: 0.68rem;
-      margin-top: 2px;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      color: rgba(255, 255, 255, 0.9);
-    }
-
-    .trend-up, .trend-neutral { color: rgba(255, 255, 255, 0.9); }
-
-    /* Main Table Section */
-    .table-section {
-      background: #fff;
-      border-radius: 8px;
-      border: 1px solid var(--border-color);
-      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
-      overflow: hidden;
-    }
-
-    .table-scroll {
-      width: 100%;
-      overflow-x: auto;
-      -webkit-overflow-scrolling: touch;
-    }
-
-    .table-header {
-      padding: 6px 8px;
-      border-bottom: 1px solid var(--border-color);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-
-    .table-title {
-      font-size: 0.82rem;
-      font-weight: 700;
-      color: var(--text-main);
-    }
-
-    .meter-tools {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-left: auto;
-      flex-wrap: wrap;
-    }
-
-    .utilization-table {
-      width: 100%;
-      min-width: 560px;
-      border-collapse: collapse;
-    }
-
-    .utilization-table th {
-      background: #f8fafc;
-      padding: 4px 6px;
-      text-align: left;
-      font-size: 0.68rem;
-      font-weight: 600;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.03em;
-      border-bottom: 1px solid var(--border-color);
-      position: sticky;
-      top: 0;
-      z-index: 2;
-    }
-
-    .utilization-table td {
-      padding: 4px 6px;
-      border-bottom: 1px solid var(--border-color);
-      font-size: 0.75rem;
-      line-height: 1.2;
-    }
-
-    .sortable {
-      cursor: pointer;
-      user-select: none;
-      white-space: nowrap;
-    }
-
-    .sortable:hover {
-      background: #f1f5f9 !important;
-      color: var(--primary) !important;
-    }
-
-    .sort-icon {
-      margin-left: 6px;
-      font-size: 10px;
-      opacity: 0.3;
-    }
-
-    .sortable.active-sort .sort-icon {
-      opacity: 1;
-      color: var(--primary);
-    }
-
-    .utilization-table tr:last-child td {
-      border-bottom: none;
-    }
-
-    .utilization-table tr:hover {
-      background: rgba(37, 99, 235, 0.02);
-    }
-
-    .total-row {
-      font-weight: bold;
-      background: #f8fafc;
-      cursor: default;
-    }
-    .total-row td {
-      border-top: 2px solid var(--border-color);
-      border-bottom: 2px solid var(--border-color);
-      font-weight: 700;
-    }
-
-    .office-name {
-      font-weight: 600;
-      color: var(--primary-dark);
-      white-space: nowrap;
-      max-width: 160px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      display: inline-block;
-      vertical-align: bottom;
-    }
-
-    .badge {
-      padding: 4px 10px;
-      border-radius: 20px;
-      font-size: 11px;
-      font-weight: 600;
-    }
-
-    .badge-nsc { background: #dcfce7; color: #166534; }
-    .badge-rep { background: #dbeafe; color: #1e40af; }
-    .badge-hand { background: #fef3c7; color: #92400e; }
-
-    .progress-bar-container {
-      width: 48px;
-      height: 5px;
-      background: #e2e8f0;
-      border-radius: 3px;
-      overflow: hidden;
-      display: inline-block;
-      vertical-align: middle;
-      margin-right: 8px;
-    }
-
-    /* Tab Navigation Styles */
-    .tab-nav {
-      display: flex;
-      gap: 6px;
-      padding: 6px 8px;
-      background: #fff;
-      border-bottom: 1px solid var(--border-color);
-      overflow-x: auto;
-      flex-wrap: nowrap;
-      -webkit-overflow-scrolling: touch;
-      scrollbar-width: none;
-    }
-    .tab-nav::-webkit-scrollbar { display: none; }
-
-    .tab-link {
-      padding: 4px 10px;
-      font-size: 0.75rem;
-      font-weight: 600;
-      color: var(--text-muted);
-      cursor: pointer;
-      position: relative;
-      border: none;
-      background: #f1f5f9;
-      border-radius: 6px;
-      outline: none;
-      white-space: nowrap;
-      flex-shrink: 0;
-    }
-
-    .tab-link:hover {
-      color: var(--primary);
-    }
-
-    .tab-link.active,
-    .tab-link.active:hover {
-      background: #2563eb;
-      color: #fff;
-    }
-
-    /* Phase Tabs Specific Styles */
-    .phase-tabs {
-      background: white;
-      padding: 6px 8px;
-      display: flex;
-      gap: 6px;
-      flex-wrap: nowrap;
-      overflow-x: auto;
-      border-bottom: 1px solid var(--border-color);
-      -webkit-overflow-scrolling: touch;
-    }
-
-    .phase-pill {
-      padding: 4px 10px;
-      border-radius: 999px;
-      font-size: 0.72rem;
-      font-weight: 600;
-      color: var(--text-muted);
-      background: #f1f5f9;
-      border: 1px solid transparent;
-      cursor: pointer;
-      flex: 0 0 auto;
-    }
-
-    .phase-pill:hover {
-      background: #e2e8f0;
-    }
-
-    .phase-pill.active {
-      background: var(--primary);
-      color: white;
-      border-color: var(--primary);
-      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
-    }
-
-    /* Loading Overlay */
-    #loadingOverlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(255, 255, 255, 0.9);
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      z-index: 2000;
-      backdrop-filter: blur(8px);
-    }
-
-    .spinner {
-      width: 40px;
-      height: 40px;
-      border: 4px solid #f3f3f3;
-      border-top: 4px solid var(--primary);
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-      margin-bottom: 16px;
-    }
-
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-
-    /* Detail Modal Styles */
-    .modal-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(15, 23, 42, 0.4);
-      backdrop-filter: blur(8px);
-      z-index: 3000;
-      display: none;
-      justify-content: center;
-      align-items: center;
-      padding: max(12px, 2vw);
-      box-sizing: border-box;
-    }
-
-    .modal-content {
-      background: white;
-      width: 100%;
-      max-width: 860px;
-      max-height: 90vh;
-      border-radius: 12px;
-      display: flex;
-      flex-direction: column;
-      box-shadow: 0 16px 40px rgba(15, 23, 42, 0.22);
-      border: 0;
-      overflow: hidden;
-    }
-
-    .modal-header {
-      padding: 8px 12px;
-      border-bottom: 0;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 8px;
-      background: #2563eb;
-      color: #fff;
-    }
-
-    .modal-title {
-      font-size: 0.92rem;
-      font-weight: 600;
-      color: #fff;
-    }
-    #modalOfficeName { color: rgba(255, 255, 255, 0.88) !important; font-size: 0.75rem !important; }
-    .modal-header .download-btn,
-    .modal-header .close-btn { color: #fff; border-color: rgba(255, 255, 255, 0.4); background: transparent; }
-    .modal-header .close-btn:hover { background: rgba(255, 255, 255, 0.16); color: #fff; }
-
-    .close-btn {
-      width: 36px;
-      height: 36px;
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      color: var(--text-muted);
-      transition: all 0.2s;
-    }
-
-    .close-btn:hover {
-      background: #fee2e2;
-      color: var(--danger);
-    }
-
-    .search-container {
-      padding: 8px 12px;
-      background: white;
-      border-bottom: 1px solid var(--border-color);
-    }
-
-    #detailSearchInput {
-      width: 100%;
-      padding: 12px 20px;
-      border-radius: 12px;
-      border: 1px solid var(--border-color);
-      font-family: inherit;
-      font-size: 14px;
-      outline: none;
-      transition: border-color 0.2s;
-    }
-
-    #detailSearchInput:focus {
-      border-color: var(--primary);
-      box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
-    }
-
-    .details-table-container {
-      flex: 1;
-      overflow: auto;
-      padding: 0 16px 24px;
-      -webkit-overflow-scrolling: touch;
-    }
-
-    .details-table {
-      width: 100%;
-      min-width: 640px;
-      border-collapse: collapse;
-    }
-
-    .details-table th {
-      position: sticky;
-      top: 0;
-      background: #f8fafc;
-      padding: 4px 8px;
-      text-align: left;
-      font-size: 0.68rem;
-      font-weight: 600;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.03em;
-      border-bottom: 1px solid var(--border-color);
-      z-index: 10;
-    }
-
-    .details-table td {
-      padding: 4px 8px;
-      border-bottom: 1px solid var(--border-color);
-      font-size: 0.75rem;
-    }
-    #statusModal .details-table-container { padding: 12px !important; }
-
-    .details-table tr:hover {
-      background: #f8fafc;
-    }
-
-    .clickable-row {
-      cursor: pointer;
-    }
-
-    .clickable-row:hover .office-name {
-      text-decoration: underline;
-    }
-
-    .smart-toggle {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      cursor: pointer;
-      user-select: none;
-      padding: 2px 8px;
-      border-radius: 8px;
-      transition: all 0.2s;
-    }
-    .smart-toggle:hover {
-      background: rgba(37, 99, 235, 0.05);
-    }
-    .smart-toggle input {
-      width: 15px;
-      height: 15px;
-      cursor: pointer;
-      accent-color: var(--primary);
-    }
-    .toggle-text {
-      font-size: 0.68rem;
-      font-weight: 600;
-      color: var(--text-main);
-      letter-spacing: 0;
-    }
-
-    .latest-dates-banner {
-      display: flex;
-      flex-wrap: nowrap;
-      justify-content: flex-start;
-      align-items: center;
-      gap: 8px;
-      margin: 0 0 8px;
-      padding: 0;
-      overflow-x: auto;
-      background: transparent;
-      border: 0;
-      box-shadow: none;
-      -webkit-overflow-scrolling: touch;
-    }
-
-    .date-item {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      flex: 0 0 auto;
-      background: #fff;
-      border: 1px solid var(--border-color);
-      border-radius: 8px;
-      padding: 4px 8px;
-      min-width: 0;
-    }
-
-    .date-item i {
-      font-size: 12px;
-      color: var(--primary);
-      background: transparent;
-      padding: 0;
-      flex-shrink: 0;
-    }
-
-    .date-label {
-      font-size: 0.62rem;
-      text-transform: uppercase;
-      letter-spacing: 0.03em;
-      color: var(--text-muted);
-      display: block;
-      margin-bottom: 0;
-      white-space: nowrap;
-    }
-
-    .date-val {
-      font-size: 0.75rem;
-      font-weight: 700;
-      color: var(--primary-dark);
-      display: block;
-      white-space: nowrap;
-    }
-
-    .date-divider { display: none; }
-
-    /* ——— Responsive breakpoints ——— */
-    @media (min-width: 768px) {
-      .header {
-        height: 48px;
-        min-height: 48px;
-        padding: 0 14px;
-      }
-      .header-left h1 { font-size: 1.02rem; }
-    }
-
-    @media (max-width: 900px) {
-      .kpi-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-    }
-
-    @media (max-width: 1100px) {
-      .header {
-        padding: 0 8px;
-        height: 42px;
-        min-height: 42px;
-        gap: 6px;
-      }
-      .header-left h1 {
-        font-size: 0.88rem;
-      }
-      .sync-status {
-        display: none;
-      }
-      .filter-toggle {
-        display: inline-flex;
-      }
-      .filter-toggle span { display: none; }
-      .filter-toggle[aria-expanded="true"] {
-        border-color: #fff;
-        color: #2563eb;
-        background: #fff;
-      }
-      .filters {
-        display: none;
-        width: 100%;
-        margin: 0;
-        padding: 10px 12px 12px;
-        grid-template-columns: 1fr 1fr;
-        gap: 8px;
-        position: absolute;
-        left: 0;
-        right: 0;
-        top: 100%;
-        background: #fff;
-        box-shadow: 0 10px 24px rgba(15, 23, 42, 0.14);
-        border-bottom: 1px solid var(--border-color);
-        z-index: 1001;
-        flex-wrap: wrap;
-      }
-      .header.filters-open .filters {
-        display: grid;
-      }
-      .filters .search-box {
-        grid-column: 1 / -1;
-        width: 100%;
-        flex: none;
-        min-height: 36px;
-      }
-      .filters select,
-      .filters .btn-office-pref {
-        width: 100%;
-        justify-content: center;
-        min-height: 36px;
-        padding: 6px 10px;
-        flex: none;
-      }
-    }
-
-    @media (max-width: 768px) {
-      body {
-        overflow-x: hidden;
-      }
-      .container {
-        padding: 10px;
-      }
-      .header {
-        padding: 0 8px;
-        height: 42px;
-        min-height: 42px;
-      }
-      .header-left h1 {
-        font-size: 0.88rem;
-      }
-      .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      .kpi-value { font-size: 1.2rem; }
-      .progress-bar-container { display: none; }
-      .utilization-table { min-width: 480px; }
-      .modal-overlay {
-        padding: 0;
-        align-items: stretch;
-      }
-      .modal-content {
-        max-width: 100%;
-        max-height: 100%;
-        height: 100%;
-        border-radius: 0;
-      }
-      .modal-header {
-        padding: 8px 10px;
-      }
-      .search-container {
-        padding: 8px 10px;
-      }
-      .detail-grid {
-        grid-template-columns: 1fr;
-        padding: 14px;
-        gap: 12px;
-      }
-      .progress-bar-container {
-        width: 64px;
-      }
-      .kpi-card .toggle-group {
-        align-items: flex-start !important;
-      }
-    }
-
-    @media (max-width: 480px) {
-      .phase-pill,
-      .tab-link {
-        padding: 4px 8px;
-        font-size: 0.7rem;
-      }
-    }
-
-    @media (max-width: 360px) {
-      .header-left h1 {
-        font-size: 13px;
-      }
-      .kpi-label {
-        font-size: 11px;
-      }
-    }
-
-    /* ===== Theme integration (shared MzoTheme: html[data-mzo-theme="dark"], body.dark-theme) ===== */
-    html[data-mzo-theme="dark"],
-    body.dark-theme {
-      --primary: #3b82f6;
-      --primary-light: #60a5fa;
-      --primary-dark: #93c5fd;
-      --bg-color: #0b1120;
-      --card-bg: #111c33;
-      --text-main: #f1f5f9;
-      --text-muted: #94a3b8;
-      --border-color: rgba(148, 163, 184, 0.18);
-      --glass: rgba(17, 28, 51, 0.85);
-      --glass-border: rgba(148, 163, 184, 0.18);
-      --shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
-    }
-
-    html[data-mzo-theme="dark"] body {
-      background: var(--bg-color) !important;
-      color: var(--text-main) !important;
-    }
-
-    /* Header */
-    html[data-mzo-theme="dark"] .header {
-      background: #0e1628 !important;
-      border-bottom: 1px solid var(--border-color) !important;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4) !important;
-    }
-
-    /* Filter Drawer on Mobile & Desktop Dropdowns */
-    html[data-mzo-theme="dark"] .filters {
-      background: #0e1628 !important;
-      border-color: var(--border-color) !important;
-    }
-    html[data-mzo-theme="dark"] select,
-    html[data-mzo-theme="dark"] .btn-office-pref {
-      background-color: #090e1a !important;
-      color: var(--text-main) !important;
-      border-color: var(--border-color) !important;
-    }
-    html[data-mzo-theme="dark"] .btn-office-pref:hover {
-      background: #16223d !important;
-      color: #93c5fd !important;
-      border-color: var(--primary) !important;
-    }
-    html[data-mzo-theme="dark"] .search-box {
-      background-color: #090e1a !important;
-      border-color: var(--border-color) !important;
-    }
-    html[data-mzo-theme="dark"] .search-box input {
-      color: var(--text-main) !important;
-    }
-    html[data-mzo-theme="dark"] .search-box input::placeholder {
-      color: var(--text-muted) !important;
-    }
-    html[data-mzo-theme="dark"] .download-btn {
-      background-color: #16223d !important;
-      border-color: var(--border-color) !important;
-      color: var(--text-main) !important;
-    }
-    html[data-mzo-theme="dark"] .download-btn:hover {
-      background-color: #1e2d4d !important;
-      border-color: var(--primary) !important;
-      color: #93c5fd !important;
-    }
-
-    /* Latest dates banner */
-    html[data-mzo-theme="dark"] .date-item {
-      background-color: var(--card-bg) !important;
-      border-color: var(--border-color) !important;
-    }
-    html[data-mzo-theme="dark"] .date-val {
-      color: #93c5fd !important;
-    }
-
-    /* Main Table & Section */
-    html[data-mzo-theme="dark"] .table-section {
-      background: var(--card-bg) !important;
-      border-color: var(--border-color) !important;
-      box-shadow: var(--shadow) !important;
-    }
-    html[data-mzo-theme="dark"] .table-header {
-      background: #0e1628 !important;
-      border-bottom-color: var(--border-color) !important;
-    }
-    html[data-mzo-theme="dark"] .table-title {
-      color: var(--text-main) !important;
-    }
-    html[data-mzo-theme="dark"] .utilization-table th {
-      background: #16223d !important;
-      color: var(--text-muted) !important;
-      border-bottom-color: var(--border-color) !important;
-    }
-    html[data-mzo-theme="dark"] .utilization-table td {
-      border-bottom-color: rgba(148, 163, 184, 0.1) !important;
-      color: var(--text-main) !important;
-    }
-    html[data-mzo-theme="dark"] .utilization-table tr:hover {
-      background: rgba(255, 255, 255, 0.04) !important;
-    }
-    html[data-mzo-theme="dark"] .sortable:hover {
-      background: #1e2d4d !important;
-      color: #93c5fd !important;
-    }
-    html[data-mzo-theme="dark"] .office-name {
-      color: #93c5fd !important;
-    }
-    html[data-mzo-theme="dark"] .toggle-text {
-      color: var(--text-main) !important;
-    }
-    html[data-mzo-theme="dark"] .progress-bar-container {
-      background: rgba(148, 163, 184, 0.2) !important;
-    }
-
-    /* Total Row in Dark Theme */
-    html[data-mzo-theme="dark"] .total-row,
-    html[data-mzo-theme="dark"] .utilization-table tr.total-row,
-    html[data-mzo-theme="dark"] .utilization-table tr.total-row td {
-      background-color: #16223d !important;
-      color: #f1f5f9 !important;
-      border-top: 2px solid rgba(148, 163, 184, 0.28) !important;
-      border-bottom: 2px solid rgba(148, 163, 184, 0.28) !important;
-    }
-    html[data-mzo-theme="dark"] .utilization-table tr.total-row:hover td {
-      background-color: #1a2a4a !important;
-    }
-    html[data-mzo-theme="dark"] .total-row .total-progress-bar,
-    html[data-mzo-theme="dark"] .total-row .progress-bar-container {
-      background: rgba(148, 163, 184, 0.25) !important;
-    }
-
-    /* Tabs & Phase Navigation */
-    html[data-mzo-theme="dark"] .tab-nav {
-      background: #0e1628 !important;
-      border-bottom-color: var(--border-color) !important;
-    }
-    html[data-mzo-theme="dark"] .tab-link {
-      background: #16223d !important;
-      color: var(--text-muted) !important;
-    }
-    html[data-mzo-theme="dark"] .tab-link:hover {
-      color: #93c5fd !important;
-      background: #1e2d4d !important;
-    }
-    html[data-mzo-theme="dark"] .tab-link.active {
-      background: #2563eb !important;
-      color: #fff !important;
-    }
-    html[data-mzo-theme="dark"] .phase-tabs {
-      background: #0e1628 !important;
-      border-bottom-color: var(--border-color) !important;
-    }
-    html[data-mzo-theme="dark"] .phase-pill {
-      background: #16223d !important;
-      color: var(--text-muted) !important;
-    }
-    html[data-mzo-theme="dark"] .phase-pill:hover {
-      background: #1e2d4d !important;
-      color: #f1f5f9 !important;
-    }
-    html[data-mzo-theme="dark"] .phase-pill.active {
-      background: #2563eb !important;
-      color: #fff !important;
-    }
-
-    /* Modal & Details Table */
-    html[data-mzo-theme="dark"] .modal-content {
-      background: #111c33 !important;
-      border: 1px solid var(--border-color) !important;
-      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6) !important;
-      color: var(--text-main) !important;
-    }
-    html[data-mzo-theme="dark"] .modal-header {
-      background: #0e1628 !important;
-      border-bottom: 1px solid var(--border-color) !important;
-    }
-    html[data-mzo-theme="dark"] .search-container {
-      background: #0e1628 !important;
-      border-bottom-color: var(--border-color) !important;
-    }
-    html[data-mzo-theme="dark"] #detailSearchInput {
-      background: #090e1a !important;
-      border-color: var(--border-color) !important;
-      color: var(--text-main) !important;
-    }
-    html[data-mzo-theme="dark"] #detailSearchInput::placeholder {
-      color: var(--text-muted) !important;
-    }
-    html[data-mzo-theme="dark"] .details-table th {
-      background: #16223d !important;
-      border-bottom-color: var(--border-color) !important;
-      color: var(--text-muted) !important;
-    }
-    html[data-mzo-theme="dark"] .details-table td {
-      border-bottom-color: rgba(148, 163, 184, 0.1) !important;
-      color: var(--text-main) !important;
-    }
-    html[data-mzo-theme="dark"] .details-table tr:hover {
-      background: rgba(255, 255, 255, 0.04) !important;
-    }
-    html[data-mzo-theme="dark"] .detail-grid {
-      background: #0e1628 !important;
-    }
-    html[data-mzo-theme="dark"] .detail-item span {
-      color: var(--text-main) !important;
-    }
-    html[data-mzo-theme="dark"] #loadingOverlay {
-      background: rgba(11, 17, 32, 0.88) !important;
-    }
-    html[data-mzo-theme="dark"] .spinner {
-      border-color: rgba(148, 163, 184, 0.2) !important;
-      border-top-color: var(--primary) !important;
-    }
-    html[data-mzo-theme="dark"] ::-webkit-scrollbar-thumb {
-      background: #334155 !important;
-    }
+    .mono { font-family: var(--mzo-mono); font-size: 12.5px; letter-spacing: .02em; }
+    #makeHist .row { grid-template-columns: 150px minmax(0, 1fr) 64px; }
   </style>
-  <link rel="stylesheet" href="mzo_theme.css?v=1" />
 </head>
 <body>
-
-<div id="loadingOverlay">
-  <div class="spinner"></div>
-  <p style="font-weight: 600; color: var(--text-muted);">Analyzing Meter Data...</p>
-</div>
-
-<header class="header" id="meterHeader">
-  <div class="header-bar">
-    <div class="header-left">
-      <h1>Meter Utilization</h1>
-      <div class="sync-status">
-        <div class="sync-indicator"></div>
-        <span id="syncText">Malda Zone Real-time</span>
-      </div>
-    </div>
-    <button type="button" class="filter-toggle" id="meterFilterToggle" aria-expanded="false" aria-controls="meterFilters">
-      <i class="fas fa-sliders-h"></i>
-      <span>Filters</span>
-    </button>
-  </div>
-  <div class="filters" id="meterFilters">
-    <div class="search-box">
-      <i class="fas fa-search"></i>
-      <input type="text" id="universalSearch" placeholder="Search Meter Status..." onkeydown="if(event.key==='Enter') searchMeterStatus()">
-    </div>
-    <select id="regionFilter" title="Region">
-      <option value="all">All Regions</option>
-    </select>
-    <select id="divisionFilter" disabled title="Division">
-      <option value="all">All Divisions</option>
-    </select>
-    <select id="cccFilter" disabled title="CCC">
-      <option value="all">All CCCs</option>
-    </select>
-  </div>
-</header>
-
-<div class="container">
-  <!-- Highlighted Date Row -->
-  <div class="latest-dates-banner">
-    <div class="date-item">
-      <i class="fas fa-boxes-stacked"></i>
+  <main class="ui-page">
+    <header class="ui-head">
       <div>
-        <span class="date-label">Latest ERP Stock Entry</span>
-        <span class="date-val" id="erpDateText">Loading...</span>
+        <h1>Meter utilization</h1>
+        <p id="meta">Loading meters…</p>
       </div>
-    </div>
-    <div class="date-divider"></div>
-    <div class="date-item">
-      <i class="fas fa-tools"></i>
-      <div>
-        <span class="date-label">Latest Meter Replacement</span>
-        <span class="date-val" id="repDateText">Loading...</span>
-      </div>
-    </div>
-    <div class="date-divider"></div>
-    <div class="date-item">
-      <i class="fas fa-plug"></i>
-      <div>
-        <span class="date-label">Latest New Connection (NSC)</span>
-        <span class="date-val" id="nscDateText">Loading...</span>
-      </div>
-    </div>
-  </div>
-
-  <div class="kpi-grid">
-    <div class="kpi-card">
-      <div class="kpi-label">Issued</div>
-      <div class="kpi-value" id="totalIssued">-</div>
-      <div class="kpi-trend trend-neutral">From ERP</div>
-    </div>
-    <div class="kpi-card">
-      <div class="kpi-label">Utilized</div>
-      <div class="kpi-value" id="totalUtilized">-</div>
-      <div class="kpi-trend trend-up"><span id="utilPercent">0%</span> used</div>
-    </div>
-    <div class="kpi-card">
-      <div class="kpi-label">In hand</div>
-      <div class="kpi-value" id="meterInHand">-</div>
-      <div class="kpi-trend"><span id="handPercent">0%</span> at CCC</div>
-    </div>
-    <div class="kpi-card">
-      <div class="kpi-label">NSC</div>
-      <div class="kpi-value" id="utilizedNSC">-</div>
-      <div class="kpi-trend"><span id="nscPercent">0%</span> of issued</div>
-    </div>
-    <div class="kpi-card">
-      <div class="kpi-label">Replacement</div>
-      <div class="kpi-value" id="utilizedReplacement">-</div>
-      <div class="kpi-trend"><span id="repPercent">0%</span> of issued</div>
-    </div>
-  </div>
-
-  <div class="table-section">
-    <div class="tab-nav">
-       <button onclick="changeTableLevel('region')" id="btnLvlRegion" class="tab-link active">Region Wise</button>
-       <button onclick="changeTableLevel('division')" id="btnLvlDivision" class="tab-link">Division Wise</button>
-       <button onclick="changeTableLevel('ccc')" id="btnLvlCCC" class="tab-link">CCC Wise</button>
-    </div>
-    <div class="phase-tabs">
-       <button onclick="changePhase('all')" id="btnPhaseAll" class="phase-pill active">Total Overview</button>
-       <button onclick="changePhase('1')" id="btnPhase1" class="phase-pill">1-Phase Meters</button>
-       <button onclick="changePhase('3')" id="btnPhase3" class="phase-pill">3-Phase Meters</button>
-    </div>
-    <div class="table-header">
-      <div class="table-title" id="tableLevelTitle">Regional Utilization Overview</div>
-      <div class="meter-tools">
-        <label class="smart-toggle">
-          <input type="checkbox" id="smartOnlyCheckbox" onchange="toggleSmartOnly(this)">
-          <span class="toggle-text">Smart only</span>
-        </label>
-        <label class="smart-toggle">
-          <input type="checkbox" id="excludeSmartCheckbox" onchange="toggleExcludeSmart(this)">
-          <span class="toggle-text">Exclude smart</span>
-        </label>
-        <button class="download-btn" onclick="exportSummary()" title="Download CSV" aria-label="Download CSV">
-          <i class="fas fa-file-csv" aria-hidden="true"></i>
-        </button>
-      </div>
-    </div>
-    <div class="table-scroll">
-      <table class="utilization-table">
-        <thead>
-          <tr id="tableHead">
-            <th>Region</th>
-            <th class="text-right">Issued</th>
-            <th class="text-right">Utilized (NSC)</th>
-            <th class="text-right">Utilized (Rep)</th>
-            <th class="text-right">In Hand</th>
-            <th class="text-right">Utilization %</th>
-          </tr>
-        </thead>
-        <tbody id="utilizationBody">
-          <!-- Rows injected here -->
-        </tbody>
-      </table>
-    </div>
-  </div>
-</div>
-
-<div id="detailModal" class="modal-overlay">
-  <div class="modal-content">
-    <div class="modal-header">
-      <div class="modal-title" id="modalTitle" style="display: flex; align-items: center; width: 100%;">
-        <span id="modalPhaseTitle">Unutilized Meter Details</span>
-        <span id="modalOfficeName" style="color: var(--text-muted); font-size: 14px; margin-left: 8px; font-weight: 500;"></span>
-        <span id="modalCountBadge" class="badge badge-hand" style="margin-left: auto; margin-right: 24px; font-size: 13px; padding: 6px 14px; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">0</span>
-      </div>
-      <div style="display: flex; gap: 12px; align-items: center;">
-        <button class="download-btn" onclick="exportDetails()" title="Download CSV" aria-label="Download CSV">
-          <i class="fas fa-file-csv" aria-hidden="true"></i>
-        </button>
-        <div class="close-btn" onclick="closeModal()">
-          <i class="fas fa-times"></i>
+      <div class="ui-actions">
+        <div class="ui-seg" id="phase" role="group" aria-label="Phase">
+          <button type="button" data-p="" aria-pressed="true">All</button>
+          <button type="button" data-p="1PH" aria-pressed="false">1-phase</button>
+          <button type="button" data-p="3PH" aria-pressed="false">3-phase</button>
         </div>
+        <button type="button" class="ui-btn sm" id="exportSummary"><svg class="ui-i"><use href="#ui-download"/></svg>Export</button>
       </div>
-    </div>
-    <div class="search-container">
-      <input type="text" id="detailSearchInput" placeholder="Search by Meter Number..." oninput="filterDetails()">
-    </div>
-    <div class="details-table-container">
-      <table class="details-table">
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>Meter Number</th>
-            <th>Received On</th>
-            <th>CCC Unit</th>
-            <th>Meter Make</th>
-            <th>Phase</th>
-          </tr>
-        </thead>
-        <tbody id="detailsBody">
-          <!-- Rows -->
-        </tbody>
-      </table>
-    </div>
-  </div>
-</div>
+    </header>
 
-<div id="statusModal" class="modal-overlay">
-  <div class="modal-content" style="max-width: 550px;">
-    <div class="modal-header">
-      <div class="modal-title">Meter Search Result</div>
-      <div style="display: flex; gap: 12px; align-items: center;">
-        <button class="download-btn" onclick="exportSearchResult()" title="Download CSV" aria-label="Download CSV">
-          <i class="fas fa-file-csv" aria-hidden="true"></i>
-        </button>
-        <div class="close-btn" onclick="closeStatusModal()">
-          <i class="fas fa-times"></i>
+    <div class="ui-filters">
+      <label class="ui-search"><svg class="ui-i"><use href="#ui-search"/></svg><input class="ui-input" id="q" type="search" placeholder="Meter serial number (Enter to look up)" autocomplete="off" spellcheck="false" /></label>
+      <span class="ui-select"><select id="regionFilter" aria-label="Region"><option value="">All regions</option></select></span>
+      <span class="ui-select"><select id="divisionFilter" aria-label="Division"><option value="">All divisions</option></select></span>
+      <span class="ui-select"><select id="cccFilter" aria-label="CCC"><option value="">All CCCs</option></select></span>
+      <span class="ui-select"><select id="typeFilter" aria-label="Meter type"><option value="">All meter types</option><option value="smart">Smart only</option><option value="normal">Non-smart only</option></select></span>
+      <button type="button" class="ui-btn ghost" id="clearBtn" hidden><svg class="ui-i"><use href="#ui-x"/></svg>Clear</button>
+    </div>
+
+    <section class="ui-stats" style="--n:4" id="stats" aria-label="Summary">
+      <div class="ui-stat"><div class="k">Issued</div><div class="v"><span class="ui-skel"></span></div><div class="s">&nbsp;</div></div>
+      <div class="ui-stat"><div class="k"><span class="ui-dot ok"></span>Used for new connections</div><div class="v"><span class="ui-skel"></span></div><div class="s">&nbsp;</div></div>
+      <div class="ui-stat"><div class="k"><span class="ui-dot ok"></span>Used for replacement</div><div class="v"><span class="ui-skel"></span></div><div class="s">&nbsp;</div></div>
+      <div class="ui-stat"><div class="k"><span class="ui-dot warn"></span>In hand</div><div class="v"><span class="ui-skel"></span></div><div class="s">&nbsp;</div></div>
+    </section>
+
+    <div class="ui-grid">
+      <section class="ui-panel">
+        <div class="ui-panel-h">
+          <h2>By office</h2>
+          <div class="ui-tabs" role="tablist" id="levelTabs">
+            <button type="button" class="ui-tab" role="tab" data-l="region" aria-selected="true">Region</button>
+            <button type="button" class="ui-tab" role="tab" data-l="division">Division</button>
+            <button type="button" class="ui-tab" role="tab" data-l="ccc">CCC</button>
+          </div>
         </div>
+        <div id="officeTable" style="--max-h:560px"><div class="ui-empty">Loading…</div></div>
+      </section>
+      <div>
+        <section class="ui-panel">
+          <div class="ui-panel-h"><h2>In hand for</h2></div>
+          <div class="ui-panel-b"><div id="ageHist"></div></div>
+        </section>
+        <section class="ui-panel">
+          <div class="ui-panel-h"><h2>In hand by make</h2></div>
+          <div class="ui-panel-b"><div id="makeHist"></div></div>
+        </section>
       </div>
     </div>
-    <div class="details-table-container" style="padding: 32px;">
-      <div id="statusResultContent" class="status-result">
-        <!-- Results -->
+
+    <section class="ui-panel">
+      <div class="ui-panel-h">
+        <h2>Meters in hand <small id="appCount"></small></h2>
+        <button type="button" class="ui-btn sm" id="exportBtn"><svg class="ui-i"><use href="#ui-download"/></svg>Export CSV</button>
       </div>
-    </div>
-  </div>
-</div>
+      <div id="appTable"><div class="ui-empty">Loading…</div></div>
+    </section>
+  </main>
 
-<script>
-  // Configuration
-  const GID_ERP = '1335293243';
-  const GID_MASTER = '1053803476';
-  const GID_CRM = '1638328510';
-  const GID_ISU = '329630218';
-  const BASE_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSmzya-jypjfu9nN5QWuRJ6sbIgrqQ7Wa1eAx6Wfoepft2UpNwBC4a_rd4uJ6VpLhNu7FnjDBa8mJxW/pub?output=csv';
+  <script>
+  document.addEventListener('DOMContentLoaded', function () {
+    'use strict';
+    var $ = function (id) { return document.getElementById(id); };
+    var BASE_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSmzya-jypjfu9nN5QWuRJ6sbIgrqQ7Wa1eAx6Wfoepft2UpNwBC4a_rd4uJ6VpLhNu7FnjDBa8mJxW/pub?output=csv';
+    var GIDS = ['1335293243', '1053803476', '1638328510', '329630218'];
+    var METER_PARSED_KEY = 'CACHE_METER_PARSED_v1';
+    var METER_RAW_KEYS = ['CACHE_METER_ERP', 'CACHE_METER_MASTER', 'CACHE_METER_CRM', 'CACHE_METER_ISU'];
+    var REGION_LABEL = { 'MALDA': 'Malda', 'UTTAR DINAJPUR': 'Raiganj', 'DAKSHIN DINAJPUR': 'Balurghat' };
+    var STATUS = { 'utilized-nsc': { label: 'New connection', cls: 'ok' }, 'utilized-replacement': { label: 'Replacement', cls: 'ok' }, 'meter-in-hand': { label: 'In hand', cls: 'warn' } };
+    var AGE = [
+      { key: 'a0', label: 'Under a month', max: 30 }, { key: 'a1', label: '1–3 months', max: 91 }, { key: 'a2', label: '3–6 months', max: 182 },
+      { key: 'a3', label: '6–12 months', max: 365 }, { key: 'a4', label: 'Over a year', max: Infinity }, { key: 'an', label: 'Date unknown', max: -1 }
+    ];
 
-  // Hierarchy Mapping String
-  const officeMappingStr = `CODE	OFFICE NAME
-6610000	MALDA REGION
-1111111	MALDA DIV.
-6611000	MALDA DIVISION
-6611101	MANIKCHAK CCC
-6611102	GOLAPGANJ CCC
-6611103	BAISHNABNAGAR CCC
-6611104	KALIACHAK CCC
-6611105	MOTHABARI CCC
-6611106	SUJAPUR CCC
-6611107	RATHBARI CCC
-6611108	FULBARI CCC
-6611109	MOKDUMPUR CCC
-2222222	CHANCHAL DIV.
-6612000	CHANCHAL DIVISION
-6612101	BHALUKA CCC
-6612102	SAMSI CCC
-6612103	PARANPUR CCC
-6612104	CHANCHAL CCC
-6612105	MALATIPUR CCC
-6612106	HARISHCHANDRAPUR CCC
-6612107	KUSHIDA CCC
-3333333	GAZOLE DIV.
-6613000	GAZOLE DIVISION
-6613101	GAZOL CCC
-6613102	AIHO. CCC
-6613103	PANDUA CCC
-6613104	BAMONGOLA CCC
-6613105	OLD MALDA CCC
-6620000	UTTAR DINAJPUR REGION
-4444444	RAIGANJ  DIV.
-6621000	RAIGANJ  DIVISION
-6621101	ITAHAR CCC
-6621102	HEMTABAD CCC
-6621103	KALIYAGANJ CCC
-6621104	RAIGANJ CCC
-6621105	BIRNAGAR CCC
-6621106	KARANDIGHI CCC
-5555555	ISLAMPUR DIV.
-6622000	ISLAMPUR DIVISION
-6622101	ISLAMPUR CCC
-6622102	CHOPRA CCC
-6622103	DALKHOLA CCC
-6622104	GOALPOKHER CCC
-6622105	KANKI CCC
-6630000	DAKSHIN DINAJPUR REGION
-6666666	BALURGHAT DIV.
-6631000	BALURGHAT DIVISION
-6631101	BALURGHAT CCC
-6631102	TAPAN CCC
-6631103	KUMARGANJ CCC
-6631104	HILI CCC
-6631105	PATIRAM CCC
-7777777	BUNIADPUR DIV.
-6632000	BUNIADPUR DIVISION
-6632101	BUNIADPUR CCC
-6632102	KUSMANDI CCC
-6632103	HARIRAMPUR CCC
-6632104	GANGARAMPUR CCC`;
+    // Office codes → names (ERP cost centres). Division "booking" codes 1111111… map to the division.
+    var OFFICES = '6610000 MALDA REGION|1111111 MALDA DIV.|6611000 MALDA DIVISION|6611101 MANIKCHAK CCC|6611102 GOLAPGANJ CCC|6611103 BAISHNABNAGAR CCC|6611104 KALIACHAK CCC|6611105 MOTHABARI CCC|6611106 SUJAPUR CCC|6611107 RATHBARI CCC|6611108 FULBARI CCC|6611109 MOKDUMPUR CCC|2222222 CHANCHAL DIV.|6612000 CHANCHAL DIVISION|6612101 BHALUKA CCC|6612102 SAMSI CCC|6612103 PARANPUR CCC|6612104 CHANCHAL CCC|6612105 MALATIPUR CCC|6612106 HARISHCHANDRAPUR CCC|6612107 KUSHIDA CCC|3333333 GAZOLE DIV.|6613000 GAZOLE DIVISION|6613101 GAZOL CCC|6613102 AIHO. CCC|6613103 PANDUA CCC|6613104 BAMONGOLA CCC|6613105 OLD MALDA CCC|6620000 UTTAR DINAJPUR REGION|4444444 RAIGANJ  DIV.|6621000 RAIGANJ  DIVISION|6621101 ITAHAR CCC|6621102 HEMTABAD CCC|6621103 KALIYAGANJ CCC|6621104 RAIGANJ CCC|6621105 BIRNAGAR CCC|6621106 KARANDIGHI CCC|5555555 ISLAMPUR DIV.|6622000 ISLAMPUR DIVISION|6622101 ISLAMPUR CCC|6622102 CHOPRA CCC|6622103 DALKHOLA CCC|6622104 GOALPOKHER CCC|6622105 KANKI CCC|6630000 DAKSHIN DINAJPUR REGION|6666666 BALURGHAT DIV.|6631000 BALURGHAT DIVISION|6631101 BALURGHAT CCC|6631102 TAPAN CCC|6631103 KUMARGANJ CCC|6631104 HILI CCC|6631105 PATIRAM CCC|7777777 BUNIADPUR DIV.|6632000 BUNIADPUR DIVISION|6632101 BUNIADPUR CCC|6632102 KUSMANDI CCC|6632103 HARIRAMPUR CCC|6632104 GANGARAMPUR CCC';
+    var officeDetails = {};
 
-  // Global State
-  let allERP = [];
-  let masterSet = new Set();
-  let replacementSet = new Set();
-  let currentTableLevel = 'region';
-  let currentPhaseFilter = 'all'; // 'all', '1', '3'
-  let officeDetails = {}; 
-  let hierarchy = {};
-  let sortColumn = 'issued';
-  let sortDirection = 'desc';
-  let masterLookup = {}; // meter -> { conId, instNo }
-  let replacementLookup = {}; // meter -> { conId }
-  let smartOnly = false;
-  let excludeSmart = false;
-  const METER_PARSED_KEY = 'CACHE_METER_PARSED_v1';
-  const METER_RAW_KEYS = ['CACHE_METER_ERP', 'CACHE_METER_MASTER', 'CACHE_METER_CRM', 'CACHE_METER_ISU'];
+    var allERP = [], masterLookup = {}, replacementLookup = {}, dates = { erp: '', rep: '', nsc: '' };
+    var f = { q: '', phase: '', type: '', age: '', make: '' }, level = 'region', scope = null;
 
-  function meterBundleVersion() {
-    return METER_RAW_KEYS.map((k) => {
-      try { return localStorage.getItem('mzo_hub_ver_' + k) || ''; } catch (e) { return ''; }
-    }).join('|');
-  }
-
-  async function saveMeterParsed() {
-    if (!window.mzoDataHub || typeof mzoDataHub.set !== 'function') return;
-    try {
-      await mzoDataHub.set(METER_PARSED_KEY, {
-        allERP,
-        masterLookup,
-        replacementLookup,
-        erpDateText: (document.getElementById('erpDateText') || {}).textContent || '',
-        repDateText: (document.getElementById('repDateText') || {}).textContent || '',
-        nscDateText: (document.getElementById('nscDateText') || {}).textContent || ''
-      });
-      localStorage.setItem('mzo_hub_ver_' + METER_PARSED_KEY, meterBundleVersion());
-    } catch (e) {}
-  }
-
-  function stripRegionWord(name) {
-    return String(name || '').replace(/\s+REGION$/i, '').trim();
-  }
-
-  function applyMeterParsed(parsed) {
-    allERP = (parsed.allERP || []).map((row) => {
-      if (!row || !row.region) return row;
-      const region = stripRegionWord(row.region);
-      if (region === row.region) return row;
-      return Object.assign({}, row, { region: region });
-    });
-    masterLookup = parsed.masterLookup || {};
-    replacementLookup = parsed.replacementLookup || {};
-    masterSet = new Set(Object.keys(masterLookup));
-    replacementSet = new Set(Object.keys(replacementLookup));
-    const erpEl = document.getElementById('erpDateText');
-    const repEl = document.getElementById('repDateText');
-    const nscEl = document.getElementById('nscDateText');
-    if (erpEl && parsed.erpDateText) erpEl.textContent = parsed.erpDateText;
-    if (repEl && parsed.repDateText) repEl.textContent = parsed.repDateText;
-    if (nscEl && parsed.nscDateText) nscEl.textContent = parsed.nscDateText;
-  }
-
-  function revalidateMeterInBackground() {
-    if (!window.mzoDataHub || typeof mzoDataHub.waitForDataset !== 'function') return;
-    Promise.all(METER_RAW_KEYS.map((k) => mzoDataHub.waitForDataset(k))).then((results) => {
-      if (results.some((r) => r === 'updated')) {
-        try { window.location.reload(); } catch (e) {}
-      }
-    }).catch(() => {});
-  }
-
-  async function init() {
-    try {
-      showLoading(true);
-      buildHierarchy(officeMappingStr);
-      populateFilters();
-
-      let erpData, masterData, crmData, isuData;
-      let paintedFromParsed = false;
-
-      if (window.mzoDataHub) {
-        const bundle = meterBundleVersion();
-        let parsedVer = '';
-        try { parsedVer = localStorage.getItem('mzo_hub_ver_' + METER_PARSED_KEY) || ''; } catch (_) {}
-        if (bundle && parsedVer === bundle) {
-          const parsed = await mzoDataHub._peek(METER_PARSED_KEY);
-          if (parsed && Array.isArray(parsed.allERP) && parsed.allERP.length) {
-            applyMeterParsed(parsed);
-            paintedFromParsed = true;
-          }
-        }
-        if (!paintedFromParsed) {
-          const peeked = await Promise.all(METER_RAW_KEYS.map((k) => mzoDataHub._peek(k)));
-          if (peeked[0]) {
-            [erpData, masterData, crmData, isuData] = peeked;
-          } else {
-            await Promise.all(METER_RAW_KEYS.map((k) => mzoDataHub.waitForDataset(k)));
-            [erpData, masterData, crmData, isuData] = await Promise.all(METER_RAW_KEYS.map((k) => mzoDataHub._peek(k)));
-          }
-        }
-      }
-      if (paintedFromParsed) {
-        applyLoginScopeToFilters();
-        try {
-          const syncDate = localStorage.getItem('mzo_last_sync_date');
-          document.getElementById('syncText').textContent = syncDate ? `Sync Date: ${syncDate}` : 'Malda Zone Real-time';
-        } catch (_) {}
-        updateUI();
-        showLoading(false);
-        revalidateMeterInBackground();
-        return;
-      }
-      if (!erpData) {
-        const results = await Promise.all([
-          fetchCSV(BASE_URL + "&gid=" + GID_ERP),
-          fetchCSV(BASE_URL + "&gid=" + GID_MASTER),
-          fetchCSV(BASE_URL + "&gid=" + GID_CRM),
-          fetchCSV(BASE_URL + "&gid=" + GID_ISU)
-        ]);
-        [erpData, masterData, crmData, isuData] = results;
-      } else {
-        erpData = Papa.parse(erpData || '', { header: true, skipEmptyLines: true }).data;
-        masterData = Papa.parse(masterData || '', { header: true, skipEmptyLines: true }).data;
-        crmData = Papa.parse(crmData || '', { header: true, skipEmptyLines: true }).data;
-        isuData = Papa.parse(isuData || '', { header: true, skipEmptyLines: true }).data;
-      }
-
-      processData({ erpData, masterData, crmData, isuData });
-      applyLoginScopeToFilters();
-
-      try {
-        populateDynamicDates(erpData, crmData, isuData);
-        const syncDate = localStorage.getItem('mzo_last_sync_date');
-        document.getElementById('syncText').textContent = syncDate ? `Sync Date: ${syncDate}` : 'Malda Zone Real-time';
-      } catch (dateErr) {
-        console.error("Error setting dynamic dates:", dateErr);
-        const syncDate = localStorage.getItem('mzo_last_sync_date') || 'Today';
-        document.getElementById('erpDateText').textContent = syncDate;
-        document.getElementById('repDateText').textContent = syncDate;
-        document.getElementById('nscDateText').textContent = syncDate;
-        document.getElementById('syncText').textContent = 'Malda Zone Real-time';
-      }
-
-      updateUI();
-      await saveMeterParsed();
-      showLoading(false);
-      revalidateMeterInBackground();
-    } catch (err) {
-      console.error(err);
-      alert("Error loading data. Check connection.");
+    /* ---------- hierarchy (same rules the page has always used) ---------- */
+    function canonicalDivisionName(raw) {
+      var s = String(raw == null ? '' : raw).trim();
+      if (!s || /^unknown$/i.test(s)) return s;
+      if (window.MzoScope && window.MzoScope.divisionNameOf) { var c = window.MzoScope.divisionNameOf(s); if (c) return c; }
+      return s.replace(/\s+/g, ' ').replace(/\s+(DIVISIOIN|DIVISION|DIVN|DIV)\.?\s*$/i, '').trim() || s;
     }
-  }
-
-  function buildHierarchy(mappingText) {
-    const lines = mappingText.trim().split('\n').slice(1);
-    const parsed = lines.map(line => {
-      const parts = line.split('\t');
-      return { code: parts[0].trim(), name: parts[1].trim() };
-    });
-
-    function regionNameForCode(code) {
-      const c = String(code || '');
-      if (c.startsWith('661') || c === '1111111' || c === '2222222' || c === '3333333') return 'MALDA';
-      if (c.startsWith('662') || c === '4444444' || c === '5555555') return 'UTTAR DINAJPUR';
-      if (c.startsWith('663') || c === '6666666' || c === '7777777') return 'DAKSHIN DINAJPUR';
+    function regionNameForCode(c) {
+      c = String(c || '');
+      if (c.indexOf('661') === 0 || c === '1111111' || c === '2222222' || c === '3333333') return 'MALDA';
+      if (c.indexOf('662') === 0 || c === '4444444' || c === '5555555') return 'UTTAR DINAJPUR';
+      if (c.indexOf('663') === 0 || c === '6666666' || c === '7777777') return 'DAKSHIN DINAJPUR';
       return '';
     }
-
-    function normalizeOfficeName(name) {
-      return String(name || '')
-        .replace(/\s+/g, ' ')
-        .trim()
-        .replace(/\bDIVISIOIN\b/i, 'DIVISION')
-        .replace(/\bDIV\.\b/i, 'DIVISION')
-        .replace(/\bGAZOL CCC\b/i, 'GAZOLE CCC')
-        .replace(/\bAIHO\.\s*CCC\b/i, 'AIHO CCC');
-    }
-
-    function detectType(name) {
-      const n = String(name || '').toUpperCase().replace(/\s+/g, ' ').trim();
-      if (n.endsWith(' REGION')) return 'region';
-      if (/\bDIVISION$/.test(n) || /\bDIVN\.?$/.test(n) || /\bDIV\.?$/.test(n)) return 'division';
-      if (n.endsWith('CCC')) return 'ccc';
-      return 'unknown';
-    }
-
-    parsed.forEach(item => {
-      const name = normalizeOfficeName(item.name);
-      const type = detectType(name);
-      officeDetails[item.code] = {
-        name: type === 'division' ? canonicalDivisionName(name) : name,
-        type,
-        code: item.code,
-        region: '',
-        division: ''
-      };
-    });
-
-    // Link CCC → Division + Region
-    Object.values(officeDetails).forEach(off => {
-      if (off.type !== 'ccc') return;
-      let divCode = null;
-      if (off.code.startsWith('66111')) divCode = '1111111';
-      else if (off.code.startsWith('66121')) divCode = '2222222';
-      else if (off.code.startsWith('66131')) divCode = '3333333';
-      else if (off.code.startsWith('66211')) divCode = '4444444';
-      else if (off.code.startsWith('66221')) divCode = '5555555';
-      else if (off.code.startsWith('66311')) divCode = '6666666';
-      else if (off.code.startsWith('66321')) divCode = '7777777';
-
-      if (divCode && officeDetails[divCode]) {
-        off.division = canonicalDivisionName(officeDetails[divCode].name);
-        off.region = regionNameForCode(divCode) || regionNameForCode(off.code);
-      } else {
-        // Fallback by CCC code prefix when fake div code missing
-        off.region = regionNameForCode(off.code);
-      }
-    });
-
-    // Division-level offices (incl. bookings posted on division Cost Centers)
-    Object.values(officeDetails).forEach(off => {
-      if (off.type !== 'division') return;
-      off.region = regionNameForCode(off.code);
-      off.division = canonicalDivisionName(off.name);
-      off.name = off.division;
-    });
-
-    // Region-level offices
-    Object.values(officeDetails).forEach(off => {
-      if (off.type !== 'region') return;
-      off.region = regionNameForCode(off.code) || String(off.name || '').replace(/\s+REGION$/i, '').trim();
-    });
-  }
-
-  function stripDivSuffix(name) {
-    return String(name || '')
-      .replace(/\s+/g, ' ')
-      .trim()
-      .replace(/\s+(DIVISIOIN|DIVISION|DIVN|DIV)\.?\s*$/i, '')
-      .trim();
-  }
-
-  function canonicalDivisionName(raw) {
-    const s = String(raw == null ? '' : raw).trim();
-    if (!s || /^unknown$/i.test(s)) return s;
-    if (window.MzoScope && typeof window.MzoScope.divisionNameOf === 'function') {
-      const canon = window.MzoScope.divisionNameOf(s);
-      if (canon) return canon;
-    }
-    return stripDivSuffix(s) || s;
-  }
-
-  function sameDivision(a, b) {
-    const left = canonicalDivisionName(a);
-    const right = canonicalDivisionName(b);
-    if (!left || !right) return false;
-    return left.toLowerCase() === right.toLowerCase();
-  }
-
-  function isDivisionListLabel(name) {
-    const s = String(name || '').replace(/\s+/g, ' ').trim();
-    if (!s || /^unknown$/i.test(s)) return false;
-    if (/\bCCC\s*$/i.test(s)) return false;
-    if (/\b(DIVISION|DIVN|DIV)\.?\s*$/i.test(s)) return true;
-    if (window.MzoScope && typeof window.MzoScope.divisionNameOf === 'function') {
-      const canon = window.MzoScope.divisionNameOf(s);
-      if (canon && canon.toLowerCase() === stripDivSuffix(s).toLowerCase()) return true;
-    }
-    return false;
-  }
-
-  function groupKeyFor(d, level) {
-    if (level === 'ccc') {
-      if (d.officeType && d.officeType !== 'ccc') return '';
-      const name = d.cccName || '';
-      if (isDivisionListLabel(name)) return '';
-      return name || 'Unknown';
-    }
-    if (level === 'division') return canonicalDivisionName(d.division) || d.division || 'Unknown';
-    return stripRegionWord(d.region) || 'Unknown';
-  }
-
-  /** Parse ERP Cost Center / CCC CODE into hierarchy key (e.g. C366111050 → 6611105). */
-  function parseOfficeCode(raw) {
-    const s = String(raw || '').trim();
-    if (!s) return '';
-    const m = s.toUpperCase().match(/66[123]\d{4}/);
-    if (m) return m[0];
-    return s.replace(/^C3/i, '').substring(0, 7);
-  }
-
-  function populateFilters() {
-    const regFilter = document.getElementById('regionFilter');
-    const divFilter = document.getElementById('divisionFilter');
-    const cccFilter = document.getElementById('cccFilter');
-    const regions = ['MALDA', 'UTTAR DINAJPUR', 'DAKSHIN DINAJPUR'];
-    regions.forEach(r => {
-      const opt = document.createElement('option');
-      opt.value = r;
-      opt.textContent = r;
-      regFilter.appendChild(opt);
-    });
-
-    function refillDivisions(regionVal) {
-      divFilter.innerHTML = '<option value="all">All Divisions</option>';
-      divFilter.disabled = regionVal === 'all';
-      if (regionVal === 'all') return;
-      const divs = [...new Set(
-        Object.values(officeDetails)
-          .filter((o) => o.type === 'division' && o.region === regionVal)
-          .map((o) => canonicalDivisionName(o.name || o.division))
-          .filter(Boolean)
-      )].sort((a, b) => a.localeCompare(b));
-      divs.forEach((d) => {
-        const opt = document.createElement('option');
-        opt.value = d;
-        opt.textContent = d;
-        divFilter.appendChild(opt);
+    function buildHierarchy() {
+      var DIVCODE = { '66111': '1111111', '66121': '2222222', '66131': '3333333', '66211': '4444444', '66221': '5555555', '66311': '6666666', '66321': '7777777' };
+      OFFICES.split('|').forEach(function (line) {
+        var code = line.slice(0, 7), name = line.slice(8).replace(/\s+/g, ' ').trim()
+          .replace(/\bDIV\.$/i, 'DIVISION').replace(/\bGAZOL CCC\b/i, 'GAZOLE CCC').replace(/\bAIHO\.\s*CCC\b/i, 'AIHO CCC');
+        var type = / REGION$/.test(name) ? 'region' : /DIVISION$/.test(name) ? 'division' : /CCC$/.test(name) ? 'ccc' : 'unknown';
+        officeDetails[code] = { name: type === 'division' ? canonicalDivisionName(name) : name, type: type, code: code, region: '', division: '' };
+      });
+      Object.keys(officeDetails).forEach(function (k) {
+        var o = officeDetails[k];
+        if (o.type === 'ccc') {
+          var dc = DIVCODE[o.code.slice(0, 5)];
+          if (dc && officeDetails[dc]) { o.division = canonicalDivisionName(officeDetails[dc].name); o.region = regionNameForCode(dc); }
+          else o.region = regionNameForCode(o.code);
+        } else if (o.type === 'division') { o.region = regionNameForCode(o.code); o.division = canonicalDivisionName(o.name); o.name = o.division; }
+        else if (o.type === 'region') { o.region = regionNameForCode(o.code) || o.name.replace(/\s+REGION$/i, ''); }
       });
     }
+    function parseOfficeCode(raw) {
+      var s = String(raw || '').trim();
+      if (!s) return '';
+      var m = s.toUpperCase().match(/66[123]\d{4}/);
+      return m ? m[0] : s.replace(/^C3/i, '').substring(0, 7);
+    }
 
-    function refillCccs(regionVal, divisionVal) {
-      cccFilter.innerHTML = '<option value="all">All CCCs</option>';
-      const needScope = regionVal !== 'all' || divisionVal !== 'all';
-      cccFilter.disabled = !needScope;
-      if (!needScope) return;
-      const cccs = Object.values(officeDetails)
-        .filter((o) => {
-          if (o.type !== 'ccc') return false;
-          if (regionVal !== 'all' && o.region !== regionVal) return false;
-          if (divisionVal !== 'all' && !sameDivision(o.division, divisionVal)) return false;
-          return true;
+    /* ---------- parse the four sheets (shape kept for CACHE_METER_PARSED_v1) ---------- */
+    function processData(erp, master, crm, isu) {
+      masterLookup = {}; replacementLookup = {};
+      master.forEach(function (d) { var m = String(d.METER_NO || d.METER_NUMBER || '').trim(); if (m) masterLookup[m] = { conId: d.CON_ID || d.CONS_ID || '', instNo: d.INST_NO || d.INSTALLATION || '' }; });
+      crm.forEach(function (d) { var m = String(d.METER_NUMBER || d.METER_NO || '').trim(); if (m) replacementLookup[m] = { conId: d.CON_ID || d.CONS_ID || '' }; });
+      isu.forEach(function (d) {
+        var o = String(d.METER_NO || '').trim(), n2 = String(d.REPLACED_BY || '').trim(), c = d.CON_ID || d.CONS_ID || '';
+        if (o) replacementLookup[o] = { conId: c };
+        if (n2) replacementLookup[n2] = { conId: c };
+      });
+      allERP = erp.map(function (d) {
+        var meter = String(d['Serial Number'] || '').trim(), code = parseOfficeCode(d['Cost Center'] || d['CCC CODE']);
+        var off = officeDetails[code] || { name: code || 'Unknown', region: 'Unknown', division: 'Unknown' };
+        var phase = String(d.Phase || '').trim(); if (phase === '1') phase = '1PH'; if (phase === '3') phase = '3PH';
+        return {
+          meter: meter, cccCode: code, cccName: off.name, officeType: off.type || 'unknown', region: off.region,
+          division: canonicalDivisionName(off.division) || off.division,
+          status: replacementLookup[meter] ? 'utilized-replacement' : masterLookup[meter] ? 'utilized-nsc' : 'meter-in-hand',
+          make: d['Meter Make'] || 'Unknown', phase: phase || 'Unknown', entryDate: d['Entry Date'] || 'Unknown',
+          isSmart: String(d['Meter Category'] || '').toUpperCase().indexOf('SMART METER') !== -1
+        };
+      });
+      // Latest dates: ERP entry; replacement (ISU / burnt-meter CRM); new connection (other CRM types).
+      var maxErp = 0, maxRep = 0, maxNsc = 0;
+      var dmy = function (s) { var p = String(s || '').split(/[./-]/); return p.length === 3 ? +new Date(+p[2], p[1] - 1, +p[0]) || 0 : 0; };
+      var ymd = function (s) { if (!s || /^\(null\)/.test(s)) return 0; var p = String(s).split(' ')[0].split(/[./-]/); return p.length === 3 ? +new Date(+p[0], p[1] - 1, +p[2]) || 0 : 0; };
+      var compact = function (s) { s = String(s || ''); return s.length === 8 ? +new Date(+s.slice(0, 4), +s.slice(4, 6) - 1, +s.slice(6, 8)) || 0 : 0; };
+      erp.forEach(function (r) { maxErp = Math.max(maxErp, dmy(r['Entry Date'])); });
+      isu.forEach(function (r) { maxRep = Math.max(maxRep, compact(r.REPLACEMENT_DT), compact(r.TRAN_DT)); });
+      crm.forEach(function (r) {
+        var t = r.PROB_TYPE || '', v = ymd(r.METER_INSTALL_DATE || r.SERV_CONN_DATE);
+        if (t === 'Meter Burnt Problem') maxRep = Math.max(maxRep, v);
+        else if (t && t !== 'Load Enhancement') maxNsc = Math.max(maxNsc, v);
+      });
+      var fmt = function (t) { if (!t) return 'N/A'; var d = new Date(t); return String(d.getDate()).padStart(2, '0') + '-' + ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][d.getMonth()] + '-' + d.getFullYear(); };
+      dates = { erp: fmt(maxErp), rep: fmt(maxRep), nsc: fmt(maxNsc) };
+    }
+
+    function bundleVersion() { return METER_RAW_KEYS.map(function (k) { try { return localStorage.getItem('mzo_hub_ver_' + k) || ''; } catch (e) { return ''; } }).join('|'); }
+    function saveParsed() {
+      var hub = window.mzoDataHub;
+      if (!hub || !hub.set) return Promise.resolve();
+      return hub.set(METER_PARSED_KEY, { allERP: allERP, masterLookup: masterLookup, replacementLookup: replacementLookup, erpDateText: dates.erp, repDateText: dates.rep, nscDateText: dates.nsc })
+        .then(function () { try { localStorage.setItem('mzo_hub_ver_' + METER_PARSED_KEY, bundleVersion()); } catch (e) {} }).catch(function () {});
+    }
+    function applyParsed(p) {
+      allERP = (p.allERP || []).map(function (r) { return r && r.region && / REGION$/i.test(r.region) ? Object.assign({}, r, { region: r.region.replace(/\s+REGION$/i, '') }) : r; });
+      masterLookup = p.masterLookup || {}; replacementLookup = p.replacementLookup || {};
+      dates = { erp: p.erpDateText || '', rep: p.repDateText || '', nsc: p.nscDateText || '' };
+    }
+
+    /* ---------- view model ---------- */
+    var rows = [];
+    function prepare() {
+      if (window.MzoScope) allERP = window.MzoScope.filterRows(allERP);
+      var S = window.MzoScope, now = Date.now(), cccCache = {};
+      rows = allERP.map(function (d) {
+        var ccc = '';
+        if (d.officeType === 'ccc') {
+          ccc = cccCache[d.cccCode] || (cccCache[d.cccCode] = (S && S.cccNameOf && S.cccNameOf(d.cccCode)) || UI.title(String(d.cccName || '').replace(/\s*CCC$/i, '')));
+        }
+        var e = UI.date(d.entryDate), days = e ? Math.max(0, Math.floor((now - e.getTime()) / 864e5)) : null;
+        return {
+          src: d, meter: d.meter, status: d.status, phase: d.phase, smart: d.isSmart, make: UI.title(d.make).replace(/\s+/g, ' ').replace(/ Li Mited/, ' Limited'),
+          _region: REGION_LABEL[String(d.region || '').toUpperCase()] || UI.title(d.region), _divn: d.division && !/^unknown$/i.test(d.division) ? d.division : '', _supp: ccc,
+          entry: e, days: days, ageKey: days == null ? 'an' : AGE.filter(function (b) { return b.max >= 0 && days <= b.max; })[0].key
+        };
+      });
+      var meta = 'ERP stock to ' + (dates.erp || '—') + ' · replacements to ' + (dates.rep || '—') + ' · new connections to ' + (dates.nsc || '—');
+      $('meta').textContent = meta.replace(/-/g, ' ');
+      fillFilters();
+    }
+
+    function uniq(list, k) { var s = {}; list.forEach(function (r) { if (r[k]) s[r[k]] = 1; }); return Object.keys(s).sort(); }
+    function fillFilters() {
+      var reg = $('regionFilter').value, div = $('divisionFilter').value;
+      UI.fill('regionFilter', uniq(rows, '_region'), 'All regions');
+      var r1 = reg ? rows.filter(function (r) { return r._region === reg; }) : rows;
+      UI.fill('divisionFilter', uniq(r1, '_divn'), 'All divisions');
+      var r2 = div ? r1.filter(function (r) { return r._divn === div; }) : r1;
+      UI.fill('cccFilter', uniq(r2, '_supp'), 'All CCCs');
+      if (!scope) scope = UI.lockScope();
+    }
+
+    function base() {
+      var reg = $('regionFilter').value, div = $('divisionFilter').value, ccc = $('cccFilter').value, out = [];
+      for (var i = 0; i < rows.length; i++) {
+        var r = rows[i];
+        if (reg && r._region !== reg) continue;
+        if (div && r._divn !== div) continue;
+        if (ccc && r._supp !== ccc) continue;
+        if (f.phase && r.phase !== f.phase) continue;
+        if (f.type === 'smart' && !r.smart) continue;
+        if (f.type === 'normal' && r.smart) continue;
+        out.push(r);
+      }
+      return out;
+    }
+
+    function render() {
+      var b = base(), c = { nsc: 0, rep: 0, hand: 0 };
+      b.forEach(function (r) { if (r.status === 'utilized-nsc') c.nsc++; else if (r.status === 'utilized-replacement') c.rep++; else c.hand++; });
+      var stats = document.querySelectorAll('#stats .ui-stat');
+      var put = function (i, v, s) { stats[i].querySelector('.v').textContent = UI.n(v); stats[i].querySelector('.s').textContent = s; };
+      put(0, b.length, UI.pct(c.nsc + c.rep, b.length) + ' used');
+      put(1, c.nsc, UI.pct(c.nsc, b.length) + ' of issued');
+      put(2, c.rep, UI.pct(c.rep, b.length) + ' of issued');
+      put(3, c.hand, UI.pct(c.hand, b.length) + ' of issued');
+
+      // Offices — division/region bookings are not CCCs, so the CCC tab skips them.
+      var key = level === 'region' ? '_region' : level === 'division' ? '_divn' : '_supp', groups = {}, now = Date.now();
+      b.forEach(function (r) {
+        var name = r[key]; if (!name) { if (level === 'ccc') return; name = 'Unmapped'; }
+        var g = groups[name] || (groups[name] = { name: name, parent: level === 'ccc' ? r._divn : level === 'division' ? r._region : '', issued: 0, nsc: 0, rep: 0, hand: 0, first: 0 });
+        g.issued++;
+        if (r.status === 'utilized-nsc') g.nsc++; else if (r.status === 'utilized-replacement') g.rep++; else g.hand++;
+        if (r.entry && (!g.first || r.entry.getTime() < g.first)) g.first = r.entry.getTime();
+      });
+      var list = Object.keys(groups).map(function (k) {
+        var g = groups[k], months = 1;
+        if (g.first) { var a = new Date(g.first), t = new Date(now); months = Math.max(1, (t.getFullYear() - a.getFullYear()) * 12 + (t.getMonth() - a.getMonth())); }
+        g.used = g.nsc + g.rep; g.perMonth = Math.round((g.used / months) * 10) / 10; g.rate = g.issued ? g.used / g.issued : 0;
+        return g;
+      });
+      window.__summary = list;
+      var tot = list.reduce(function (t, g) { t.issued += g.issued; t.nsc += g.nsc; t.rep += g.rep; t.hand += g.hand; t.perMonth += g.perMonth; t.used += g.used; return t; }, { issued: 0, nsc: 0, rep: 0, hand: 0, perMonth: 0, used: 0 });
+      tot.perMonth = Math.round(tot.perMonth * 10) / 10; tot.rate = tot.issued ? tot.used / tot.issued : 0;
+      UI.table('officeTable', {
+        rows: list, sort: { key: 'hand', dir: 'desc' }, count: false, empty: 'No meters for these filters.',
+        columns: [
+          { key: 'name', label: level === 'ccc' ? 'CCC' : level === 'division' ? 'Division' : 'Region', fmt: function (v, g) { return '<span class="ui-strong">' + UI.esc(v) + '</span>' + (g.parent ? '<span class="sub">' + UI.esc(g.parent) + '</span>' : ''); } },
+          { key: 'issued', label: 'Issued', num: true, fmt: UI.n, hideSm: true },
+          { key: 'nsc', label: 'New conn.', num: true, fmt: UI.n, hideSm: true },
+          { key: 'rep', label: 'Replacement', num: true, fmt: UI.n, hideSm: true },
+          { key: 'perMonth', label: 'Used / month', num: true, fmt: function (v) { return UI.n(v >= 100 ? Math.round(v) : v); }, hideSm: true },
+          { key: 'hand', label: 'In hand', num: true, fmt: UI.n },
+          { key: 'rate', label: 'Used', fmt: function (_, g) { return UI.bar(g.used, g.issued, UI.pct(g.used, g.issued)); }, width: '20%' }
+        ],
+        foot: list.length > 1 ? tot : null,
+        onRow: function (g) { drill(g.name); },
+        selected: function (g) { return level === 'ccc' && $('cccFilter').value === g.name; }
+      });
+
+      // In-hand meters
+      var hand = b.filter(function (r) { return r.status === 'meter-in-hand'; });
+      UI.hist('ageHist', AGE.map(function (a) { return { key: a.key, label: a.label, value: hand.filter(function (r) { return r.ageKey === a.key && (!f.make || r.make === f.make); }).length }; }).filter(function (x) { return x.key !== 'an' || x.value; }),
+        { active: f.age, onClick: function (row) { f.age = f.age === row.key ? '' : row.key; render(); } });
+      var mk = {};
+      hand.forEach(function (r) { if (!f.age || r.ageKey === f.age) mk[r.make] = (mk[r.make] || 0) + 1; });
+      UI.hist('makeHist', Object.keys(mk).sort(function (x, y) { return mk[y] - mk[x]; }).slice(0, 6).map(function (k) { return { key: k, label: k, value: mk[k] }; }),
+        { active: f.make, onClick: function (row) { f.make = f.make === row.key ? '' : row.key; render(); } });
+
+      var q = f.q.toUpperCase();
+      var view = hand.filter(function (r) { return (!f.age || r.ageKey === f.age) && (!f.make || r.make === f.make) && (!q || r.meter.toUpperCase().indexOf(q) !== -1); });
+      $('appCount').textContent = UI.n(view.length);
+      UI.table('appTable', { rows: view, sort: { key: 'days', dir: 'desc' }, limit: 50, resetPage: true, empty: 'No meters in hand for these filters.', columns: COLS, onRow: detail });
+      $('clearBtn').hidden = !(f.q || f.phase || f.type || f.age || f.make || ($('regionFilter').value && !$('regionFilter').disabled) || ($('divisionFilter').value && !$('divisionFilter').disabled) || ($('cccFilter').value && !$('cccFilter').disabled));
+      window.__view = view;
+    }
+
+    var COLS = [
+      { key: 'meter', label: 'Meter', fmt: function (v, r) { return '<span class="mono ui-strong">' + UI.esc(v) + '</span>' + (r.smart ? '<span class="sub">Smart meter</span>' : ''); } },
+      { key: 'entry', label: 'Received', num: true, hideSm: true, sortVal: function (r) { return r.entry ? r.entry.getTime() : 0; }, fmt: function (v) { return v ? UI.fmtDate(v) : '—'; }, csv: function (r) { return r.src.entryDate; } },
+      { key: 'days', label: 'In hand for', num: true, sortVal: function (r) { return r.days == null ? -1 : r.days; }, fmt: function (v) { return v == null ? '—' : UI.age(v); }, csv: function (r) { return r.days == null ? '' : r.days + ' days'; } },
+      { key: '_supp', label: 'CCC', fmt: function (v, r) { return UI.esc(v || r._divn || '—') + '<span class="sub">' + UI.esc(v ? r._divn : (r._divn ? 'Division store' : '')) + '</span>'; }, csv: function (r) { return r._supp || r._divn; } },
+      { key: 'make', label: 'Make', hideSm: true, cls: 'wrap' },
+      { key: 'phase', label: 'Phase', fmt: function (v) { return '<span class="ui-badge">' + UI.esc(v === '1PH' ? '1-phase' : v === '3PH' ? '3-phase' : v) + '</span>'; } }
+    ];
+
+    function detail(r) {
+      var d = r.src, s = STATUS[d.status] || STATUS['meter-in-hand'], c = d.status === 'utilized-nsc' ? masterLookup[d.meter] || {} : d.status === 'utilized-replacement' ? replacementLookup[d.meter] || {} : {};
+      UI.drawer('Meter ' + d.meter, [s.label, r._supp || r._divn].filter(Boolean).join(' · '), [
+        ['Status', s.label], ['Consumer ID', c.conId], ['Installation no.', c.instNo], ['Received on', r.entry ? UI.fmtDate(r.entry) : d.entryDate],
+        ['In hand for', d.status === 'meter-in-hand' && r.days != null ? UI.age(r.days) : ''], ['Region', r._region], ['Division', r._divn], ['CCC', r._supp],
+        ['Cost centre', d.cccCode], ['Make', r.make], ['Phase', d.phase === '1PH' ? '1-phase' : d.phase === '3PH' ? '3-phase' : d.phase], ['Smart meter', r.smart ? 'Yes' : 'No']
+      ]);
+    }
+    function lookup() {
+      var q = $('q').value.trim().toUpperCase();
+      if (!q) return;
+      var hit = rows.filter(function (r) { return r.meter.toUpperCase() === q; })[0];
+      if (hit) detail(hit); else UI.toast('Meter ' + q + ' is not in the ERP list');
+    }
+
+    function tabs() { [].forEach.call(document.querySelectorAll('#levelTabs .ui-tab'), function (t) { t.setAttribute('aria-selected', String(t.getAttribute('data-l') === level)); }); }
+    function setLevel(l) { level = l; tabs(); render(); }
+    function markAll() { ['regionFilter', 'divisionFilter', 'cccFilter', 'typeFilter'].forEach(function (x) { UI.mark($(x)); }); }
+    function set(id, v) { if (!$(id).disabled) $(id).value = v; }
+    function drill(name) {
+      if (name === 'Unmapped') return;
+      if (level === 'region') { set('regionFilter', name); set('divisionFilter', ''); set('cccFilter', ''); level = 'division'; }
+      else if (level === 'division') { set('divisionFilter', name); set('cccFilter', ''); level = 'ccc'; }
+      else set('cccFilter', $('cccFilter').value === name ? '' : name);
+      fillFilters(); markAll(); setLevel(level);
+    }
+
+    ['regionFilter', 'divisionFilter', 'cccFilter'].forEach(function (id) {
+      $(id).addEventListener('change', function () {
+        if (id === 'regionFilter') set('divisionFilter', '');
+        if (id !== 'cccFilter') set('cccFilter', '');
+        fillFilters(); markAll(); render();
+      });
+    });
+    $('typeFilter').addEventListener('change', function () { f.type = this.value; UI.mark(this); render(); });
+    $('phase').addEventListener('click', function (e) {
+      var b = e.target.closest('button'); if (!b) return;
+      f.phase = b.getAttribute('data-p');
+      [].forEach.call(this.querySelectorAll('button'), function (x) { x.setAttribute('aria-pressed', String(x === b)); });
+      render();
+    });
+    $('q').addEventListener('input', UI.debounce(function () { f.q = this.value.trim(); render(); }, 200));
+    $('q').addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); lookup(); } });
+    $('levelTabs').addEventListener('click', function (e) { var t = e.target.closest('.ui-tab'); if (t) setLevel(t.getAttribute('data-l')); });
+    $('clearBtn').addEventListener('click', function () {
+      f.q = ''; f.phase = ''; f.type = ''; f.age = ''; f.make = ''; $('q').value = ''; $('typeFilter').value = '';
+      [].forEach.call(document.querySelectorAll('#phase button'), function (x) { x.setAttribute('aria-pressed', String(x.getAttribute('data-p') === '')); });
+      ['regionFilter', 'divisionFilter', 'cccFilter'].forEach(function (id) { set(id, ''); });
+      fillFilters(); markAll(); render();
+    });
+    $('exportSummary').addEventListener('click', function () {
+      var stamp = new Date().toISOString().slice(0, 10), ph = f.phase === '1PH' ? '1Ph' : f.phase === '3PH' ? '3Ph' : 'Total';
+      UI.exportCsv('meter_utilization_' + level + '_' + ph + '_' + stamp + '.csv', [
+        { key: 'name', label: 'Name' }, { key: 'issued', label: 'Issued' }, { key: 'nsc', label: 'Utilized_NSC' }, { key: 'rep', label: 'Utilized_Rep' },
+        { key: 'perMonth', label: 'Avg_Monthly_Util' }, { key: 'hand', label: 'In_Hand' }, { key: 'rate', label: 'Utilization_Percent', csv: function (g) { return (g.rate * 100).toFixed(1) + '%'; } }
+      ], window.__summary || []);
+    });
+    $('exportBtn').addEventListener('click', function () {
+      UI.exportCsv('meters_in_hand.csv', [{ key: 'meter', label: 'Meter_Number' }].concat(COLS.slice(1).map(function (c) { return { key: c.key, label: c.label, csv: c.csv }; })), window.__view || []);
+    });
+
+    /* ---------- load: parsed bundle first, then raw sheets ---------- */
+    function fail() { $('meta').textContent = 'Could not load meter data'; $('officeTable').innerHTML = $('appTable').innerHTML = '<div class="ui-empty">Could not load meter data.</div>'; }
+    function firstRender() {
+      prepare();
+      if (scope && (scope.level === 'division' || scope.level === 'ccc')) level = 'ccc'; else if (scope && scope.level === 'region') level = 'division';
+      tabs(); render();
+    }
+    function revalidate() {
+      var hub = window.mzoDataHub;
+      if (!hub) return;
+      Promise.all(METER_RAW_KEYS.map(function (k) { return hub.waitForDataset(k); }))
+        .then(function (res) { if (res.some(function (r) { return r === 'updated'; })) location.reload(); }).catch(function () {});
+    }
+    function fromRaw(texts) {
+      processData(UI.csv(texts[0] || ''), UI.csv(texts[1] || ''), UI.csv(texts[2] || ''), UI.csv(texts[3] || ''));
+      if (!allERP.length) return fail();
+      firstRender();
+      saveParsed();
+    }
+    buildHierarchy();
+    (function init() {
+      var hub = window.mzoDataHub;
+      if (!hub) {
+        Promise.all(GIDS.map(function (g) { return fetch(BASE_URL + '&gid=' + g).then(function (r) { return r.text(); }); })).then(fromRaw).catch(fail);
+        return;
+      }
+      var parsedVer = '';
+      try { parsedVer = localStorage.getItem('mzo_hub_ver_' + METER_PARSED_KEY) || ''; } catch (e) {}
+      var bundle = bundleVersion();
+      Promise.resolve(bundle && parsedVer === bundle ? hub._peek(METER_PARSED_KEY) : null).catch(function () { return null; })
+        .then(function (parsed) {
+          if (parsed && Array.isArray(parsed.allERP) && parsed.allERP.length) { applyParsed(parsed); firstRender(); revalidate(); return; }
+          return Promise.all(METER_RAW_KEYS.map(function (k) { return hub._peek(k); })).then(function (peeked) {
+            if (peeked[0]) return peeked;
+            $('meta').textContent = 'Downloading meter lists…';
+            return Promise.all(METER_RAW_KEYS.map(function (k) { return hub.waitForDataset(k); }))
+              .then(function () { return Promise.all(METER_RAW_KEYS.map(function (k) { return hub._peek(k); })); });
+          }).then(function (texts) { fromRaw(texts); revalidate(); });
         })
-        .map((o) => o.name)
-        .filter((name) => name && !isDivisionListLabel(name))
-        .sort((a, b) => a.localeCompare(b));
-      [...new Set(cccs)].forEach((name) => {
-        const opt = document.createElement('option');
-        opt.value = name;
-        opt.textContent = name;
-        cccFilter.appendChild(opt);
-      });
-    }
-
-    regFilter.onchange = (e) => {
-      if (window.MzoScope && window.MzoScope.isFilterLocked('regionFilter')) return;
-      refillDivisions(e.target.value);
-      divFilter.value = 'all';
-      refillCccs(e.target.value, 'all');
-      cccFilter.value = 'all';
-      updateUI();
-    };
-
-    divFilter.onchange = () => {
-      if (window.MzoScope && window.MzoScope.isFilterLocked('divisionFilter')) return;
-      refillCccs(regFilter.value, divFilter.value);
-      cccFilter.value = 'all';
-      updateUI();
-    };
-
-    cccFilter.onchange = () => {
-      if (window.MzoScope && window.MzoScope.isFilterLocked('cccFilter')) return;
-      updateUI();
-    };
-
-    window.__meterUtilRefillDivisions = refillDivisions;
-    window.__meterUtilRefillCccs = refillCccs;
-  }
-
-  function pickScopeOption(selectEl, kind) {
-    if (!window.MzoScope || !selectEl) return '';
-    const scope = window.MzoScope.getScope();
-    if (!scope || scope.unscoped) return '';
-    const opts = Array.from(selectEl.options);
-    for (let i = 0; i < opts.length; i++) {
-      const opt = opts[i];
-      const val = String(opt.value || '').trim();
-      if (!val || val.toLowerCase() === 'all') continue;
-      if (kind === 'region') {
-        const name = window.MzoScope.regionNameOf(val) || window.MzoScope.regionNameOf(opt.textContent);
-        if (name && scope.regions && scope.regions.has(name)) return val;
-      } else if (kind === 'division') {
-        const name = window.MzoScope.divisionNameOf(val) || window.MzoScope.divisionNameOf(opt.textContent);
-        if (name && scope.divisions && scope.divisions.has(name)) return val;
-      } else if (kind === 'ccc') {
-        const name = window.MzoScope.cccNameOf(val) || window.MzoScope.cccNameOf(opt.textContent);
-        if (name && scope.cccs && scope.cccs.has(name)) return val;
-      }
-    }
-    return '';
-  }
-
-  function applyLoginScopeToFilters() {
-    if (window.MzoScope) allERP = window.MzoScope.filterRows(allERP);
-    if (!window.MzoScope || window.MzoScope.isUnscoped()) return;
-
-    const regFilter = document.getElementById('regionFilter');
-    const divFilter = document.getElementById('divisionFilter');
-    const cccFilter = document.getElementById('cccFilter');
-    const regionVal = pickScopeOption(regFilter, 'region');
-    if (regionVal) {
-      regFilter.value = regionVal;
-      if (typeof window.__meterUtilRefillDivisions === 'function') window.__meterUtilRefillDivisions(regionVal);
-    }
-    const divisionVal = pickScopeOption(divFilter, 'division');
-    if (divisionVal) {
-      divFilter.value = divisionVal;
-      if (typeof window.__meterUtilRefillCccs === 'function') {
-        window.__meterUtilRefillCccs(regFilter.value, divisionVal);
-      }
-    }
-    const cccVal = pickScopeOption(cccFilter, 'ccc');
-    if (cccVal) cccFilter.value = cccVal;
-    window.MzoScope.lockFilters();
-  }
-
-  function fetchCSV(url) {
-    return new Promise((resolve, reject) => {
-      Papa.parse(url, {
-        download: true,
-        header: true,
-        skipEmptyLines: true,
-        complete: (res) => resolve(res.data),
-        error: (err) => reject(err)
-      });
-    });
-  }
-
-  function processData({ erpData, masterData, crmData, isuData }) {
-    masterLookup = {};
-    masterData.forEach(d => {
-      const m = String(d.METER_NO || d.METER_NUMBER || "").trim();
-      if (m) masterLookup[m] = { 
-        conId: d.CON_ID || d.CONS_ID || "", 
-        instNo: d.INST_NO || d.INSTALLATION || "" 
-      };
-    });
-
-    replacementLookup = {};
-    crmData.forEach(d => {
-      const m = String(d.METER_NUMBER || d.METER_NO || "").trim();
-      if (m) replacementLookup[m] = { conId: d.CON_ID || d.CONS_ID || "" };
-    });
-    isuData.forEach(d => {
-      const oldM = String(d.METER_NO || "").trim();
-      const newM = String(d.REPLACED_BY || "").trim();
-      const conId = d.CON_ID || d.CONS_ID || "";
-      if (oldM) replacementLookup[oldM] = { conId };
-      if (newM) replacementLookup[newM] = { conId };
-    });
-
-    masterSet = new Set(Object.keys(masterLookup));
-    replacementSet = new Set(Object.keys(replacementLookup));
-
-    allERP = erpData.map(d => {
-      const meter = String(d['Serial Number'] || "").trim();
-      const rawCC = String(d['Cost Center'] || d['CCC CODE'] || "").trim();
-      const cccCode = parseOfficeCode(rawCC);
-      
-      const offInfo = officeDetails[cccCode] || { name: cccCode || 'Unknown', region: 'Unknown', division: 'Unknown' };
-
-      let status = 'meter-in-hand';
-      if (replacementSet.has(meter)) {
-        status = 'utilized-replacement';
-      } else if (masterSet.has(meter)) {
-        status = 'utilized-nsc';
-      }
-
-      // Normalize Phase
-      let phase = String(d['Phase'] || "").trim();
-      if (phase === "1") phase = "1PH";
-      if (phase === "3") phase = "3PH";
-
-      // Smart Meter Identification
-      const category = String(d['Meter Category'] || "").trim();
-      const isSmart = category.toUpperCase().includes("SMART METER");
-
-      return {
-        meter,
-        cccCode,
-        cccName: offInfo.name,
-        officeType: offInfo.type || 'unknown',
-        region: offInfo.region,
-        division: canonicalDivisionName(offInfo.division) || offInfo.division,
-        status,
-        make: d['Meter Make'] || 'Unknown',
-        phase: phase || 'Unknown',
-        entryDate: d['Entry Date'] || 'Unknown',
-        isSmart: isSmart
-      };
-    });
-  }
-
-  function updateUI() {
-    const regionVal = document.getElementById('regionFilter').value;
-    const divisionVal = document.getElementById('divisionFilter').value;
-    const cccVal = document.getElementById('cccFilter')?.value || 'all';
-
-    const filtered = allERP.filter(d => {
-      if (regionVal !== 'all' && d.region !== regionVal) return false;
-      if (divisionVal !== 'all' && !sameDivision(d.division, divisionVal)) return false;
-      if (cccVal !== 'all' && d.cccName !== cccVal) return false;
-      if (smartOnly && !d.isSmart) return false;
-      if (excludeSmart && d.isSmart) return false;
-      if (currentPhaseFilter !== 'all') {
-         const p = currentPhaseFilter === '1' ? '1PH' : '3PH';
-         if (d.phase !== p) return false;
-      }
-      return true;
-    });
-
-    const stats = {
-      total: filtered.length,
-      nsc: filtered.filter(d => d.status === 'utilized-nsc').length,
-      rep: filtered.filter(d => d.status === 'utilized-replacement').length,
-      hand: filtered.filter(d => d.status === 'meter-in-hand').length
-    };
-
-    document.getElementById('totalIssued').textContent = stats.total.toLocaleString();
-    document.getElementById('utilizedNSC').textContent = stats.nsc.toLocaleString();
-    document.getElementById('utilizedReplacement').textContent = stats.rep.toLocaleString();
-    document.getElementById('totalUtilized').textContent = (stats.nsc + stats.rep).toLocaleString();
-    document.getElementById('meterInHand').textContent = stats.hand.toLocaleString();
-    
-    const percent = stats.total > 0 ? Math.round(((stats.nsc + stats.rep) / stats.total) * 100) : 0;
-    document.getElementById('utilPercent').textContent = percent + '%';
-
-    const handPercent = stats.total > 0 ? Math.round((stats.hand / stats.total) * 100) : 0;
-    const nscPercent = stats.total > 0 ? Math.round((stats.nsc / stats.total) * 100) : 0;
-    const repPercent = stats.total > 0 ? Math.round((stats.rep / stats.total) * 100) : 0;
-
-    document.getElementById('handPercent').textContent = handPercent + '%';
-    document.getElementById('nscPercent').textContent = nscPercent + '%';
-    document.getElementById('repPercent').textContent = repPercent + '%';
-
-    renderTable(filtered);
-  }
-
-  function handleSort(col) {
-    if (sortColumn === col) {
-      sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
-    } else {
-      sortColumn = col;
-      sortDirection = 'desc';
-    }
-    updateUI();
-  }
-
-  function renderTable(data) {
-    const tbody = document.getElementById('utilizationBody');
-    const head = document.getElementById('tableHead');
-    tbody.innerHTML = '';
-
-    const groupsMap = {};
-    data.forEach(d => {
-      const key = groupKeyFor(d, currentTableLevel);
-      if (!key) return;
-      if (!groupsMap[key]) groupsMap[key] = { name: key, issued: 0, nsc: 0, rep: 0, hand: 0, minDate: null };
-      groupsMap[key].issued++;
-      if (d.status === 'utilized-nsc') groupsMap[key].nsc++;
-      else if (d.status === 'utilized-replacement') groupsMap[key].rep++;
-      else groupsMap[key].hand++;
-
-      const dateObj = parseDate(d.entryDate);
-      if (dateObj && (!groupsMap[key].minDate || dateObj < groupsMap[key].minDate)) {
-        groupsMap[key].minDate = dateObj;
-      }
-    });
-
-    // Prepare table data with calculated util, percent and avgUtil
-    const today = new Date();
-    const tableData = Object.values(groupsMap).map(g => {
-        const util = g.nsc + g.rep;
-        let months = 1;
-        if (g.minDate) {
-            months = (today.getFullYear() - g.minDate.getFullYear()) * 12 + (today.getMonth() - g.minDate.getMonth());
-            if (months <= 0) months = 1;
-        }
-        return {
-            ...g,
-            util,
-            avgUtil: parseFloat((util / months).toFixed(1)),
-            percent: g.issued > 0 ? Math.round((util / g.issued) * 100) : 0
-        };
-    });
-
-    // Sort data
-    tableData.sort((a, b) => {
-        let valA = a[sortColumn];
-        let valB = b[sortColumn];
-        if (typeof valA === 'string') {
-            return sortDirection === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
-        }
-        return sortDirection === 'asc' ? valA - valB : valB - valA;
-    });
-
-    const getSortIcon = (col) => {
-        if (sortColumn !== col) return '<i class="fas fa-sort sort-icon"></i>';
-        return sortDirection === 'asc' ? '<i class="fas fa-sort-up sort-icon"></i>' : '<i class="fas fa-sort-down sort-icon"></i>';
-    };
-
-    const getSortClass = (col) => sortColumn === col ? 'active-sort' : '';
-    const label = currentTableLevel === 'ccc' ? 'CCC Unit' : currentTableLevel.charAt(0).toUpperCase() + currentTableLevel.slice(1);
-
-    head.innerHTML = `
-      <th style="width: 50px;">#</th>
-      <th class="sortable ${getSortClass('name')}" onclick="handleSort('name')">${label} ${getSortIcon('name')}</th>
-      <th class="sortable ${getSortClass('issued')}" onclick="handleSort('issued')" style="text-align: right">Issued ${getSortIcon('issued')}</th>
-      <th class="sortable ${getSortClass('nsc')}" onclick="handleSort('nsc')" style="text-align: right">NSC Util ${getSortIcon('nsc')}</th>
-      <th class="sortable ${getSortClass('rep')}" onclick="handleSort('rep')" style="text-align: right">Rep Util ${getSortIcon('rep')}</th>
-      <th class="sortable ${getSortClass('avgUtil')}" onclick="handleSort('avgUtil')" style="text-align: right">AVG. UTIL ${getSortIcon('avgUtil')}</th>
-      <th class="sortable ${getSortClass('hand')}" onclick="handleSort('hand')" style="text-align: right">In Hand ${getSortIcon('hand')}</th>
-      <th class="sortable ${getSortClass('percent')}" onclick="handleSort('percent')" style="text-align: right">Util % ${getSortIcon('percent')}</th>
-    `;
-
-    tableData.forEach((s, idx) => {
-      const tr = document.createElement('tr');
-      tr.className = 'clickable-row';
-      tr.onclick = () => openDetails(s.name, currentTableLevel);
-      tr.innerHTML = `
-        <td style="color: var(--text-muted); font-size: 11px; font-weight: 500;">${idx + 1}</td>
-        <td class="office-name">${s.name}</td>
-        <td style="text-align: right">${s.issued.toLocaleString()}</td>
-        <td style="text-align: right">${s.nsc.toLocaleString()}</td>
-        <td style="text-align: right">${s.rep.toLocaleString()}</td>
-        <td style="text-align: right; font-weight: 600; color: var(--primary);">${s.avgUtil.toLocaleString()} <span style="font-size: 10px; color: var(--text-muted);">/mo</span></td>
-        <td style="text-align: right; color: var(--danger); font-weight: 600;">${s.hand.toLocaleString()}</td>
-        <td style="text-align: right">
-          <div class="progress-bar-container">
-            <div class="progress-bar" style="width: ${s.percent}%; background: ${s.percent > 75 ? 'var(--success)' : s.percent > 40 ? 'var(--primary)' : 'var(--warning)'}"></div>
-          </div>
-          <span style="font-weight: 700;">${s.percent}%</span>
-        </td>
-      `;
-      tbody.appendChild(tr);
-    });
-
-    // Add Total Row
-    if (tableData.length > 0) {
-      const totalIssued = tableData.reduce((sum, s) => sum + s.issued, 0);
-      const totalNSC = tableData.reduce((sum, s) => sum + s.nsc, 0);
-      const totalRep = tableData.reduce((sum, s) => sum + s.rep, 0);
-      const totalHand = tableData.reduce((sum, s) => sum + s.hand, 0);
-      const totalAvgUtil = tableData.reduce((sum, s) => sum + s.avgUtil, 0);
-      const totalUtil = totalNSC + totalRep;
-      const totalPercent = totalIssued > 0 ? Math.round((totalUtil / totalIssued) * 100) : 0;
-
-      const tr = document.createElement('tr');
-      tr.className = 'total-row';
-      tr.style.cursor = 'default';
-      tr.innerHTML = `
-        <td></td>
-        <td><strong>Total</strong></td>
-        <td style="text-align: right"><strong>${totalIssued.toLocaleString()}</strong></td>
-        <td style="text-align: right"><strong>${totalNSC.toLocaleString()}</strong></td>
-        <td style="text-align: right"><strong>${totalRep.toLocaleString()}</strong></td>
-        <td style="text-align: right; color: var(--primary);"><strong>${totalAvgUtil.toFixed(1)} <span style="font-size: 10px; color: var(--text-muted);">/mo</span></strong></td>
-        <td style="text-align: right; color: var(--danger);"><strong>${totalHand.toLocaleString()}</strong></td>
-        <td style="text-align: right;">
-          <div class="progress-bar-container total-progress-bar" style="background: rgba(0,0,0,0.05);">
-            <div class="progress-bar" style="width: ${totalPercent}%; background: ${totalPercent > 75 ? 'var(--success)' : totalPercent > 40 ? 'var(--primary)' : 'var(--warning)'}"></div>
-          </div>
-          <strong>${totalPercent}%</strong>
-        </td>
-      `;
-      tbody.appendChild(tr);
-    }
-  }
-
-  function changeTableLevel(lvl) {
-    currentTableLevel = lvl;
-    
-    // Update active class on tabs
-    document.querySelectorAll('.tab-link').forEach(link => {
-        link.classList.remove('active');
-    });
-    
-    const btnId = lvl === 'ccc' ? 'btnLvlCCC' : ('btnLvl' + lvl.charAt(0).toUpperCase() + lvl.slice(1));
-    const btn = document.getElementById(btnId);
-    if (btn) btn.classList.add('active');
-
-    document.getElementById('tableLevelTitle').textContent = (lvl === 'ccc' ? 'CCC Unit' : lvl.charAt(0).toUpperCase() + lvl.slice(1)) + " Utilization Overview";
-    updateUI();
-  }
-
-  function changePhase(phase) {
-    currentPhaseFilter = phase;
-    
-    // Update labels in UI
-    const labels = { 'all': 'Total Overview', '1': '1-Phase Meters', '3': '3-Phase Meters' };
-    
-    // Update pills active state
-    document.querySelectorAll('.phase-pill').forEach(pill => {
-      pill.classList.remove('active');
-    });
-    
-    const targetId = phase === 'all' ? 'btnPhaseAll' : (phase === '1' ? 'btnPhase1' : 'btnPhase3');
-    document.getElementById(targetId).classList.add('active');
-    
-    updateUI();
-  }
-
-  function toggleSmartOnly(el) {
-    if (el.checked) {
-      document.getElementById('excludeSmartCheckbox').checked = false;
-      excludeSmart = false;
-    }
-    smartOnly = el.checked;
-    updateUI();
-  }
-
-  function toggleExcludeSmart(el) {
-    if (el.checked) {
-      document.getElementById('smartOnlyCheckbox').checked = false;
-      smartOnly = false;
-    }
-    excludeSmart = el.checked;
-    updateUI();
-  }
-
-  function showLoading(show) {
-    document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none';
-  }
-
-  function parseDate(str) {
-    if (!str || str === 'Unknown') return null;
-    const parts = str.split(/[./-]/);
-    if (parts.length === 3) {
-        return new Date(parts[2], parts[1] - 1, parts[0]);
-    }
-    return new Date(str);
-  }
-
-  function populateDynamicDates(erpData, crmData, isuData) {
-    let maxErp = null;
-    let maxRep = null;
-    let maxNsc = null;
-
-    // Helper to parse DD.MM.YYYY
-    const parseDDMMYYYY = (str) => {
-      if (!str || str === 'Unknown') return null;
-      const parts = str.split(/[./-]/);
-      if (parts.length === 3) return new Date(parts[2], parts[1] - 1, parts[0]);
-      return null;
-    };
-
-    // Helper to parse YYYY-MM-DD [HH:mm:ss]
-    const parseYYYYMMDD = (str) => {
-      if (!str || str.startsWith('(null)')) return null;
-      const dateStr = str.split(' ')[0];
-      const parts = dateStr.split(/[./-]/);
-      if (parts.length === 3) return new Date(parts[0], parts[1] - 1, parts[2]);
-      return null;
-    };
-
-    // Helper to parse YYYYMMDD (compact format, length 8)
-    const parseCompactYYYYMMDD = (str) => {
-      if (!str || str === '0' || str.length !== 8) return null;
-      const y = parseInt(str.substring(0, 4));
-      const m = parseInt(str.substring(4, 6)) - 1;
-      const d = parseInt(str.substring(6, 8));
-      if (isNaN(y) || isNaN(m) || isNaN(d)) return null;
-      return new Date(y, m, d);
-    };
-
-    const updateMax = (date, currentMax) => {
-      if (date && !isNaN(date.getTime())) {
-        if (!currentMax || date > currentMax) {
-          return date;
-        }
-      }
-      return currentMax;
-    };
-
-    // 1. Scan ERP Data
-    if (Array.isArray(erpData)) {
-      erpData.forEach(row => {
-        const dVal = row['Entry Date'] || row['entryDate'];
-        if (dVal) maxErp = updateMax(parseDDMMYYYY(dVal), maxErp);
-      });
-    }
-
-    // 2. Scan CRM & ISU Data for Last Replacement Date
-    if (Array.isArray(isuData)) {
-      isuData.forEach(row => {
-        const d1 = row['REPLACEMENT_DT'];
-        const d2 = row['TRAN_DT'];
-        if (d1) maxRep = updateMax(parseCompactYYYYMMDD(d1), maxRep);
-        if (d2) maxRep = updateMax(parseCompactYYYYMMDD(d2), maxRep);
-      });
-    }
-    if (Array.isArray(crmData)) {
-      crmData.forEach(row => {
-        const type = row['PROB_TYPE'] || '';
-        if (type === 'Meter Burnt Problem') {
-          const dVal = row['METER_INSTALL_DATE'] || row['SERV_CONN_DATE'];
-          if (dVal) maxRep = updateMax(parseYYYYMMDD(dVal), maxRep);
-        }
-      });
-    }
-
-    // 3. Scan CRM Data for Last NSC Date
-    if (Array.isArray(crmData)) {
-      crmData.forEach(row => {
-        const type = row['PROB_TYPE'] || '';
-        if (type && type !== 'Meter Burnt Problem' && type !== 'Load Enhancement') {
-          const dVal = row['METER_INSTALL_DATE'] || row['SERV_CONN_DATE'];
-          if (dVal) maxNsc = updateMax(parseYYYYMMDD(dVal), maxNsc);
-        }
-      });
-    }
-
-    document.getElementById('erpDateText').textContent = maxErp ? formatDateString(maxErp) : 'N/A';
-    document.getElementById('repDateText').textContent = maxRep ? formatDateString(maxRep) : 'N/A';
-    document.getElementById('nscDateText').textContent = maxNsc ? formatDateString(maxNsc) : 'N/A';
-  }
-
-  function formatDateString(dateObj) {
-    if (!dateObj || isNaN(dateObj.getTime())) return 'Unknown';
-    const d = String(dateObj.getDate()).padStart(2, '0');
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    const m = months[dateObj.getMonth()];
-    const y = dateObj.getFullYear();
-    return `${d}-${m}-${y}`;
-  }
-
-  function formatAge(days) {
-    if (days < 0) return 'Unknown';
-    if (days === 0) return 'Today';
-    
-    let m = Math.floor(days / 30);
-    let rem = days % 30;
-    let w = Math.floor(rem / 7);
-    let d = rem % 7;
-
-    let parts = [];
-    if (m > 0) parts.push(m + 'm');
-    if (w > 0) parts.push(w + 'w');
-    if (d > 0 || parts.length === 0) parts.push(d + 'd');
-    
-    return parts.join(' ');
-  }
-
-  // Detail View Functions
-  let currentDetailList = [];
-
-  function openDetails(name, level) {
-    const modal = document.getElementById('detailModal');
-    const title = document.getElementById('modalTitle');
-    const input = document.getElementById('detailSearchInput');
-    
-    input.value = '';
-    
-    // Update Header Labels & Count
-    const phaseLabel = currentPhaseFilter === 'all' ? '' : (currentPhaseFilter === '1' ? '1-Phase ' : '3-Phase ');
-    const smartLabel = smartOnly ? 'Smart ' : (excludeSmart ? 'Non-Smart ' : '');
-    
-    document.getElementById('modalPhaseTitle').textContent = `${phaseLabel}${smartLabel}Unutilized Meters`;
-    document.getElementById('modalOfficeName').textContent = `: ${name}`;
-    
-    currentDetailList = allERP.filter(d => {
-      if (d.status !== 'meter-in-hand') return false;
-      
-      // Smart Only Filter
-      if (smartOnly && !d.isSmart) return false;
-      if (excludeSmart && d.isSmart) return false;
-
-      // Phase Filter
-      if (currentPhaseFilter !== 'all') {
-         const p = currentPhaseFilter === '1' ? '1PH' : '3PH';
-         if (d.phase !== p) return false;
-      }
-
-      const val = groupKeyFor(d, level);
-      if (!val) return false;
-      return val === name;
-    });
-
-    const today = new Date();
-    currentDetailList.forEach(m => {
-        const d = parseDate(m.entryDate);
-        m._ageDays = d ? Math.floor((today - d) / (1000 * 60 * 60 * 24)) : -1;
-        m._ageStr = formatAge(m._ageDays);
-    });
-
-    // Update Count Badge
-    document.getElementById('modalCountBadge').textContent = currentDetailList.length.toLocaleString();
-
-    // Sort by age (highest first) by default
-    currentDetailList.sort((a, b) => b._ageDays - a._ageDays);
-
-    renderDetails(currentDetailList);
-    modal.style.display = 'flex';
-    document.body.style.overflow = 'hidden'; 
-  }
-
-  function renderDetails(data) {
-    const tbody = document.getElementById('detailsBody');
-    const head = document.querySelector('.details-table thead tr');
-    tbody.innerHTML = '';
-
-    // Update Header to include the new column
-    head.innerHTML = `
-        <th>#</th>
-        <th>Meter Number</th>
-        <th>Received On</th>
-        <th>Unutilized since</th>
-        <th>CCC Unit</th>
-        <th>Meter Make</th>
-        <th>Phase</th>
-    `;
-
-    data.forEach((m, idx) => {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td style="color: var(--text-muted); font-size: 11px;">${idx + 1}</td>
-        <td style="font-weight: 700; color: var(--primary-dark); font-family: monospace; letter-spacing: 0.5px;">${m.meter}</td>
-        <td>${m.receivedOn || m.entryDate}</td>
-        <td style="font-weight: 600; color: ${m._ageDays > 90 ? 'var(--danger)' : m._ageDays > 30 ? 'var(--warning)' : 'var(--text-main)'}">${m._ageStr}</td>
-        <td style="font-weight: 500;">${m.cccName}</td>
-        <td>${m.make}</td>
-        <td><span class="badge badge-hand">${m.phase}</span></td>
-      `;
-      tbody.appendChild(tr);
-    });
-
-    if (data.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 40px; color: var(--text-muted);">No unutilized meters found for this selection.</td></tr>';
-    }
-  }
-
-  function filterDetails() {
-    const query = document.getElementById('detailSearchInput').value.toLowerCase();
-    const filtered = currentDetailList.filter(m => m.meter.toLowerCase().includes(query));
-    renderDetails(filtered);
-  }
-
-  function closeModal() {
-    document.getElementById('detailModal').style.display = 'none';
-    document.body.style.overflow = 'auto';
-  }
-
-  function searchMeterStatus() {
-    const query = document.getElementById('universalSearch').value.trim().toUpperCase();
-    if (!query) return;
-
-    const meter = allERP.find(m => m.meter.toUpperCase() === query);
-    const content = document.getElementById('statusResultContent');
-    const modal = document.getElementById('statusModal');
-
-    if (meter) {
-      const statusLabel = meter.status === 'utilized-nsc' ? 'Utilized (NSC)' : 
-                          meter.status === 'utilized-replacement' ? 'Utilized (Replacement)' : 'Meter-in-Hand';
-      const statusClass = meter.status === 'utilized-nsc' ? 'badge-nsc' : 
-                          meter.status === 'utilized-replacement' ? 'badge-rep' : 'badge-hand';
-
-      let consumerInfo = '';
-      if (meter.status === 'utilized-nsc') {
-        const details = masterLookup[meter.meter] || {};
-        consumerInfo = `
-          <div class="detail-item"><label>Consumer ID</label><span>${details.conId || 'N/A'}</span></div>
-          <div class="detail-item"><label>Installation No.</label><span>${details.instNo || 'N/A'}</span></div>
-        `;
-      } else if (meter.status === 'utilized-replacement') {
-        const details = replacementLookup[meter.meter] || {};
-        consumerInfo = `
-          <div class="detail-item" style="grid-column: span 2;"><label>Consumer ID</label><span>${details.conId || 'N/A'}</span></div>
-        `;
-      }
-
-      content.innerHTML = `
-        <div class="status-badge-large ${statusClass}">${statusLabel}</div>
-        <div class="detail-grid">
-          <div class="detail-item"><label>Meter Number</label><span>${meter.meter}</span></div>
-          <div class="detail-item"><label>Received On</label><span>${meter.entryDate}</span></div>
-          ${consumerInfo}
-          <div class="detail-item"><label>Region</label><span>${meter.region}</span></div>
-          <div class="detail-item"><label>Division</label><span>${meter.division}</span></div>
-          <div class="detail-item" style="grid-column: span 2;"><label>CCC Unit</label><span>${meter.cccName}</span></div>
-          <div class="detail-item"><label>Make</label><span>${meter.make}</span></div>
-          <div class="detail-item"><label>Phase</label><span>${meter.phase}</span></div>
-        </div>
-        <div style="margin-top: 24px; font-size: 11px; color: var(--text-muted);">
-          <i class="fas fa-info-circle"></i> This meter is tracked in Malda Zone's ERP database.
-        </div>
-      `;
-    } else {
-      content.innerHTML = `
-        <div style="padding: 40px; color: var(--text-muted); text-align: center;">
-          <i class="fas fa-search-minus" style="font-size: 48px; margin-bottom: 16px; opacity: 0.5;"></i>
-          <p style="font-size: 16px; font-weight: 600; color: var(--text-main);">Meter Not Found</p>
-          <p style="font-size: 13px; margin-top: 8px;">The serial number <b>"${query}"</b> is not present in the current ERP base list or utilization records.</p>
-        </div>
-      `;
-    }
-    modal.style.display = 'flex';
-    document.body.style.overflow = 'hidden';
-  }
-
-  function closeStatusModal() {
-    document.getElementById('statusModal').style.display = 'none';
-    document.body.style.overflow = 'auto';
-  }
-
-  // Close modal on escape key
-  window.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') {
-        closeModal();
-        closeStatusModal();
-    }
+        .catch(function (e) { console.error(e); fail(); });
+    })();
   });
-
-  // Export Functions
-  function downloadCSV(csv, filename) {
-    const csvFile = new Blob([csv], { type: "text/csv" });
-    const downloadLink = document.createElement("a");
-    downloadLink.download = filename;
-    downloadLink.href = window.URL.createObjectURL(csvFile);
-    downloadLink.style.display = "none";
-    document.body.appendChild(downloadLink);
-    downloadLink.click();
-  }
-
-  function exportSummary() {
-    // We need the data currently rendered in the summary table
-    // Re-calculating to ensure we get exactly what's shown (including filters)
-    const filtered = allERP.filter(d => {
-        const regionVal = document.getElementById('regionFilter').value;
-        const divisionVal = document.getElementById('divisionFilter').value;
-        if (regionVal !== 'all' && d.region !== regionVal) return false;
-        if (divisionVal !== 'all' && !sameDivision(d.division, divisionVal)) return false;
-        if (smartOnly && !d.isSmart) return false;
-        if (excludeSmart && d.isSmart) return false;
-        if (currentPhaseFilter !== 'all') {
-            const p = currentPhaseFilter === '1' ? '1PH' : '3PH';
-            if (d.phase !== p) return false;
-        }
-        return true;
-    });
-
-    const groupsMap = {};
-    filtered.forEach(d => {
-      const key = groupKeyFor(d, currentTableLevel);
-      if (!key) return;
-      if (!groupsMap[key]) groupsMap[key] = { name: key, issued: 0, nsc: 0, rep: 0, hand: 0, minDate: null };
-      groupsMap[key].issued++;
-      if (d.status === 'utilized-nsc') groupsMap[key].nsc++;
-      else if (d.status === 'utilized-replacement') groupsMap[key].rep++;
-      else groupsMap[key].hand++;
-
-      const dateObj = parseDate(d.entryDate);
-      if (dateObj && (!groupsMap[key].minDate || dateObj < groupsMap[key].minDate)) {
-        groupsMap[key].minDate = dateObj;
-      }
-    });
-
-    const today = new Date();
-    const rows = Object.values(groupsMap).map(g => {
-        const util = g.nsc + g.rep;
-        let months = 1;
-        if (g.minDate) {
-            months = (today.getFullYear() - g.minDate.getFullYear()) * 12 + (today.getMonth() - g.minDate.getMonth());
-            if (months <= 0) months = 1;
-        }
-        return {
-            Name: g.name,
-            Issued: g.issued,
-            Utilized_NSC: g.nsc,
-            Utilized_Rep: g.rep,
-            Avg_Monthly_Util: (util / months).toFixed(1),
-            In_Hand: g.hand,
-            Utilization_Percent: (g.issued > 0 ? (util / g.issued * 100).toFixed(1) : 0) + "%"
-        };
-    });
-
-    const header = Object.keys(rows[0]).join(",");
-    const csv = [header, ...rows.map(row => Object.values(row).join(","))].join("\n");
-    const phaseLabel = currentPhaseFilter === 'all' ? 'Total' : (currentPhaseFilter === '1' ? '1Ph' : '3Ph');
-    downloadCSV(csv, `meter_utilization_${currentTableLevel}_${phaseLabel}_${new Date().toISOString().split('T')[0]}.csv`);
-  }
-
-  function exportDetails() {
-    if (!currentDetailList || currentDetailList.length === 0) return;
-    
-    const rows = currentDetailList.map((m, idx) => ({
-      Sl_No: idx + 1,
-      Meter_Number: m.meter,
-      Received_On: m.entryDate,
-      Unutilized_Since: m._ageStr,
-      CCC_Unit: m.cccName,
-      Make: m.make,
-      Phase: m.phase
-    }));
-
-    const header = Object.keys(rows[0]).join(",");
-    const csv = [header, ...rows.map(row => Object.values(row).join(","))].join("\n");
-    const officeName = document.getElementById('modalTitle').textContent.split(': ')[1] || 'Details';
-    downloadCSV(csv, `unutilized_meters_${officeName.replace(/\s+/g, '_')}.csv`);
-  }
-
-  function exportSearchResult() {
-    const query = document.getElementById('universalSearch').value.trim().toUpperCase();
-    const meter = allERP.find(m => m.meter.toUpperCase() === query);
-    if (!meter) return;
-
-    let details = masterLookup[meter.meter] || replacementLookup[meter.meter] || {};
-    const row = {
-        Meter_Number: meter.meter,
-        Status: meter.status,
-        Consumer_ID: details.conId || 'N/A',
-        Installation_No: details.instNo || 'N/A',
-        Region: meter.region,
-        Division: meter.division,
-        CCC_Unit: meter.cccName,
-        Make: meter.make,
-        Phase: meter.phase,
-        Received_On: meter.entryDate
-    };
-
-    const header = Object.keys(row).join(",");
-    const csv = [header, Object.values(row).join(",")].join("\n");
-    downloadCSV(csv, `meter_info_${meter.meter}.csv`);
-  }
-
-  init();
-
-  (function setupMobileFilters() {
-    const header = document.getElementById('meterHeader');
-    const toggle = document.getElementById('meterFilterToggle');
-    const panel = document.getElementById('meterFilters');
-    if (!header || !toggle || !panel) return;
-
-    function setOpen(open) {
-      header.classList.toggle('filters-open', open);
-      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
-    }
-
-    toggle.addEventListener('click', (e) => {
-      e.stopPropagation();
-      setOpen(!header.classList.contains('filters-open'));
-    });
-    document.addEventListener('click', (e) => {
-      if (!header.classList.contains('filters-open')) return;
-      if (header.contains(e.target)) return;
-      setOpen(false);
-    });
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') setOpen(false);
-    });
-  })();
-</script>
-
+  </script>
 </body>
 </html>

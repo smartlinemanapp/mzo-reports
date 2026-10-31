@@ -1,681 +1,316 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html lang="en" class="ui">
 <head>
-  <script src="mzo_theme.js?v=1"></script>
-  <meta charset="UTF-8">
-  <title>Weekly Disposal Status: NSC (Averages)</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.2/papaparse.min.js"></script>
-  <script src="mzo_data_hub.js"></script>
-  <script src="mzo_scope.js?v=2"></script>
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-  <script src="mzo_presets_hub.js"></script>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Weekly deposit vs disposal · MZO Reports</title>
+  <script src="/mzo_theme.js?v=3"></script>
+  <link rel="stylesheet" href="/mzo_theme.css?v=3" />
+  <script src="/mzo_ui.js?v=1" defer></script>
+  <script src="/mzo_data_hub.js" defer></script>
+  <script src="/mzo_scope.js?v=5" defer></script>
   <style>
-    .card-header {
-      cursor: pointer;
-    }
-
-    .card-body {
-      cursor: pointer;
-    }
-
-    .region-row,
-    .division-row,
-    .ccc-row {
-      cursor: pointer;
-    }
-
-    .nested-row {
-      display: none;
-    }
-
-    .show-row {
-      display: table-row;
-    }
-
-    .toggle-icon {
-      margin-right: 5px;
-      display: inline-block;
-      transition: transform 0.2s;
-    }
-
-    .expanded .toggle-icon {
-      transform: rotate(90deg);
-    }
-
-    .date-row {
-      background-color: #f8f9fa !important;
-    }
-
-    .filter-container {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-      margin-bottom: 1rem;
-      align-items: center;
-    }
-
-    .filter-item {
-      flex: 1;
-      min-width: 120px;
-    }
-
-    .filter-select {
-      padding: 0.25rem 0.5rem;
-      font-size: 0.85rem;
-    }
-
-    .metric-label {
-      font-style: italic;
-      font-size: 0.85rem;
-      color: #6c757d;
-      margin-right: 5px;
-    }
-
-    .metric-value {
-      font-weight: 500;
-    }
-
-    @media (max-width: 768px) {
-      body {
-        font-size: 0.8rem;
-      }
-
-      .table {
-        font-size: 0.75rem;
-      }
-
-      h2 {
-        font-size: 1.5rem;
-      }
-
-      h5 {
-        font-size: 0.9rem;
-      }
-
-      .form-select {
-        font-size: 0.8rem;
-        padding: 0.25rem;
-      }
-
-      .card-header {
-        font-size: 0.9rem;
-        padding: 0.5rem 0.75rem;
-      }
-
-      .container {
-        padding-left: 0.5rem;
-        padding-right: 0.5rem;
-      }
-
-      .filter-container {
-        gap: 0.25rem;
-      }
-
-      .filter-item {
-        min-width: 90px;
-      }
-
-      .metric-label {
-        font-size: 0.75rem;
-      }
-    }
-
-    /* ===== MZO Dark Theme Integration ===== */
-    html[data-mzo-theme="dark"],
-    body.dark-theme {
-      --bg-page: #0b1120;
-      --card-bg: #111c33;
-      --card-surface-2: #16223d;
-      --card-border: rgba(148, 163, 184, 0.18);
-      --input-bg: #090e1a;
-      --text-main: #f1f5f9;
-      --text-muted: #94a3b8;
-      --border-color: rgba(148, 163, 184, 0.18);
-      --row-hover: rgba(255, 255, 255, 0.05);
-    }
-
-    html[data-mzo-theme="dark"] body.bg-light,
-    html[data-mzo-theme="dark"] body {
-      background-color: var(--bg-page) !important;
-      color: var(--text-main) !important;
-    }
-
-    html[data-mzo-theme="dark"] h2 {
-      color: var(--text-main) !important;
-    }
-
-    html[data-mzo-theme="dark"] #report-date {
-      color: var(--text-muted) !important;
-    }
-
-    /* Category Navigation Tabs */
-    html[data-mzo-theme="dark"] .nav-tabs {
-      border-bottom-color: var(--card-border) !important;
-    }
-    html[data-mzo-theme="dark"] .nav-tabs .nav-link {
-      color: var(--text-muted) !important;
-      border-color: transparent !important;
-    }
-    html[data-mzo-theme="dark"] .nav-tabs .nav-link:hover {
-      color: var(--text-main) !important;
-      border-color: rgba(148, 163, 184, 0.2) !important;
-      background-color: rgba(255, 255, 255, 0.03) !important;
-    }
-    html[data-mzo-theme="dark"] .nav-tabs .nav-link.active {
-      color: #60a5fa !important;
-      background-color: var(--card-bg) !important;
-      border-color: var(--card-border) var(--card-border) var(--card-bg) !important;
-    }
-
-    /* Filter Selects */
-    html[data-mzo-theme="dark"] .filter-select {
-      background-color: var(--input-bg) !important;
-      color: var(--text-main) !important;
-      border-color: var(--card-border) !important;
-    }
-    html[data-mzo-theme="dark"] .filter-select:focus {
-      border-color: #3b82f6 !important;
-      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25) !important;
-    }
-
-    /* Cards */
-    html[data-mzo-theme="dark"] .card {
-      background-color: var(--card-bg) !important;
-      border-color: var(--card-border) !important;
-      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4) !important;
-    }
-    html[data-mzo-theme="dark"] .card-header.bg-primary {
-      background-color: #1e3a8a !important;
-      color: #dbeafe !important;
-      border-bottom-color: var(--card-border) !important;
-    }
-    html[data-mzo-theme="dark"] .card-header.bg-success {
-      background-color: #064e3b !important;
-      color: #a7f3d0 !important;
-      border-bottom-color: var(--card-border) !important;
-    }
-    html[data-mzo-theme="dark"] .card-header.bg-info {
-      background-color: #155e75 !important;
-      color: #cffafe !important;
-      border-bottom-color: var(--card-border) !important;
-    }
-    html[data-mzo-theme="dark"] .card-body {
-      background-color: var(--card-bg) !important;
-      color: var(--text-main) !important;
-    }
-    html[data-mzo-theme="dark"] .metric-label {
-      color: var(--text-muted) !important;
-    }
-    html[data-mzo-theme="dark"] .metric-value {
-      color: var(--text-main) !important;
-    }
-
-    /* Tables */
-    html[data-mzo-theme="dark"] .table {
-      color: var(--text-main) !important;
-      border-color: var(--card-border) !important;
-    }
-    html[data-mzo-theme="dark"] .table th {
-      background-color: var(--card-surface-2) !important;
-      color: var(--text-muted) !important;
-      border-color: var(--card-border) !important;
-    }
-    html[data-mzo-theme="dark"] .table td {
-      border-color: rgba(148, 163, 184, 0.12) !important;
-      color: var(--text-main) !important;
-    }
-    html[data-mzo-theme="dark"] .table-primary {
-      background-color: rgba(30, 58, 138, 0.35) !important;
-      color: #bfdbfe !important;
-    }
-    html[data-mzo-theme="dark"] .table-primary td {
-      background-color: rgba(30, 58, 138, 0.35) !important;
-      color: #bfdbfe !important;
-    }
-    html[data-mzo-theme="dark"] .table-secondary {
-      background-color: rgba(30, 41, 59, 0.5) !important;
-      color: #cbd5e1 !important;
-    }
-    html[data-mzo-theme="dark"] .table-secondary td {
-      background-color: rgba(30, 41, 59, 0.5) !important;
-      color: #cbd5e1 !important;
-    }
-    html[data-mzo-theme="dark"] .ccc-row {
-      background-color: var(--card-bg) !important;
-      color: var(--text-main) !important;
-    }
-    html[data-mzo-theme="dark"] .ccc-row td {
-      background-color: var(--card-bg) !important;
-      color: var(--text-main) !important;
-    }
-    html[data-mzo-theme="dark"] .date-row,
-    html[data-mzo-theme="dark"] .date-row td {
-      background-color: #0d1526 !important;
-      color: var(--text-muted) !important;
-    }
-    html[data-mzo-theme="dark"] .region-row:hover td,
-    html[data-mzo-theme="dark"] .division-row:hover td,
-    html[data-mzo-theme="dark"] .ccc-row:hover td,
-    html[data-mzo-theme="dark"] .date-row:hover td {
-      background-color: rgba(255, 255, 255, 0.06) !important;
-    }
+    .wk-chart { position: relative; display: flex; align-items: stretch; gap: 2px; height: 180px; padding: 4px 0 0; }
+    .wk-chart .col { position: relative; flex: 1 1 0; min-width: 2px; cursor: pointer; border-radius: 2px; }
+    .wk-chart .col:hover { background: var(--mzo-row-hover); }
+    .wk-chart .col b { position: absolute; left: 12%; right: 12%; border-radius: 2px; background: var(--mzo-chart); }
+    .wk-chart .col b.up { background: var(--mzo-bad); opacity: .75; }
+    .wk-chart .col b.down { background: var(--mzo-ok); opacity: .75; }
+    .wk-chart .col.on b { opacity: 1; background: var(--mzo-text); }
+    .wk-chart .base { position: absolute; left: 0; right: 0; height: 1px; background: var(--mzo-border-strong); pointer-events: none; }
+    .wk-axis { display: flex; justify-content: space-between; margin-top: 8px; font-size: 12px; color: var(--mzo-muted); }
+    .wk-legend { font-size: 12.5px; color: var(--mzo-muted); }
+    .wk-up { color: var(--mzo-bad); }
+    .wk-down { color: var(--mzo-ok); }
   </style>
-  <link rel="stylesheet" href="mzo_theme.css?v=1" />
 </head>
+<body>
+  <main class="ui-page">
+    <header class="ui-head">
+      <div>
+        <h1>Weekly deposit vs disposal</h1>
+        <p id="meta">Loading…</p>
+      </div>
+      <div class="ui-actions">
+        <div class="ui-seg" id="cat" role="group" aria-label="Category">
+          <button type="button" data-c="ALL" aria-pressed="true">All</button>
+          <button type="button" data-c="DOM" aria-pressed="false">Domestic</button>
+          <button type="button" data-c="COM" aria-pressed="false">Commercial</button>
+          <button type="button" data-c="IND" aria-pressed="false">Industrial</button>
+        </div>
+        <button type="button" class="ui-btn icon" id="refreshBtn" aria-label="Refresh" title="Refresh"><svg class="ui-i"><use href="#ui-refresh"/></svg></button>
+      </div>
+    </header>
 
-<body class="bg-light">
-
-  <div class="container mt-4">
-    <div class="d-flex flex-column align-items-center mb-4">
-      <h2 class="text-center mb-1">Weekly Disposal Status: NSC</h2>
-      <p class="text-center mb-2" id="report-date">Report upto: Loading...</p>
+    <div class="ui-filters">
+      <span class="ui-select"><select id="weekFilter" aria-label="Week"><option value="">All weeks (average)</option></select></span>
+      <span class="ui-select"><select id="regionFilter" aria-label="Region"><option value="">All regions</option></select></span>
+      <span class="ui-select"><select id="divisionFilter" aria-label="Division"><option value="">All divisions</option></select></span>
+      <span class="ui-select"><select id="cccFilter" aria-label="CCC"><option value="">All CCCs</option></select></span>
+      <button type="button" class="ui-btn ghost" id="clearBtn" hidden><svg class="ui-i"><use href="#ui-x"/></svg>Clear</button>
     </div>
 
-    <!-- Tabs -->
-    <ul class="nav nav-tabs mb-3" id="category-tabs">
-      <li class="nav-item"><a class="nav-link active" data-type="ALL" href="#">All</a></li>
-      <li class="nav-item"><a class="nav-link" data-type="DOM" href="#">DOM</a></li>
-      <li class="nav-item"><a class="nav-link" data-type="COM" href="#">COM</a></li>
-      <li class="nav-item"><a class="nav-link" data-type="IND" href="#">IND</a></li>
-    </ul>
+    <section class="ui-stats" style="--n:5" id="stats" aria-label="Summary">
+      <button type="button" class="ui-stat" data-m="dep"><div class="k">Deposited</div><div class="v"><span class="ui-skel"></span></div><div class="s">&nbsp;</div></button>
+      <button type="button" class="ui-stat" data-m="dis"><div class="k">Disposed</div><div class="v"><span class="ui-skel"></span></div><div class="s">&nbsp;</div></button>
+      <button type="button" class="ui-stat" data-m="net"><div class="k">Backlog change</div><div class="v"><span class="ui-skel"></span></div><div class="s">&nbsp;</div></button>
+      <button type="button" class="ui-stat" data-m="wit"><div class="k">Withheld</div><div class="v"><span class="ui-skel"></span></div><div class="s">&nbsp;</div></button>
+      <button type="button" class="ui-stat" data-m="pend"><div class="k">Pending on Monday</div><div class="v"><span class="ui-skel"></span></div><div class="s">&nbsp;</div></button>
+    </section>
 
-    <!-- Compact Filters -->
-    <div class="filter-container">
-      <div class="filter-item">
-        <select id="date-filter" class="form-select form-select-sm filter-select">
-          <option value="">All Dates</option>
-        </select>
+    <section class="ui-panel">
+      <div class="ui-panel-h"><h2 id="trendTitle">Backlog change by week</h2><span class="wk-legend" id="trendNote"></span></div>
+      <div class="ui-panel-b">
+        <div class="wk-chart" id="chart"></div>
+        <div class="wk-axis"><span id="axisFrom"></span><span id="axisTo"></span></div>
       </div>
-      <div class="filter-item">
-        <select id="region-filter" class="form-select form-select-sm filter-select">
-          <option value="">All Regions</option>
-        </select>
-      </div>
-      <div class="filter-item">
-        <select id="division-filter" class="form-select form-select-sm filter-select">
-          <option value="">All Divisions</option>
-        </select>
-      </div>
-      <div class="filter-item">
-        <select id="ccc-filter" class="form-select form-select-sm filter-select">
-          <option value="">All CCCs</option>
-        </select>
-      </div>
-    </div>
+    </section>
 
-    <!-- Cards -->
-    <div class="row g-4">
-      <div class="col-md-6">
-        <div class="card shadow">
-          <div class="card-header bg-primary text-white" data-bs-toggle="collapse"
-            data-bs-target="#pending-table-wrapper">
-            Pending: Monday vs Monday (Averages)
-          </div>
-          <div class="card-body">
-            <h5 id="pending-avg" class="card-title">
-              <span class="loading-text">Loading</span><span id="pending-dots">...</span>
-            </h5>
-            <div class="collapse show" id="pending-table-wrapper">
-              <div id="pending-table" class="mt-3"></div>
-            </div>
+    <div class="ui-grid">
+      <section class="ui-panel">
+        <div class="ui-panel-h">
+          <h2>By office <small id="officeNote"></small></h2>
+          <div class="ui-tabs" role="tablist" id="levelTabs">
+            <button type="button" class="ui-tab" role="tab" data-l="region" aria-selected="true">Region</button>
+            <button type="button" class="ui-tab" role="tab" data-l="division">Division</button>
+            <button type="button" class="ui-tab" role="tab" data-l="ccc">CCC</button>
           </div>
         </div>
-      </div>
-
-      <div class="col-md-6">
-        <div class="card shadow">
-          <div class="card-header bg-success text-white" data-bs-toggle="collapse"
-            data-bs-target="#deposit-table-wrapper">
-            Weekly Deposit vs Disposal (Averages)
-          </div>
-          <div class="card-body">
-            <h5 id="deposit-avg" class="card-title">
-              <span class="loading-text">Loading</span><span id="deposit-dots">...</span>
-            </h5>
-            <div class="collapse show" id="deposit-table-wrapper">
-              <div id="deposit-table" class="mt-3"></div>
-            </div>
-          </div>
+        <div id="officeTable" style="--max-h:560px"><div class="ui-empty">Loading…</div></div>
+      </section>
+      <section class="ui-panel" style="margin-top:0">
+        <div class="ui-panel-h">
+          <h2>Weeks</h2>
+          <button type="button" class="ui-btn sm" id="exportBtn"><svg class="ui-i"><use href="#ui-download"/></svg>Export CSV</button>
         </div>
-      </div>
+        <div id="weekTable" style="--max-h:560px"><div class="ui-empty">Loading…</div></div>
+      </section>
     </div>
-
-    <div id="chart-container-row"></div>
-  </div>
+  </main>
 
   <script>
-    const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSMuO-ddereEG6J2s2Bmqp-HXo85ky4S4R5Yt-0HdoNHHa5r8xOEK4MJ1Syhyqzjpm2lTI4sT85nR4N/pub?gid=0&single=true&output=csv";
-    let allData = [], filteredData = [], category = "ALL";
-    const filters = { date: '', region: '', division: '', ccc: '' };
+  document.addEventListener('DOMContentLoaded', function () {
+    'use strict';
+    var $ = function (id) { return document.getElementById(id); };
+    var KEY = 'CACHE_WEEKLY';
+    var METRIC = {
+      dep: { label: 'Deposited', title: 'Deposited by week' },
+      dis: { label: 'Disposed', title: 'Disposed by week' },
+      net: { label: 'Backlog change', title: 'Backlog change by week' },
+      wit: { label: 'Withheld', title: 'Withheld by week' },
+      pend: { label: 'Pending on Monday', title: 'Pending on Monday by week' }
+    };
+    var all = [], weeks = [], f = { cat: 'ALL', metric: 'net' }, level = 'region', scope = null;
 
-    function formatDate(dateStr) {
-      if (typeof dateStr !== 'string' || !/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(dateStr)) return dateStr;
-      const [day, month, year] = dateStr.split('/').map(Number);
-      return `${String(day).padStart(2, '0')}/${String(month).padStart(2, '0')}/${year}`;
+    function num(row, base, cat) {
+      var get = function (c) { return parseInt(row[base + ' (' + c + ')'], 10) || 0; };
+      if (cat !== 'ALL') return get(cat);
+      if (row[base + ' (All)'] != null) return get('All');
+      return get('DOM') + get('COM') + get('IND');
     }
 
-    function updateSelect(id, options, formatFn) {
-      const select = document.getElementById(id);
-      const currentValue = select.value;
-      let defaultText = 'All';
-      if (id === 'date-filter') defaultText = 'Select Date';
-      else if (id === 'region-filter') defaultText = 'Select Region';
-      else if (id === 'division-filter') defaultText = 'Select Division';
-      else if (id === 'ccc-filter') defaultText = 'Select CCC';
-
-      select.innerHTML = `<option value="">${defaultText}</option>`;
-      options.forEach(opt => {
-        const option = document.createElement('option');
-        option.value = opt;
-        option.textContent = formatFn ? formatFn(opt) : opt;
-        select.appendChild(option);
+    function prepare(text) {
+      var seen = {};
+      all = UI.csv(text).filter(function (d) { return d['Date of report in Current Week']; }).map(function (d) {
+        var dt = UI.date(d['Date of report in Current Week']);
+        var o = UI.office(d['CCC Code']);
+        var r = {
+          raw: d, week: dt ? dt.getTime() : 0, weekDate: dt,
+          _region: UI.regionName(d.Region) || o.region, _divn: UI.title(d.Division) || o.division,
+          _supp: d.CCC || d.CCC1 || UI.title(d['CCC Name']), CCC_CODE: String(d['CCC Code'] || '').trim()
+        };
+        if (r.week) seen[r.week] = dt;
+        return r;
       });
-      if (currentValue && options.includes(currentValue)) select.value = currentValue;
+      if (window.MzoScope) all = window.MzoScope.filterRows(all);
+      weeks = Object.keys(seen).map(Number).sort(function (a, b) { return b - a; });
+      $('meta').textContent = weeks.length ? UI.n(weeks.length) + ' weeks · ' + UI.fmtDate(new Date(weeks[weeks.length - 1])) + ' to ' + UI.fmtDate(new Date(weeks[0])) : 'No weeks reported';
+      UI.fill('weekFilter', weeks.map(function (w) { return { value: String(w), label: 'Week of ' + UI.fmtDate(new Date(w)) }; }), 'All weeks (average)');
+      fillOffices();
     }
 
-    function updateFilteredData() {
-      filteredData = allData.filter(row => !filters.date || row["Date of report in Current Week"] === filters.date);
+    function uniq(rows, k) { var s = {}; rows.forEach(function (r) { if (r[k]) s[r[k]] = 1; }); return Object.keys(s).sort(); }
+    function fillOffices() {
+      var reg = $('regionFilter').value, div = $('divisionFilter').value;
+      UI.fill('regionFilter', uniq(all, '_region'), 'All regions');
+      var r1 = all.filter(function (r) { return !reg || r._region === reg; });
+      UI.fill('divisionFilter', uniq(r1, '_divn'), 'All divisions');
+      var r2 = r1.filter(function (r) { return !div || r._divn === div; });
+      UI.fill('cccFilter', uniq(r2, '_supp'), 'All CCCs');
+      if (!scope) scope = UI.lockScope();
+      ['weekFilter', 'regionFilter', 'divisionFilter', 'cccFilter'].forEach(function (id) { UI.mark($(id)); });
     }
 
-    function populateDependentFilters() {
-      const regions = [...new Set(filteredData.map(d => d.Region).filter(Boolean))].sort();
-      updateSelect('region-filter', regions);
-
-      const divisions = [...new Set(filteredData
-        .filter(d => !filters.region || d.Region === filters.region)
-        .map(d => d.Division).filter(Boolean))].sort();
-      updateSelect('division-filter', divisions);
-
-      const cccs = [...new Set(filteredData
-        .filter(d => (!filters.region || d.Region === filters.region) && (!filters.division || d.Division === filters.division))
-        .map(d => d.CCC).filter(Boolean))].sort();
-      updateSelect('ccc-filter', cccs);
-      if (window.MzoScope) window.MzoScope.lockFilters();
+    function officeRows() {
+      var reg = $('regionFilter').value, div = $('divisionFilter').value, cc = $('cccFilter').value;
+      return all.filter(function (r) { return (!reg || r._region === reg) && (!div || r._divn === div) && (!cc || r._supp === cc); });
     }
 
-    function populateFilters() {
-      const dates = [...new Set(allData.map(d => d["Date of report in Current Week"]).filter(Boolean))].sort((a, b) => {
-        const pA = a.split('/').map(Number); const pB = b.split('/').map(Number);
-        return new Date(pB[2], pB[1] - 1, pB[0]) - new Date(pA[2], pA[1] - 1, pA[0]);
+    // Totals for a set of rows in the chosen category.
+    function sum(rows) {
+      var t = { last: 0, dep: 0, eff: 0, wit: 0, dis: 0, pend: 0 };
+      rows.forEach(function (r) {
+        var d = r.raw, c = f.cat;
+        t.last += num(d, 'Pending as on Monday of Last Week', c);
+        t.dep += num(d, 'Deposited in last week', c);
+        t.eff += num(d, 'Conn. Eff.', c);
+        t.wit += num(d, 'Withheld', c);
+        t.dis += num(d, 'Total disposed', c);
+        t.pend += num(d, 'Pending as on Monday of Current Week', c);
       });
-      updateSelect('date-filter', dates, formatDate);
-
-      document.getElementById('date-filter').addEventListener('change', e => { filters.date = e.target.value; updateFilteredData(); populateDependentFilters(); render(); });
-      document.getElementById('region-filter').addEventListener('change', e => { filters.region = e.target.value; filters.division = ''; filters.ccc = ''; updateFilteredData(); populateDependentFilters(); render(); });
-      document.getElementById('division-filter').addEventListener('change', e => { filters.division = e.target.value; filters.ccc = ''; updateFilteredData(); populateDependentFilters(); render(); });
-      document.getElementById('ccc-filter').addEventListener('change', e => { filters.ccc = e.target.value; updateFilteredData(); render(); });
-
-      updateFilteredData();
-      populateDependentFilters();
+      t.net = t.dep - t.dis;
+      return t;
     }
+    function scale(t, k) { var o = {}; Object.keys(t).forEach(function (x) { o[x] = k ? t[x] / k : 0; }); return o; }
 
-    function applyRowFilters(row) {
-      return (!filters.region || row.Region === filters.region) &&
-        (!filters.division || row.Division === filters.division) &&
-        (!filters.ccc || row.CCC === filters.ccc);
-    }
-
-    function buildNestedTable(containerId, rows, types, col1Base, col2Base) {
-      const col1Short = col1Base.includes("Pending") ? "Last Monday" : "Deposited";
-      const col2Short = col1Base.includes("Pending") ? "This Monday" : "Disposed";
-      const grouped = {};
-
-      rows.forEach(row => {
-        const r = row.Region || 'Unknown', d = row.Division || 'Unknown', c = row.CCC || 'Unknown', dt = row["Date of report in Current Week"] || 'Unknown';
-        if (!grouped[r]) grouped[r] = { divisions: {}, cccAverages: [], avgValues: { avg1: 0, avg2: 0 } };
-        if (!grouped[r].divisions[d]) grouped[r].divisions[d] = { cccs: {}, cccAverages: [], avgValues: { avg1: 0, avg2: 0 } };
-        if (!grouped[r].divisions[d].cccs[c]) grouped[r].divisions[d].cccs[c] = { dates: {}, dateValues: {}, avgValues: { avg1: 0, avg2: 0 } };
-        const cccData = grouped[r].divisions[d].cccs[c];
-        if (!cccData.dates[dt]) cccData.dates[dt] = { total1: 0, total2: 0, data: row, hasData: false };
-      });
-
-      Object.keys(grouped).forEach(r => {
-        Object.keys(grouped[r].divisions).forEach(d => {
-          Object.keys(grouped[r].divisions[d].cccs).forEach(c => {
-            const cccData = grouped[r].divisions[d].cccs[c];
-            Object.keys(cccData.dates).forEach(dt => {
-              const dateData = cccData.dates[dt];
-              let t1 = 0, t2 = 0, has = false;
-              types.forEach(type => {
-                const c1 = type === "All" ? `${col1Base} (All)` : `${col1Base} (${type})`;
-                const c2 = type === "All" ? `${col2Base} (All)` : `${col2Base} (${type})`;
-                const v1 = parseInt(dateData.data[c1] || 0), v2 = parseInt(dateData.data[c2] || 0);
-                t1 += v1; t2 += v2; if (v1 || v2) has = true;
-              });
-              dateData.total1 = t1; dateData.total2 = t2; dateData.hasData = has;
-              if (has) cccData.dateValues[dt] = { t1, t2 };
-            });
-            const vals = Object.values(cccData.dateValues);
-            if (vals.length > 0) {
-              cccData.avgValues = { avg1: (vals.reduce((a, v) => a + v.t1, 0) / vals.length).toFixed(2), avg2: (vals.reduce((a, v) => a + v.t2, 0) / vals.length).toFixed(2), count: vals.length };
-              grouped[r].divisions[d].cccAverages.push({ c, ...cccData.avgValues });
-            } else cccData.avgValues = { avg1: "0.00", avg2: "0.00", count: 0 };
-          });
-          const dData = grouped[r].divisions[d], vCCCs = dData.cccAverages.filter(a => a.count > 0);
-          if (vCCCs.length > 0) {
-            dData.avgValues = { avg1: vCCCs.reduce((a, v) => a + parseFloat(v.avg1), 0).toFixed(2), avg2: vCCCs.reduce((a, v) => a + parseFloat(v.avg2), 0).toFixed(2), count: vCCCs.length };
-            grouped[r].cccAverages.push({ d, ...dData.avgValues });
-          } else dData.avgValues = { avg1: "0.00", avg2: "0.00", count: 0 };
-        });
-        const rData = grouped[r], vDivs = rData.cccAverages.filter(a => a.count > 0);
-        if (vDivs.length > 0) rData.avgValues = { avg1: vDivs.reduce((a, v) => a + parseFloat(v.avg1), 0).toFixed(2), avg2: vDivs.reduce((a, v) => a + parseFloat(v.avg2), 0).toFixed(2), count: vDivs.length };
-        else rData.avgValues = { avg1: "0.00", avg2: "0.00", count: 0 };
-      });
-
-      let html = `<div class="table-responsive"><table class="table table-bordered table-sm"><thead><tr><th colspan="4">Entity</th><th class="text-end"><span class="metric-label">${col1Short}</span></th><th class="text-end"><span class="metric-label">${col2Short}</span></th></tr></thead><tbody>`;
-      Object.keys(grouped).sort().forEach((r, rIdx) => {
-        const rId = `region-${containerId}-${rIdx}`, rData = grouped[r];
-        if (rData.avgValues.count === 0) return;
-        const rCount = Object.keys(rData.divisions).filter(dn => rData.divisions[dn].avgValues.count > 0).length;
-        html += `<tr class="table-primary region-row" data-target="${rId}"><td colspan="4"><span class="toggle-icon">▶</span>${r} (${rCount})</td><td class="text-end">${rData.avgValues.avg1}</td><td class="text-end">${rData.avgValues.avg2}</td></tr>`;
-        Object.keys(rData.divisions).sort().forEach((d, dIdx) => {
-          const dId = `${rId}-div-${dIdx}`, dData = rData.divisions[d];
-          if (dData.avgValues.count === 0) return;
-          const dCount = Object.keys(dData.cccs).filter(cn => dData.cccs[cn].avgValues.count > 0).length;
-          html += `<tr class="table-secondary division-row nested-row" data-parent="${rId}" data-target="${dId}"><td></td><td colspan="3"><span class="toggle-icon">▶</span>${d} (${dCount})</td><td class="text-end">${dData.avgValues.avg1}</td><td class="text-end">${dData.avgValues.avg2}</td></tr>`;
-          Object.keys(dData.cccs).sort().forEach((c, cIdx) => {
-            const cData = dData.cccs[c], cId = `${dId}-ccc-${cIdx}`;
-            if (cData.avgValues.count === 0) return;
-            const cCount = Object.keys(cData.dates).filter(dt => cData.dates[dt].hasData).length;
-            html += `<tr class="ccc-row nested-row" data-parent="${dId}" data-target="${cId}"><td></td><td></td><td colspan="2"><span class="toggle-icon">▶</span>${c} (${cCount} dates)</td><td class="text-end">${cData.avgValues.avg1}</td><td class="text-end">${cData.avgValues.avg2}</td></tr>`;
-            Object.keys(cData.dates).sort((a, b) => { const pA = a.split('/'); const pB = b.split('/'); return new Date(pB[2], pB[1] - 1, pB[0]) - new Date(pA[2], pA[1] - 1, pA[0]); }).forEach(dt => {
-              if (!cData.dates[dt].hasData) return;
-              html += `<tr class="date-row nested-row" data-parent="${cId}"><td></td><td></td><td></td><td>${formatDate(dt)}</td><td class="text-end">${cData.dates[dt].total1}</td><td class="text-end">${cData.dates[dt].total2}</td></tr>`;
-            });
-          });
-        });
-      });
-      html += `</tbody></table></div>`;
-      document.getElementById(containerId).innerHTML = html;
-
-      const addToggle = (sel) => {
-        document.querySelectorAll(`#${containerId} ${sel}`).forEach(row => {
-          row.addEventListener('click', function (e) {
-            if (sel !== '.region-row') e.stopPropagation();
-            this.classList.toggle('expanded');
-            const tid = this.getAttribute('data-target');
-            document.querySelectorAll(`[data-parent="${tid}"]`).forEach(el => el.classList.toggle('show-row'));
-          });
-        });
-      };
-      addToggle('.region-row'); addToggle('.division-row'); addToggle('.ccc-row');
-      return Object.keys(grouped).map(r => grouped[r]).filter(r => r.avgValues.count > 0).map(r => ({ avg1: parseFloat(r.avgValues.avg1), avg2: parseFloat(r.avgValues.avg2) }));
-    }
+    function fmt(v, avg) { return avg ? (Math.abs(v) < 100 ? v.toFixed(1) : UI.n(Math.round(v))) : UI.n(v); }
+    function signed(v, avg) { var s = fmt(Math.abs(v), avg); return v > 0 ? '+' + s : v < 0 ? '−' + s : '0'; }
 
     function render() {
-      const data = filteredData.filter(row => applyRowFilters(row));
-      let types = category === "ALL" ? (data.length > 0 && "Pending as on Monday of Last Week (All)" in data[0] ? ["All"] : ["DOM", "COM", "IND"]) : [category];
+      var rows = officeRows(), wk = $('weekFilter').value, avg = !wk;
+      var inWeek = wk ? rows.filter(function (r) { return String(r.week) === wk; }) : rows;
+      var nWeeks = wk ? 1 : uniq(rows.map(function (r) { return { w: r.week }; }), 'w').length || 1;
+      var t = scale(sum(inWeek), nWeeks);
 
-      const pA = buildNestedTable("pending-table", data, types, "Pending as on Monday of Last Week", "Pending as on Monday of Current Week");
-      const dA = buildNestedTable("deposit-table", data, types, "Deposited in last week", "Total disposed");
-
-      if (pA.length > 0) {
-        const s1 = pA.reduce((a, v) => a + v.avg1, 0).toFixed(2), s2 = pA.reduce((a, v) => a + v.avg2, 0).toFixed(2);
-        document.getElementById("pending-avg").innerHTML = `<span class="metric-label">Last Monday:</span> <span class="metric-value">${s1}</span>, <span class="metric-label">This Monday:</span> <span class="metric-value">${s2}</span>`;
-      } else document.getElementById("pending-avg").innerHTML = `<span class="metric-label">Last Monday:</span> <span class="metric-value">0.00</span>, <span class="metric-label">This Monday:</span> <span class="metric-value">0.00</span>`;
-
-      if (dA.length > 0) {
-        const s1 = dA.reduce((a, v) => a + v.avg1, 0), s2 = dA.reduce((a, v) => a + v.avg2, 0), b = s1 - s2;
-        const isDark = document.body.classList.contains('dark-theme') || document.documentElement.getAttribute('data-mzo-theme') === 'dark';
-        let c = b > 0 ? '#ef4444' : (b < 0 ? '#10b981' : (isDark ? '#f1f5f9' : '#0f172a'));
-        document.getElementById("deposit-avg").innerHTML = `<span class="metric-label">Deposited:</span> <span class="metric-value">${s1.toFixed(2)}</span>, <span class="metric-label">Disposed:</span> <span class="metric-value">${s2.toFixed(2)}</span>, <span class="metric-label">Backlog:</span> <span class="metric-value" style="color:${c};">${b.toFixed(2)}</span>`;
-      } else document.getElementById("deposit-avg").innerHTML = `<span class="metric-label">Deposited:</span> <span class="metric-value">0.00</span>, <span class="metric-label">Disposed:</span> <span class="metric-value">0.00</span>, <span class="metric-label">Backlog:</span> <span class="metric-value">0.00</span>`;
-
-      if (typeof renderBacklogChart === 'function') renderBacklogChart();
-    }
-
-    function getBacklogChartData() {
-      const data = filteredData.filter(row => applyRowFilters(row));
-      let types = category === "ALL" ? (data.length > 0 && "Deposited in last week (All)" in data[0] ? ["All"] : ["DOM", "COM", "IND"]) : [category];
-      const groups = {};
-      data.forEach(row => {
-        const dt = row["Date of report in Current Week"]; if (!dt) return;
-        if (!groups[dt]) groups[dt] = { dep: 0, dis: 0, wit: 0 };
-        types.forEach(type => {
-          const dCol = type === "All" ? "Deposited in last week (All)" : `Deposited in last week (${type})`;
-          const sCol = type === "All" ? "Total disposed (All)" : `Total disposed (${type})`;
-          const wCol = type === "All" ? "Withheld (All)" : `Withheld (${type})`;
-          groups[dt].dep += parseInt(row[dCol] || 0);
-          groups[dt].dis += parseInt(row[sCol] || 0);
-          groups[dt].wit += parseInt(row[wCol] || 0);
-        });
-      });
-      const sorted = Object.keys(groups).sort((a, b) => {
-        const pA = a.split('/'); const pB = b.split('/');
-        return new Date(pA[2], pA[1] - 1, pA[0]) - new Date(pB[2], pB[1] - 1, pB[0]);
-      });
-      return {
-        labels: sorted,
-        data: sorted.map(d => groups[d].dep - groups[d].dis),
-        tooltips: sorted.map(d => ({ dep: groups[d].dep, dis: groups[d].dis, wit: groups[d].wit }))
+      var sub = {
+        dep: avg ? 'Average per week' : 'In the week',
+        dis: 'Effected ' + fmt(t.eff, avg) + ' · withheld ' + fmt(t.wit, avg),
+        net: t.net > 0 ? 'Backlog grew' : t.net < 0 ? 'Backlog shrank' : 'No change',
+        wit: UI.pct(t.wit, t.dis) + ' of disposed',
+        pend: 'Last Monday ' + fmt(t.last, avg)
       };
-    }
-
-    function renderBacklogChart() {
-      if (typeof Chart === 'undefined') { setTimeout(renderBacklogChart, 100); return; }
-      const chartData = getBacklogChartData();
-      if (window.backlogChartInstance) window.backlogChartInstance.destroy();
-      const ctx = document.getElementById('backlogChart').getContext('2d');
-      const isDark = document.body.classList.contains('dark-theme') || document.documentElement.getAttribute('data-mzo-theme') === 'dark';
-      window.backlogChartInstance = new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels: chartData.labels,
-          datasets: [{
-            label: 'Weekly Backlog',
-            data: chartData.data,
-            backgroundColor: chartData.data.map(v => v > 0 ? 'rgba(239, 68, 68, 0.7)' : 'rgba(59, 130, 246, 0.7)'),
-            borderColor: chartData.data.map(v => v > 0 ? 'rgba(239, 68, 68, 1)' : 'rgba(59, 130, 246, 1)'),
-            borderWidth: 1
-          }]
-        },
-        options: {
-          responsive: true, maintainAspectRatio: false,
-          scales: {
-            x: {
-              ticks: { maxRotation: 90, minRotation: 90, color: isDark ? '#94a3b8' : '#64748b' },
-              grid: { color: isDark ? 'rgba(148, 163, 184, 0.12)' : 'rgba(0, 0, 0, 0.05)' }
-            },
-            y: {
-              beginAtZero: true,
-              title: { display: true, text: 'Backlog (Deposited - Disposed)', color: isDark ? '#cbd5e1' : '#334155' },
-              ticks: { color: isDark ? '#94a3b8' : '#64748b' },
-              grid: { color: isDark ? 'rgba(148, 163, 184, 0.12)' : 'rgba(0, 0, 0, 0.05)' }
-            }
-          },
-          plugins: {
-            tooltip: {
-              enabled: false,
-              external: function (context) {
-                let tel = document.getElementById('chartjs-tooltip');
-                if (!tel) { tel = document.createElement('div'); tel.id = 'chartjs-tooltip'; tel.innerHTML = '<table></table>'; document.body.appendChild(tel); }
-                const model = context.tooltip;
-                if (model.opacity === 0) { tel.style.opacity = 0; return; }
-                const idx = model.dataPoints[0].dataIndex;
-                const details = chartData.tooltips[idx];
-                tel.querySelector('table').innerHTML = `
-                  <thead><tr><th>${model.title[0]}</th></tr></thead>
-                  <tbody>
-                    <tr><td>Total Backlog: ${model.dataPoints[0].raw}</td></tr>
-                    <tr><td>Deposited: ${details.dep}</td></tr>
-                    <tr><td>Disposed: ${details.dis}</td></tr>
-                    <tr><td style="color:#ef4444;"><b>Withheld: ${details.wit}</b></td></tr>
-                  </tbody>`;
-                const pos = context.chart.canvas.getBoundingClientRect();
-                tel.style.opacity = 1; tel.style.position = 'absolute';
-                tel.style.left = pos.left + window.pageXOffset + model.caretX + 'px';
-                tel.style.top = pos.top + window.pageYOffset + model.caretY + 'px';
-                tel.style.pointerEvents = 'none';
-                tel.style.background = isDark ? '#111c33' : 'white';
-                tel.style.border = isDark ? '1px solid rgba(148, 163, 184, 0.25)' : '1px solid #ccc';
-                tel.style.color = isDark ? '#f1f5f9' : '#0f172a';
-                tel.style.padding = '8px'; tel.style.borderRadius = '6px'; tel.style.zIndex = 1000;
-                tel.style.boxShadow = isDark ? '0 8px 24px rgba(0, 0, 0, 0.5)' : '0 4px 12px rgba(0,0,0,0.15)';
-              }
-            }
-          }
-        }
+      [].forEach.call(document.querySelectorAll('#stats .ui-stat'), function (el) {
+        var m = el.getAttribute('data-m'), v = el.querySelector('.v');
+        v.textContent = m === 'net' ? signed(t.net, avg) : fmt(t[m], avg);
+        v.className = 'v' + (m === 'net' && t.net > 0 ? ' wk-up' : m === 'net' && t.net < 0 ? ' wk-down' : '');
+        el.querySelector('.s').textContent = sub[m];
+        el.setAttribute('aria-pressed', String(f.metric === m));
       });
+
+      // Trend: every week for the current offices.
+      var byWeek = {};
+      rows.forEach(function (r) { (byWeek[r.week] = byWeek[r.week] || []).push(r); });
+      var series = weeks.slice().reverse().filter(function (w) { return byWeek[w]; }).map(function (w) { var s = sum(byWeek[w]); s.week = w; return s; });
+      chart(series, wk);
+
+      // Offices
+      var key = level === 'region' ? '_region' : level === 'division' ? '_divn' : '_supp', groups = {};
+      inWeek.forEach(function (r) { (groups[r[key] || 'Unmapped'] = groups[r[key] || 'Unmapped'] || { rows: [], parent: level === 'ccc' ? r._divn : level === 'division' ? r._region : '' }).rows.push(r); });
+      var list = Object.keys(groups).map(function (k) { var s = scale(sum(groups[k].rows), nWeeks); s.name = k; s.parent = groups[k].parent; return s; });
+      $('officeNote').textContent = avg ? 'average per week' : 'week of ' + UI.fmtDate(new Date(+wk));
+      var F = function (v) { return fmt(v, avg); };
+      UI.table('officeTable', {
+        rows: list, sort: { key: 'dep', dir: 'desc' }, count: false, empty: 'No reports for these filters.',
+        columns: [
+          { key: 'name', label: level === 'ccc' ? 'CCC' : level === 'division' ? 'Division' : 'Region', fmt: function (v, g) { return '<span class="ui-strong">' + UI.esc(v) + '</span>' + (g.parent ? '<span class="sub">' + UI.esc(g.parent) + '</span>' : ''); } },
+          { key: 'dep', label: 'Deposited', num: true, fmt: F },
+          { key: 'dis', label: 'Disposed', num: true, fmt: F, hideSm: true },
+          { key: 'net', label: 'Change', num: true, fmt: function (v) { return '<span class="' + (v > 0 ? 'wk-up' : v < 0 ? 'wk-down' : '') + '">' + signed(v, avg) + '</span>'; } },
+          { key: 'wit', label: 'Withheld', num: true, fmt: F, hideSm: true },
+          { key: 'pend', label: 'Pending', num: true, fmt: F }
+        ],
+        foot: list.length > 1 ? (function () { var s = t; return { dep: s.dep, dis: s.dis, net: s.net, wit: s.wit, pend: s.pend }; })() : null,
+        onRow: level === 'ccc' ? null : function (g) { drill(g.name); }
+      });
+
+      // Week list
+      var wl = series.slice().reverse();
+      UI.table('weekTable', {
+        rows: wl, sort: { key: 'week', dir: 'desc' }, limit: 26, resetPage: true, count: false, empty: 'No weeks.',
+        selected: function (r) { return String(r.week) === wk; },
+        columns: WEEK_COLS,
+        onRow: function (r) { var s = $('weekFilter'); s.value = String(r.week) === wk ? '' : String(r.week); UI.mark(s); render(); }
+      });
+      window.__weeks = wl;
+      $('clearBtn').hidden = !(wk || f.cat !== 'ALL' || ['regionFilter', 'divisionFilter', 'cccFilter'].some(function (id) { return $(id).value && !$(id).disabled; }));
     }
 
-    async function initWeeklyDashboard() {
-      try {
-        let dc;
-        if (typeof mzoDataHub !== 'undefined') dc = await mzoDataHub.get('CACHE_WEEKLY');
-        if (!dc) {
-          console.log("Downloading Weekly Report data from network...");
-          Papa.parse(CSV_URL, { download: true, header: true, skipEmptyLines: true, dynamicTyping: true, complete: res => handleData(res.data) });
-        } else {
-          console.log("Successfully fetched Weekly Report from DataHub.");
-          const res = Papa.parse(dc, { header: true, skipEmptyLines: true, dynamicTyping: true });
-          handleData(res.data);
-        }
-      } catch (e) { console.error("Error:", e); }
+    var WEEK_COLS = [
+      { key: 'week', label: 'Week of', fmt: function (v) { return '<span style="white-space:nowrap">' + UI.fmtDate(new Date(v)) + '</span>'; }, csv: function (r) { return UI.fmtDate(new Date(r.week)); } },
+      { key: 'dep', label: 'Deposited', num: true, fmt: UI.n },
+      { key: 'dis', label: 'Disposed', num: true, fmt: UI.n, hideSm: true },
+      { key: 'net', label: 'Change', num: true, fmt: function (v) { return '<span class="' + (v > 0 ? 'wk-up' : v < 0 ? 'wk-down' : '') + '">' + signed(v, false) + '</span>'; }, csv: function (r) { return r.net; } },
+      { key: 'pend', label: 'Pending', num: true, fmt: UI.n }
+    ];
+
+    function chart(series, wk) {
+      var m = f.metric, vals = series.map(function (s) { return s[m]; });
+      var maxPos = Math.max.apply(null, vals.concat([0])), maxNeg = Math.max.apply(null, vals.map(function (v) { return -v; }).concat([0]));
+      var range = (maxPos + maxNeg) || 1, base = (maxNeg / range) * 100;
+      $('trendTitle').textContent = METRIC[m].title;
+      $('trendNote').textContent = m === 'net' ? 'Above the line: more deposited than disposed' : (series.length ? 'Peak ' + UI.n(maxPos) : '');
+      $('chart').innerHTML = '<div class="base" style="bottom:' + base + '%"></div>' + series.map(function (s) {
+        var v = s[m], h = (Math.abs(v) / range) * 100, cls = m === 'net' ? (v > 0 ? 'up' : v < 0 ? 'down' : '') : '';
+        var pos = v >= 0 ? 'bottom:' + base + '%' : 'bottom:' + (base - h) + '%';
+        var tip = UI.fmtDate(new Date(s.week)) + ' — deposited ' + UI.n(s.dep) + ', disposed ' + UI.n(s.dis) + ' (effected ' + UI.n(s.eff) + ', withheld ' + UI.n(s.wit) + '), pending ' + UI.n(s.pend);
+        return '<div class="col' + (String(s.week) === wk ? ' on' : '') + '" data-w="' + s.week + '" title="' + UI.esc(tip) + '"><b class="' + cls + '" style="' + pos + ';height:' + Math.max(v ? 0.8 : 0, h) + '%"></b></div>';
+      }).join('');
+      $('axisFrom').textContent = series.length ? UI.fmtDate(new Date(series[0].week)) : '';
+      $('axisTo').textContent = series.length ? UI.fmtDate(new Date(series[series.length - 1].week)) : '';
     }
 
-    function handleData(rows) {
-      allData = rows.filter(d => d["Date of report in Current Week"]);
-      if (window.MzoScope) allData = window.MzoScope.filterRows(allData);
-      const uDates = [...new Set(allData.map(d => d["Date of report in Current Week"]))].filter(Boolean);
-      if (uDates.length > 0) {
-        const pDates = uDates.map(ds => { const p = ds.split('/'); return new Date(p[2], p[1] - 1, p[0]); }).filter(d => !isNaN(d.getTime()));
-        const min = new Date(Math.min(...pDates)), max = new Date(Math.max(...pDates));
-        document.getElementById("report-date").innerText = `Report from ${formatDate(min.toLocaleDateString('en-GB'))} to ${formatDate(max.toLocaleDateString('en-GB'))} -- ${uDates.length} weeks`;
-      }
-      populateFilters();
-
-      const chartRow = document.getElementById('chart-container-row');
-      chartRow.innerHTML = `
-        <div class="row mt-4">
-          <div class="col-12">
-            <div class="card shadow">
-              <div class="card-header bg-info text-white">Weekly Backlog Analysis</div>
-              <div class="card-body"><canvas id="backlogChart" style="width:100%; height:300px;"></canvas></div>
-            </div>
-          </div>
-        </div>`;
-
-      const cs = document.createElement('script');
-      cs.src = 'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js';
-      cs.onload = () => render();
-      document.head.appendChild(cs);
+    function setLevel(l) {
+      level = l;
+      [].forEach.call(document.querySelectorAll('#levelTabs .ui-tab'), function (t) { t.setAttribute('aria-selected', String(t.getAttribute('data-l') === l)); });
+      render();
+    }
+    function drill(name) {
+      if (level === 'region') { $('regionFilter').value = name; $('divisionFilter').value = ''; level = 'division'; }
+      else { $('divisionFilter').value = name; level = 'ccc'; }
+      $('cccFilter').value = '';
+      fillOffices(); setLevel(level);
     }
 
-    document.querySelectorAll('#category-tabs .nav-link').forEach(tab => {
-      tab.addEventListener('click', e => {
-        e.preventDefault();
-        document.querySelectorAll('#category-tabs .nav-link').forEach(t => t.classList.remove('active'));
-        tab.classList.add('active');
-        category = tab.getAttribute('data-type');
-        render();
+    ['regionFilter', 'divisionFilter', 'cccFilter'].forEach(function (id) {
+      $(id).addEventListener('change', function () {
+        if (id === 'regionFilter') $('divisionFilter').value = '';
+        if (id !== 'cccFilter') $('cccFilter').value = '';
+        fillOffices(); render();
       });
     });
+    $('weekFilter').addEventListener('change', function () { UI.mark(this); render(); });
+    $('chart').addEventListener('click', function (e) {
+      var c = e.target.closest('.col'); if (!c) return;
+      var s = $('weekFilter'), w = c.getAttribute('data-w');
+      s.value = s.value === w ? '' : w; UI.mark(s); render();
+    });
+    $('cat').addEventListener('click', function (e) {
+      var b = e.target.closest('button'); if (!b) return;
+      f.cat = b.getAttribute('data-c');
+      [].forEach.call(this.querySelectorAll('button'), function (x) { x.setAttribute('aria-pressed', String(x === b)); });
+      render();
+    });
+    $('stats').addEventListener('click', function (e) { var s = e.target.closest('.ui-stat'); if (!s) return; f.metric = s.getAttribute('data-m'); render(); });
+    $('levelTabs').addEventListener('click', function (e) { var t = e.target.closest('.ui-tab'); if (t) setLevel(t.getAttribute('data-l')); });
+    $('clearBtn').addEventListener('click', function () {
+      $('weekFilter').value = '';
+      ['regionFilter', 'divisionFilter', 'cccFilter'].forEach(function (id) { if (!$(id).disabled) $(id).value = ''; });
+      f.cat = 'ALL';
+      [].forEach.call(document.querySelectorAll('#cat button'), function (x) { x.setAttribute('aria-pressed', String(x.getAttribute('data-c') === 'ALL')); });
+      fillOffices(); render();
+    });
+    $('exportBtn').addEventListener('click', function () {
+      UI.exportCsv('weekly-deposit-disposal.csv', [WEEK_COLS[0], { key: 'last', label: 'Pending last Monday' }, WEEK_COLS[1], { key: 'eff', label: 'Connections effected' }, { key: 'wit', label: 'Withheld' }, WEEK_COLS[2], WEEK_COLS[3], WEEK_COLS[4]], window.__weeks || []);
+    });
+    $('refreshBtn').addEventListener('click', function () {
+      var b = this; b.classList.add('spin');
+      Promise.resolve(window.mzoDataHub.waitForDataset(KEY, { forceCheck: true })).catch(function () {})
+        .then(function () { return window.mzoDataHub._peek(KEY); }).then(function (t) { if (t) { prepare(t); render(); } })
+        .then(function () { b.classList.remove('spin'); });
+    });
 
-    initWeeklyDashboard();
+    var first = true;
+    UI.load(KEY, function (text, info) {
+      if (!text) { if (info && info.error) { $('meta').textContent = 'Could not load data'; $('officeTable').innerHTML = $('weekTable').innerHTML = '<div class="ui-empty">Could not load data.</div>'; } return; }
+      prepare(text);
+      if (first) {
+        first = false;
+        if (scope && (scope.level === 'division' || scope.level === 'ccc')) level = 'ccc'; else if (scope && scope.level === 'region') level = 'division';
+        [].forEach.call(document.querySelectorAll('#levelTabs .ui-tab'), function (t) { t.setAttribute('aria-selected', String(t.getAttribute('data-l') === level)); });
+      }
+      render();
+    });
+  });
   </script>
 </body>
-
 </html>

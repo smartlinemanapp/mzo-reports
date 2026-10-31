@@ -4,8 +4,8 @@
   "description": "Electrical Network Construction Estimator",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js",
-    "dev": "node server.js",
+    "start": "node --env-file-if-exists=.env server.js",
+    "dev": "node --env-file-if-exists=.env server.js",
     "migrate:power-map": "node scripts/import_mzo_power_map_from_sheet.js",
     "migrate:portal-users": "node scripts/import_portal_users_from_sheet.js",
     "migrate:activity-logs": "node scripts/import_activity_logs_from_google.js",
@@ -16,6 +16,7 @@
     "sync:load-ext": "node scripts/sync_load_ext_to_supabase.js"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^1.3.0",
     "@tailwindcss/cli": "^4.2.1",
     "express": "^4.18.2",
     "multer": "^2.2.0",

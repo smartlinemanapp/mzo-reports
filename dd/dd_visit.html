@@ -1,1759 +1,368 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="ui">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>DD Visit & Follow-Up Tracking Dashboard</title>
-  
-  <!-- Google Fonts & FontAwesome -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-  
-  <!-- PapaParse for fast CSV Parsing -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>DD visit · MZO Reports</title>
+  <script src="/mzo_theme.js?v=3"></script>
+  <link rel="stylesheet" href="/mzo_theme.css?v=3" />
+  <script src="/mzo_ui.js?v=2" defer></script>
+  <script src="/mzo_data_hub.js" defer></script>
+  <script src="/mzo_scope.js?v=5" defer></script>
   <style>
-    :root {
-      --primary-color: #2563eb;
-      --primary-hover: #1d4ed8;
-      --bg-dark: #0f172a;
-      --bg-card: #ffffff;
-      --bg-body: #f8fafc;
-      --text-primary: #1e293b;
-      --text-secondary: #64748b;
-      --border-color: #e2e8f0;
-      --success-color: #10b981;
-      --warning-color: #f59e0b;
-      --danger-color: #ef4444;
-      --info-color: #06b6d4;
-    }
-
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: 'Inter', sans-serif;
-      background-color: var(--bg-body);
-      color: var(--text-primary);
-      line-height: 1.5;
-    }
-
-    /* Header */
-    .header {
-      background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-      color: white;
-      padding: 14px 20px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      position: sticky;
-      top: 0;
-      z-index: 100;
-    }
-    .header-inner {
-      max-width: 1400px;
-      margin: 0 auto;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .header h1 { font-size: 1.25rem; font-weight: 700; display: flex; align-items: center; gap: 8px; }
-    .header-badges { display: flex; gap: 10px; align-items: center; }
-    .sync-badge, .date-badge {
-      background: rgba(255,255,255,0.12);
-      padding: 4px 10px;
-      border-radius: 20px;
-      font-size: 0.75rem;
-      backdrop-filter: blur(4px);
-    }
-    .sync-badge { color: #38bdf8; }
-    .date-badge { color: #fbbf24; }
-
-    /* Layout Container */
-    .container {
-      max-width: 1400px;
-      margin: 0 auto;
-      padding: 12px 16px 40px;
-    }
-
-    /* Top KPI Summary Cards */
-    .average-delay-cards {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 10px;
-      margin-bottom: 14px;
-    }
-    .average-card {
-      background: var(--bg-card);
-      border-radius: 10px;
-      padding: 10px 14px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-      border: 1px solid var(--border-color);
-      border-left: 4px solid var(--primary-color);
-      cursor: pointer;
-      transition: transform 0.15s ease, box-shadow 0.15s ease;
-    }
-    .average-card:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.08); }
-    .average-card.active-filter { ring: 2px solid var(--primary-color); background: #eff6ff; }
-    .average-card h4 { font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase; font-weight: 600; margin-bottom: 4px; }
-    .average-card .value { font-size: 1.35rem; font-weight: 700; color: var(--text-primary); }
-    .average-card .kpi-sub { font-size: 0.72rem; color: var(--text-secondary); margin-top: 2px; }
-    
-    .kpi-green { border-left-color: var(--success-color); }
-    .kpi-amber { border-left-color: var(--warning-color); }
-    .kpi-purple { border-left-color: #8b5cf6; }
-    .kpi-teal { border-left-color: var(--info-color); }
-
-    /* Filters & Controls */
-    .control-panel {
-      background: var(--bg-card);
-      border-radius: 10px;
-      padding: 12px 14px;
-      margin-bottom: 14px;
-      border: 1px solid var(--border-color);
-      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-    }
-    .filter-section h3 {
-      font-size: 0.85rem;
-      color: var(--text-secondary);
-      margin-bottom: 8px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .filter-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-      gap: 8px;
-    }
-    .filter-group { display: flex; flex-direction: column; gap: 3px; }
-    .filter-group label { font-size: 0.72rem; font-weight: 600; color: var(--text-secondary); }
-    .filter-group select, .filter-group input {
-      padding: 6px 10px;
-      border: 1px solid var(--border-color);
-      border-radius: 6px;
-      font-size: 0.8rem;
-      background-color: #fff;
-      color: var(--text-primary);
-      outline: none;
-    }
-    .filter-group select:focus, .filter-group input:focus { border-color: var(--primary-color); }
-
-    /* View Switcher Tabs */
-    .view-tabs {
-      display: flex;
-      gap: 6px;
-      margin-bottom: 10px;
-      border-bottom: 2px solid var(--border-color);
-      padding-bottom: 4px;
-      overflow-x: auto;
-    }
-    .view-tab {
-      padding: 6px 14px;
-      font-size: 0.8rem;
-      font-weight: 600;
-      color: var(--text-secondary);
-      cursor: pointer;
-      border-radius: 6px 6px 0 0;
-      transition: all 0.2s;
-      white-space: nowrap;
-    }
-    .view-tab:hover { color: var(--primary-color); background: rgba(37, 99, 235, 0.05); }
-    .view-tab.active {
-      color: var(--primary-color);
-      border-bottom: 3px solid var(--primary-color);
-      background: #eff6ff;
-    }
-
-    /* Table Container */
-    .table-container {
-      background: var(--bg-card);
-      border-radius: 10px;
-      border: 1px solid var(--border-color);
-      box-shadow: 0 1px 4px rgba(0,0,0,0.05);
-      overflow-x: auto;
-      max-height: calc(100vh - 280px);
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      text-align: left;
-      font-size: 0.8rem;
-    }
-    th {
-      background: #f1f5f9;
-      padding: 7px 8px;
-      font-weight: 700;
-      color: #334155;
-      position: sticky;
-      top: 0;
-      z-index: 10;
-      border-bottom: 1px solid var(--border-color);
-      white-space: nowrap;
-    }
-    td {
-      padding: 6px 8px;
-      border-bottom: 1px solid var(--border-color);
-      vertical-align: middle;
-      color: var(--text-primary);
-    }
-    tr:hover { background-color: #f8fafc; }
-    
-    /* Badges & Action Buttons */
-    .badge {
-      display: inline-block;
-      padding: 2px 8px;
-      border-radius: 12px;
-      font-size: 0.7rem;
-      font-weight: 600;
-      text-transform: uppercase;
-    }
-    .badge-visited { background: #dcfce7; color: #15803d; }
-    .badge-pending { background: #fef3c7; color: #b45309; }
-    .badge-paid { background: #ccfbf1; color: #0f766e; }
-    .badge-live { background: #dbeafe; color: #1e40af; }
-    .badge-discon { background: #ffedd5; color: #c2410c; }
-    .badge-notfound { background: #f3e8ff; color: #6b21a8; }
-    .badge-othersource { background: #fce7f3; color: #be185d; }
-
-    .btn-small {
-      padding: 4px 10px;
-      font-size: 0.72rem;
-      font-weight: 600;
-      border-radius: 4px;
-      border: 1px solid var(--primary-color);
-      color: var(--primary-color);
-      background: transparent;
-      cursor: pointer;
-      transition: all 0.15s;
-    }
-    .btn-small:hover { background: var(--primary-color); color: #fff; }
-    .btn-solid { background: var(--primary-color); color: #fff; }
-    .btn-solid:hover { background: var(--primary-hover); }
-    .btn-success { border-color: var(--success-color); color: var(--success-color); }
-    .btn-success:hover { background: var(--success-color); color: #fff; }
-
-    /* Modal Overlay & Card */
-    .modal {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(15, 23, 42, 0.6);
-      backdrop-filter: blur(4px);
-      z-index: 1000;
-      align-items: center;
-      justify-content: center;
-      padding: 16px;
-    }
-    .modal.open { display: flex; }
-    .modal-content {
-      background: #fff;
-      border-radius: 12px;
-      width: 100%;
-      max-width: 640px;
-      max-height: 90vh;
-      display: flex;
-      flex-direction: column;
-      box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
-      overflow: hidden;
-    }
-    .modal-header {
-      padding: 14px 18px;
-      background: #f8fafc;
-      border-bottom: 1px solid var(--border-color);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .modal-header h3 { font-size: 1rem; font-weight: 700; color: var(--text-primary); }
-    .modal-body { padding: 16px 18px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
-    
-    .consumer-summary-box {
-      background: #f1f5f9;
-      border-left: 4px solid var(--primary-color);
-      padding: 10px 12px;
-      border-radius: 6px;
-      font-size: 0.8rem;
-    }
-
-    /* Uneditable Timeline Styling */
-    .timeline-section-title {
-      font-size: 0.8rem;
-      font-weight: 700;
-      color: var(--text-secondary);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      margin-top: 4px;
-    }
-    .timeline-container {
-      max-height: 220px;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      padding-right: 4px;
-    }
-    .timeline-card {
-      background: #f8fafc;
-      border: 1px solid #e2e8f0;
-      border-left: 4px solid var(--primary-color);
-      border-radius: 8px;
-      padding: 10px 12px;
-      position: relative;
-    }
-    .timeline-card.status-Paid { border-left-color: var(--success-color); background: #f0fdf4; }
-    .timeline-card.status-Found-Live { border-left-color: #3b82f6; }
-    .timeline-card.status-Found-Disconnected { border-left-color: #f59e0b; }
-    .timeline-card-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 4px;
-    }
-    .timeline-date { font-weight: 700; font-size: 0.8rem; color: var(--text-primary); }
-    .timeline-by { font-size: 0.78rem; font-weight: 600; color: var(--primary-color); }
-    .timeline-visitor { font-size: 0.75rem; color: #334155; font-weight: 600; }
-    .timeline-remarks {
-      font-size: 0.75rem;
-      color: var(--text-secondary);
-      background: rgba(255,255,255,0.7);
-      padding: 6px 8px;
-      border-radius: 4px;
-      margin-top: 4px;
-      border: 1px solid rgba(0,0,0,0.05);
-      white-space: pre-wrap;
-    }
-
-    .form-group { display: flex; flex-direction: column; gap: 4px; }
-    .form-group label { font-size: 0.78rem; font-weight: 600; color: var(--text-primary); }
-    .form-group input, .form-group select, .form-group textarea {
-      padding: 7px 10px;
-      border: 1px solid var(--border-color);
-      border-radius: 6px;
-      font-size: 0.8rem;
-      font-family: inherit;
-    }
-    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-
-    /* Pagination controls */
-    .pagination-controls {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 10px 14px;
-      background: #fff;
-      border-top: 1px solid var(--border-color);
-      border-radius: 0 0 10px 10px;
-      font-size: 0.78rem;
-    }
-
-    /* Toast Notification */
-    .toast {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      background: #1e293b;
-      color: #fff;
-      padding: 10px 16px;
-      border-radius: 8px;
-      box-shadow: 0 10px 15px -3px rgba(0,0,0,0.2);
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-size: 0.82rem;
-      z-index: 2000;
-      transform: translateY(100px);
-      opacity: 0;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-    .toast.show { transform: translateY(0); opacity: 1; }
-
-    @media (max-width: 768px) {
-      .container { width: 96%; padding: 8px 0 24px; }
-      .average-delay-cards { grid-template-columns: repeat(2, 1fr); gap: 6px; }
-      .average-card { padding: 6px 8px; }
-      .average-card h4 { font-size: 0.62rem; }
-      .average-card .value { font-size: 1.05rem; }
-      .filter-grid { grid-template-columns: repeat(2, 1fr); gap: 6px; }
-      .table-container { max-height: calc(100vh - 240px); }
-      th { padding: 5px 6px; font-size: 9px; }
-      td { padding: 4px 6px; font-size: 11px; }
-      .form-row { grid-template-columns: 1fr; gap: 8px; }
-    }
+    .dv { padding: 4px 20px 28px; }
+    .dv h4 { margin: 10px 0 10px; font-size: 13px; font-weight: 600; }
+    .dv form { display: grid; gap: 8px; margin-bottom: 16px; }
+    .dv .two { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .dv .ui-input, .dv select { width: 100%; max-width: none; }
+    .dv .ui-input { padding: 0 10px; }
+    .dv textarea.ui-input { height: 64px; padding: 8px 10px; resize: vertical; }
+    .dv label { display: grid; gap: 4px; font-size: 12px; color: var(--mzo-muted); }
+    .dv-item { padding: 10px 0; border-top: 1px solid var(--mzo-border); font-size: 13px; }
+    .dv-item .h { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .dv-item .m { margin-top: 2px; font-size: 12px; color: var(--mzo-muted); }
+    .dv-item p { margin: 4px 0 0; color: var(--mzo-text-2); }
   </style>
 </head>
 <body>
-
-  <!-- Header -->
-  <header class="header">
-    <div class="header-inner">
+  <main class="ui-page">
+    <header class="ui-head">
       <div>
-        <h1><i class="fas fa-clipboard-check text-primary"></i> DD Visit & Follow-Up Dashboard</h1>
+        <h1>DD visit</h1>
+        <p id="meta">Loading…</p>
       </div>
-      <div class="header-badges">
-        <div class="sync-badge" id="syncBadge">
-          <i class="fas fa-sync-alt fa-spin"></i> Loading Data...
-        </div>
-        <div class="date-badge">
-          <i class="far fa-calendar-alt"></i> <span id="reportDateBadge">Report OSD Date: --</span>
-        </div>
+      <div class="ui-actions">
+        <button type="button" class="ui-btn icon" id="refreshBtn" aria-label="Refresh" title="Refresh"><svg class="ui-i"><use href="#ui-refresh"/></svg></button>
       </div>
-    </div>
-  </header>
+    </header>
 
-  <div class="container">
-
-    <!-- KPI Cards -->
-    <div class="average-delay-cards">
-      <div class="average-card" id="kpiCardTotal" onclick="filterByKpi('ALL')">
-        <h4><i class="fas fa-users"></i> Total DD Consumers</h4>
-        <div class="value" id="kpiValTotal">0</div>
-        <div class="kpi-sub" id="kpiSubTotal">0 ₹ Cr OSD Arrears</div>
-      </div>
-      <div class="average-card kpi-green" id="kpiCardVisited" onclick="filterByKpi('VISITED')">
-        <h4><i class="fas fa-check-circle"></i> Visited / Followed Up</h4>
-        <div class="value" id="kpiValVisited">0</div>
-        <div class="kpi-sub" id="kpiSubVisited">0% coverage</div>
-      </div>
-      <div class="average-card kpi-amber" id="kpiCardPending" onclick="filterByKpi('PENDING')">
-        <h4><i class="fas fa-clock"></i> Pending Visit</h4>
-        <div class="value" id="kpiValPending">0</div>
-        <div class="kpi-sub" id="kpiSubPending">Not yet visited</div>
-      </div>
-      <div class="average-card kpi-teal" id="kpiCardPaid" onclick="filterByKpi('PAID')">
-        <h4><i class="fas fa-rupee-sign"></i> Paid / Recovered</h4>
-        <div class="value" id="kpiValPaid">0</div>
-        <div class="kpi-sub" id="kpiSubPaid">₹ 0 Collected</div>
-      </div>
-      <div class="average-card kpi-purple" id="kpiCardOffsheet" onclick="filterByKpi('OFFSHEET')">
-        <h4><i class="fas fa-history"></i> Off-Sheet History</h4>
-        <div class="value" id="kpiValOffsheet">0</div>
-        <div class="kpi-sub" id="kpiSubOffsheet">Saved past consumers</div>
-      </div>
+    <div class="ui-filters">
+      <label class="ui-search"><svg class="ui-i"><use href="#ui-search"/></svg><input class="ui-input" id="q" type="search" placeholder="Consumer ID, name, mobile or address" autocomplete="off" /></label>
+      <span class="ui-select"><select id="regionFilter" aria-label="Region"><option value="">All regions</option></select></span>
+      <span class="ui-select"><select id="divisionFilter" aria-label="Division"><option value="">All divisions</option></select></span>
+      <span class="ui-select"><select id="cccFilter" aria-label="CCC"><option value="">All CCCs</option></select></span>
+      <span class="ui-select"><select id="classFilter" aria-label="Class"><option value="">All classes</option></select></span>
+      <span class="ui-select"><select id="catFilter" aria-label="Area"><option value="">Rural and urban</option><option value="R">Rural</option><option value="U">Urban</option></select></span>
+      <span class="ui-select"><select id="osdFilter" aria-label="Outstanding"><option value="">Any outstanding</option><option value="25000">Over ₹25,000</option><option value="50000">Over ₹50,000</option><option value="100000">Over ₹1 lakh</option><option value="200000">Over ₹2 lakh</option></select></span>
+      <button type="button" class="ui-btn ghost" id="clearBtn" hidden><svg class="ui-i"><use href="#ui-x"/></svg>Clear</button>
     </div>
 
-    <!-- Control Panel -->
-    <div class="control-panel">
-      <div class="filter-section">
-        <h3>
-          <span><i class="fas fa-sliders-h"></i> Hierarchy Filters & Search</span>
-          <button class="btn-small" onclick="resetFilters()"><i class="fas fa-undo"></i> Reset Filters</button>
-        </h3>
-        <div class="filter-grid">
-          <div class="filter-group" style="grid-column: span 2;">
-            <label>Search Consumer / ID / Mobile</label>
-            <input type="text" id="searchInput" placeholder="Search by CON_ID, Name, Mobile, Address..." oninput="applyFilters()" />
-          </div>
-          <div class="filter-group">
-            <label>Region</label>
-            <select id="regionFilter" onchange="onRegionChange()">
-              <option value="">All Regions</option>
-            </select>
-          </div>
-          <div class="filter-group">
-            <label>Division</label>
-            <select id="divisionFilter" onchange="onDivisionChange()">
-              <option value="">All Divisions</option>
-            </select>
-          </div>
-          <div class="filter-group">
-            <label>CCC Office</label>
-            <select id="cccFilter" onchange="applyFilters()">
-              <option value="">All CCC Offices</option>
-            </select>
-          </div>
-          <div class="filter-group">
-            <label>Category</label>
-            <select id="catFilter" onchange="applyFilters()">
-              <option value="">All Categories</option>
-            </select>
-          </div>
-          <div class="filter-group">
-            <label>Visit Status</label>
-            <select id="statusFilter" onchange="applyFilters()">
-              <option value="">All Consumers</option>
-              <option value="VISITED">All Visited / Followed Up</option>
-              <option value="PENDING">Pending Visit</option>
-              <option value="Found Live">Found Live</option>
-              <option value="Found Disconnected">Found Disconnected</option>
-              <option value="Premises Not Found">Premises Not Found</option>
-              <option value="Using Power form other source">Using Power from other source</option>
-              <option value="Paid">Paid</option>
-              <option value="OFFSHEET">Off-Sheet History Only</option>
-            </select>
-          </div>
-          <div class="filter-group">
-            <label>Min OSD Arrears (₹)</label>
-            <select id="osdFilter" onchange="applyFilters()">
-              <option value="0">All OSD Amounts</option>
-              <option value="25000">> ₹ 25,000</option>
-              <option value="50000">> ₹ 50,000</option>
-              <option value="100000">> ₹ 1,00,000</option>
-              <option value="200000">> ₹ 2,00,000</option>
-            </select>
+    <section class="ui-stats" style="--n:5" id="stats" aria-label="Summary">
+      <button type="button" class="ui-stat" data-k=""><div class="k">DD consumers</div><div class="v"><span class="ui-skel"></span></div><div class="s">&nbsp;</div></button>
+      <button type="button" class="ui-stat" data-k="visited"><div class="k"><span class="ui-dot ok"></span>Visited</div><div class="v"><span class="ui-skel"></span></div><div class="s">&nbsp;</div></button>
+      <button type="button" class="ui-stat" data-k="pending"><div class="k"><span class="ui-dot warn"></span>Not visited</div><div class="v"><span class="ui-skel"></span></div><div class="s">&nbsp;</div></button>
+      <button type="button" class="ui-stat" data-k="Paid"><div class="k">Paid after visit</div><div class="v"><span class="ui-skel"></span></div><div class="s">&nbsp;</div></button>
+      <div class="ui-stat"><div class="k">Off-sheet history</div><div class="v" id="sOff">—</div><div class="s">Visited, no longer on sheet</div></div>
+    </section>
+
+    <div class="ui-grid">
+      <section class="ui-panel">
+        <div class="ui-panel-h">
+          <h2>By office</h2>
+          <div class="ui-tabs" role="tablist" id="levelTabs">
+            <button type="button" class="ui-tab" role="tab" data-l="region" aria-selected="true">Region</button>
+            <button type="button" class="ui-tab" role="tab" data-l="division">Division</button>
+            <button type="button" class="ui-tab" role="tab" data-l="ccc">CCC</button>
           </div>
         </div>
-      </div>
+        <div id="officeTable" style="--max-h:520px"><div class="ui-empty">Loading…</div></div>
+      </section>
+      <section class="ui-panel">
+        <div class="ui-panel-h"><h2>Visit outcome</h2></div>
+        <div class="ui-panel-b"><div id="outcomeHist"></div></div>
+      </section>
     </div>
 
-    <!-- View Switcher Tabs -->
-    <div class="view-tabs">
-      <div class="view-tab active" id="tabMainTable" onclick="switchTab('table')">
-        <i class="fas fa-list"></i> Main Data Sheet (<span id="countActiveSheet">0</span>)
-      </div>
-      <div class="view-tab" id="tabHistoryLog" onclick="switchTab('history')">
-        <i class="fas fa-history"></i> Follow-Up History Log (<span id="countHistory">0</span>)
-      </div>
-      <div class="view-tab" id="tabRegionSummary" onclick="switchTab('region_summary')">
-        <i class="fas fa-globe"></i> Region Summary
-      </div>
-      <div class="view-tab" id="tabDivSummary" onclick="switchTab('div_summary')">
-        <i class="fas fa-building"></i> Division Summary
-      </div>
-      <div class="view-tab" id="tabCccSummary" onclick="switchTab('ccc_summary')">
-        <i class="fas fa-store"></i> CCC Summary
-      </div>
-      <button class="btn-small btn-success" style="margin-left: auto;" onclick="exportToCSV()">
-        <i class="fas fa-file-excel"></i> Export CSV
-      </button>
-    </div>
-
-    <!-- Table Container -->
-    <div class="table-container" id="tableContainer">
-      <table id="ddTable">
-        <thead>
-          <tr id="tableHeaderRow">
-            <th>SL</th>
-            <th>CON ID</th>
-            <th>Name & Address</th>
-            <th>CCC Office</th>
-            <th>Cat</th>
-            <th>OSD (₹)</th>
-            <th>Load</th>
-            <th>Discon Dt</th>
-            <th>Mobile</th>
-            <th>Status</th>
-            <th>Visit Details</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody id="tableBody">
-          <!-- Rows injected dynamically -->
-        </tbody>
-      </table>
-    </div>
-
-    <!-- Pagination -->
-    <div class="pagination-controls" id="paginationControls">
-      <span id="pageInfo">Showing 0 to 0 of 0 entries</span>
-      <div>
-        <button id="btnPrev" onclick="changePage(-1)" disabled><i class="fas fa-chevron-left"></i> Prev</button>
-        <span id="currentPageNum" style="margin: 0 8px; font-weight: 700;">1</span>
-        <button id="btnNext" onclick="changePage(1)" disabled>Next <i class="fas fa-chevron-right"></i></button>
-      </div>
-    </div>
-
-  </div>
-
-  <!-- Follow-Up Modal -->
-  <div class="modal" id="followUpModal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h3><i class="fas fa-user-edit text-primary"></i> DD Visit Follow-Up & Timeline</h3>
-        <button style="background:none; border:none; font-size:20px; cursor:pointer;" onclick="closeModal()">&times;</button>
-      </div>
-      <div class="modal-body">
-        
-        <div class="consumer-summary-box" id="modalConsumerBanner">
-          <!-- Banner filled dynamically -->
+    <section class="ui-panel">
+      <div class="ui-panel-h">
+        <div class="ui-tabs" role="tablist" id="listTabs">
+          <button type="button" class="ui-tab" role="tab" data-v="sheet" aria-selected="true">Consumers <span id="cSheet"></span></button>
+          <button type="button" class="ui-tab" role="tab" data-v="history">Visit history <span id="cHist"></span></button>
         </div>
-
-        <!-- Uneditable Timeline History -->
-        <div class="timeline-section-title">
-          <i class="fas fa-history text-primary"></i> Visit & Follow-Up History Timeline
-        </div>
-        <div class="timeline-container" id="modalTimelineContainer">
-          <!-- Rendered dynamically -->
-        </div>
-
-        <!-- Add New Visit Entry Form -->
-        <form id="followUpForm" onsubmit="saveFollowUp(event)" style="border-top: 1px solid var(--border-color); padding-top: 10px;">
-          <input type="hidden" id="modalConId" />
-
-          <div style="font-weight:700; font-size:0.8rem; color:var(--primary-color); margin-bottom:8px;">
-            <i class="fas fa-plus-circle"></i> Add New Visit / Follow-Up Entry
-          </div>
-
-          <div class="form-row">
-            <div class="form-group">
-              <label>Date of Visit *</label>
-              <input type="date" id="modalVisitDate" required />
-            </div>
-            <div class="form-group">
-              <label>Visited By Office *</label>
-              <select id="modalVisitBySelect" onchange="handleVisitByChange()">
-                <option value="ZM Office">ZM Office</option>
-                <option value="RM Office">RM Office</option>
-                <option value="DM Office">DM Office</option>
-                <option value="CCC">CCC</option>
-                <option value="Other">Other (Specify Level)</option>
-              </select>
-              <input type="text" id="modalVisitByCustom" placeholder="Enter Office / Level..." style="display:none; margin-top:4px;" />
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label>Name of Visitor / Official *</label>
-            <input type="text" id="modalVisitorName" placeholder="Enter Official's Name (e.g. A. K. Roy, DE / SDO)..." required />
-          </div>
-
-          <div class="form-group">
-            <label>Visit Status *</label>
-            <select id="modalStatus" required onchange="handleStatusChange()">
-              <option value="Found Live">Found Live</option>
-              <option value="Found Disconnected">Found Disconnected</option>
-              <option value="Premises Not Found">Premises Not Found</option>
-              <option value="Using Power form other source">Using Power form other source</option>
-              <option value="Paid">Paid</option>
-            </select>
-          </div>
-
-          <!-- Conditional Container for Paid Status -->
-          <div id="paidFieldsContainer" style="display: none; background: #ecfdf5; padding: 10px; border-radius: 6px; border: 1px solid #a7f3d0; margin-bottom: 10px;">
-            <div class="form-row">
-              <div class="form-group" style="margin-bottom:0;">
-                <label style="color:#047857;">Amount Paid (₹) *</label>
-                <input type="number" step="0.01" id="modalPaidAmount" placeholder="e.g. 15000" />
-              </div>
-              <div class="form-group" style="margin-bottom:0;">
-                <label style="color:#047857;">Payment Date / Entry Date *</label>
-                <input type="date" id="modalPaidDate" />
-              </div>
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label>General Remarks / Observations</label>
-            <textarea id="modalRemarks" rows="2" placeholder="Enter remarks, action plan, promise date, or field notes..."></textarea>
-          </div>
-
-          <div class="modal-footer" style="padding: 10px 0 0; background: none; border-top: none; display:flex; justify-content:flex-end; gap:8px;">
-            <button type="button" class="btn-small" onclick="closeModal()">Cancel</button>
-            <button type="submit" class="btn-small btn-solid">
-              <i class="fas fa-plus-circle"></i> Add Visit Entry to Timeline
-            </button>
-          </div>
-        </form>
-
+        <button type="button" class="ui-btn sm" id="exportBtn"><svg class="ui-i"><use href="#ui-download"/></svg>Export CSV</button>
       </div>
-    </div>
-  </div>
-
-  <!-- Toast -->
-  <div class="toast" id="toastMsg">
-    <i class="fas fa-check-circle text-success"></i> <span id="toastText">Record updated successfully!</span>
-  </div>
+      <div id="listTable"><div class="ui-empty">Loading…</div></div>
+    </section>
+  </main>
 
   <script>
-    const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSCKEl95dh4kyG-QPJbFJ5x7U7yo7h5bJGuMewsMr2hjMAlCj7UWxqvL_a-2hdyQd-laI8BAX3hU5_T/pub?gid=0&single=true&output=csv';
-    const SYNC_ENDPOINT = 'https://script.google.com/macros/s/AKfycbxgrKdt--yXk4A3_jL8PS6Z5kYXohHVNA3GKxq2jss8TVgqfvJdff_jFDwjj8Gxcdv00Q/exec';
-    const STORAGE_KEY = 'dd_visit_followups_v1';
+  document.addEventListener('DOMContentLoaded', function () {
+    'use strict';
+    var $ = function (id) { return document.getElementById(id); };
+    var SYNC = 'https://script.google.com/macros/s/AKfycbxgrKdt--yXk4A3_jL8PS6Z5kYXohHVNA3GKxq2jss8TVgqfvJdff_jFDwjj8Gxcdv00Q/exec';
+    var STORE = 'dd_visit_followups_v1';
+    var CLASS = { D: 'Domestic', C: 'Commercial', A: 'Agriculture', I: 'Industrial', W: 'Water works', P: 'Public' };
+    var OUTCOMES = ['Found Live', 'Found Disconnected', 'Premises Not Found', 'Using Power form other source', 'Paid'];
+    var OUT_LABEL = { 'Using Power form other source': 'Power from other source' };
+    var HIST_LABEL = { 'Found Live': 'Found live', 'Found Disconnected': 'Disconnected', 'Premises Not Found': 'Not found', 'Using Power form other source': 'Other source', Paid: 'Paid' };
+    var all = [], visits = {}, stat = '', outcome = '', level = 'region', view = 'sheet', osdDate = '', scope = null;
 
-    // Check if signed-in user is an Admin
-    function isAdminUser() {
-      try {
-        const profile = JSON.parse(localStorage.getItem('mzo_user_profile') || '{}') || {};
-        return String(profile.role || profile.Role || '').trim().toLowerCase() === 'admin';
-      } catch (e) {
-        return false;
-      }
+    function isAdmin() { try { var p = JSON.parse(localStorage.getItem('mzo_user_profile') || '{}') || {}; return String(p.role || p.Role || '').trim().toLowerCase() === 'admin'; } catch (e) { return false; } }
+    function loadLocal() { try { visits = JSON.parse(localStorage.getItem(STORE) || '{}') || {}; } catch (e) { visits = {}; } }
+    function saveLocal() { try { localStorage.setItem(STORE, JSON.stringify(visits)); } catch (e) {} }
+    function ymd(s) { s = String(s || '').trim(); return /^\d{8}$/.test(s) ? new Date(+s.slice(0, 4), +s.slice(4, 6) - 1, +s.slice(6, 8)) : null; }
+    function osdOf(r) { return parseFloat(r.TOTAL_OSD || r.OUTSTANDING) || 0; }
+
+    // Visit history: every record ever saved, newest timeline entry first. Older records have no history array.
+    function history(rec) {
+      if (!rec) return [];
+      var list = Array.isArray(rec.history) ? rec.history.slice() : [];
+      if (!list.length && rec.visitDate) list = [{ id: 'v_legacy_' + rec.conId, visitDate: rec.visitDate, visitByOffice: rec.visitBy || 'Official', visitorName: rec.visitorName || '', visitBy: rec.visitBy || '', status: rec.status || 'Visited', paidAmount: rec.paidAmount || '', paidDate: rec.paidDate || '', remarks: rec.remarks || '', createdAt: rec.updatedAt }];
+      return list;
     }
 
-    // Hierarchy Mapping
-    const HIER = {
-      "6610000": { name: "MALDA REGION", divisions: {
-        "6611000": { name: "MALDA DIVISION", cccs: {"6611101":"MANIKCHAK","6611102":"GOLAPGANJ","6611103":"BAISHNABNAGAR","6611104":"KALIACHAK","6611105":"MOTHABARI","6611106":"SUJAPUR","6611107":"RATHBARI","6611108":"FULBARI","6611109":"MOKDUMPUR"}},
-        "6612000": { name: "CHANCHAL DIVISION", cccs: {"6612101":"BHALUKA","6612102":"SAMSI","6612103":"PARANPUR","6612104":"CHANCHAL","6612105":"MALATIPUR","6612106":"HARISHCHANDRAPUR","6612107":"KUSHIDA"}},
-        "6613000": { name: "GAZOLE DIVISION", cccs: {"6613101":"GAZOL","6613102":"AIHO","6613103":"PANDUA","6613104":"BAMONGOLA","6613105":"OLD MALDA"}}
-      }},
-      "6620000": { name: "UTTAR DINAJPUR REGION", divisions: {
-        "6621000": { name: "RAIGANJ DIVISION", cccs: {"6621101":"ITAHAR","6621102":"HEMTABAD","6621103":"KALIYAGANJ","6621104":"RAIGANJ","6621105":"BIRNAGAR","6621106":"KARANDIGHI"}},
-        "6622000": { name: "ISLAMPUR DIVISION", cccs: {"6622101":"ISLAMPUR","6622102":"CHOPRA","6622103":"DALKHOLA","6622104":"GOALPOKHER","6622105":"KANKI"}}
-      }},
-      "6630000": { name: "DAKSHIN DINAJPUR REGION", divisions: {
-        "6631000": { name: "BALURGHAT DIVISION", cccs: {"6631101":"BALURGHAT","6631102":"TAPAN","6631103":"KUMARGANJ","6631104":"HILI","6631105":"PATIRAM"}},
-        "6632000": { name: "BUNIADPUR DIVISION", cccs: {"6632101":"BUNIADPUR","6632102":"KUSMANDI","6632103":"HARIRAMPUR","6632104":"GANGARAMPUR"}}
-      }}
-    };
-
-    let cccLookup = {};
-    Object.keys(HIER).forEach(regId => {
-      const reg = HIER[regId];
-      Object.keys(reg.divisions).forEach(divId => {
-        const div = reg.divisions[divId];
-        Object.keys(div.cccs).forEach(cccCode => {
-          cccLookup[cccCode] = {
-            cccName: div.cccs[cccCode],
-            divName: div.name,
-            regName: reg.name
-          };
-        });
-      });
-    });
-
-    // Application State
-    let allRawData = [];
-    let filteredData = [];
-    let followUpMap = {}; // Keyed by CON_ID
-    let currentPage = 1;
-    const pageSize = 25;
-    let activeTab = 'table';
-    let reportOsdDate = '--';
-
-    // Global Initialization
-    document.addEventListener('DOMContentLoaded', async () => {
-      loadLocalFollowUps();
-      await fetchDDVisitCSV();
-      fetchRemoteFollowUps();
-    });
-
-    // Load Local Storage Follow-Ups
-    function loadLocalFollowUps() {
-      try {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        if (raw) {
-          followUpMap = JSON.parse(raw) || {};
-        }
-      } catch (e) {
-        followUpMap = {};
-      }
-    }
-
-    // Save Local Storage Follow-Ups
-    function saveLocalFollowUps() {
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(followUpMap));
-      } catch (e) {}
-    }
-
-    // Fetch Main DD Visit Consumer CSV
-    async function fetchDDVisitCSV() {
-      const badge = document.getElementById('syncBadge');
-      try {
-        badge.innerHTML = '<i class="fas fa-sync-alt fa-spin"></i> Fetching CSV...';
-
-        let csvText = '';
-        if (window.mzoDataHub && typeof window.mzoDataHub.get === 'function') {
-          csvText = await window.mzoDataHub.get('CACHE_DD_VISIT');
-        }
-
-        if (!csvText) {
-          const res = await fetch(CSV_URL);
-          csvText = await res.text();
-        }
-
-        parseDDCSV(csvText);
-        badge.innerHTML = '<i class="fas fa-check-circle"></i> Data Ready';
-        badge.style.color = '#4ade80';
-      } catch (err) {
-        console.error('Error fetching DD Visit CSV:', err);
-        badge.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Load Failed';
-        badge.style.color = '#f87171';
-      }
-    }
-
-    // Parse CSV Content
-    function parseDDCSV(csvText) {
-      Papa.parse(csvText, {
-        header: true,
-        skipEmptyLines: true,
-        dynamicTyping: false,
-        complete: (results) => {
-          allRawData = (results.data || []).map(r => {
-            const cccCode = String(r.CCC_CODE || r.CCC || '').trim();
-            const lookup = cccLookup[cccCode] || {};
-            return {
-              ...r,
-              CON_ID: String(r.CON_ID || r.CONSUMER_ID || '').trim(),
-              CCC_CODE: cccCode,
-              _regionName: lookup.regName || 'Other Region',
-              _divisionName: lookup.divName || 'Other Division',
-              _cccName: lookup.cccName || (`CCC ${cccCode}`)
-            };
-          }).filter(r => r.CON_ID);
-
-          if (allRawData.length > 0 && allRawData[0].OSD_DATE) {
-            reportOsdDate = allRawData[0].OSD_DATE;
-            document.getElementById('reportDateBadge').textContent = `Report OSD Date: ${reportOsdDate}`;
-          }
-
-          populateFilters();
-          processData();
-        }
-      });
-    }
-
-    // Fetch Remote Apps Script Follow-Up Sync Data
-    async function fetchRemoteFollowUps() {
-      try {
-        const res = await fetch(`${SYNC_ENDPOINT}?t=${Date.now()}`);
-        if (res.ok) {
-          const json = await res.json();
-          if (json && json.status === 'success' && json.data) {
-            Object.keys(json.data).forEach(conId => {
-              const remoteRec = json.data[conId];
-              const localRec = followUpMap[conId];
-
-              if (!localRec || new Date(remoteRec.updatedAt || 0) > new Date(localRec.updatedAt || 0)) {
-                followUpMap[conId] = remoteRec;
-              }
-            });
-            saveLocalFollowUps();
-            applyFilters();
-          }
-        }
-      } catch (e) {
-        console.warn('Remote sync fetch skipped', e);
-      }
-    }
-
-    // Populate Region & Hierarchy Filters
-    function populateFilters() {
-      const regionSelect = document.getElementById('regionFilter');
-      const regions = new Set(allRawData.map(r => r._regionName).filter(Boolean));
-      
-      regionSelect.innerHTML = '<option value="">All Regions</option>';
-      Array.from(regions).sort().forEach(reg => {
-        const opt = document.createElement('option');
-        opt.value = reg;
-        opt.textContent = reg;
-        regionSelect.appendChild(opt);
-      });
-
-      onRegionChange();
-    }
-
-    function onRegionChange() {
-      const selectedReg = document.getElementById('regionFilter').value;
-      const divSelect = document.getElementById('divisionFilter');
-
-      const divisions = new Set();
-      allRawData.forEach(r => {
-        if (!selectedReg || r._regionName === selectedReg) {
-          if (r._divisionName) divisions.add(r._divisionName);
-        }
-      });
-
-      divSelect.innerHTML = '<option value="">All Divisions</option>';
-      Array.from(divisions).sort().forEach(div => {
-        const opt = document.createElement('option');
-        opt.value = div;
-        opt.textContent = div;
-        divSelect.appendChild(opt);
-      });
-
-      onDivisionChange();
-    }
-
-    function onDivisionChange() {
-      const selectedReg = document.getElementById('regionFilter').value;
-      const selectedDiv = document.getElementById('divisionFilter').value;
-      const cccSelect = document.getElementById('cccFilter');
-
-      const cccs = new Set();
-      allRawData.forEach(r => {
-        if ((!selectedReg || r._regionName === selectedReg) &&
-            (!selectedDiv || r._divisionName === selectedDiv) && r.CCC_CODE) {
-          cccs.add(r.CCC_CODE);
-        }
-      });
-
-      cccSelect.innerHTML = '<option value="">All CCC Offices</option>';
-      Array.from(cccs).sort().forEach(ccc => {
-        const info = cccLookup[ccc];
-        const label = info ? `${info.cccName} (${ccc})` : `CCC ${ccc}`;
-        const opt = document.createElement('option');
-        opt.value = ccc;
-        opt.textContent = label;
-        cccSelect.appendChild(opt);
-      });
-
-      applyFilters();
-    }
-
-    // Process Categories
-    function processData() {
-      const catSet = new Set(allRawData.map(r => r.CATEGORY).filter(Boolean));
-      const catSelect = document.getElementById('catFilter');
-      const curCat = catSelect.value;
-      catSelect.innerHTML = '<option value="">All Categories</option>';
-      Array.from(catSet).sort().forEach(c => {
-        const opt = document.createElement('option');
-        opt.value = c;
-        opt.textContent = `Category ${c}`;
-        catSelect.appendChild(opt);
-      });
-      catSelect.value = curCat;
-
-      applyFilters();
-    }
-
-    // Apply Filters & Update KPIs
-    function applyFilters() {
-      const q = document.getElementById('searchInput').value.toLowerCase().trim();
-      const region = document.getElementById('regionFilter').value;
-      const division = document.getElementById('divisionFilter').value;
-      const ccc = document.getElementById('cccFilter').value;
-      const cat = document.getElementById('catFilter').value;
-      const status = document.getElementById('statusFilter').value;
-      const minOsd = parseFloat(document.getElementById('osdFilter').value) || 0;
-
-      const activeConIds = new Set(allRawData.map(r => r.CON_ID));
-      const offSheetRecords = [];
-      Object.keys(followUpMap).forEach(conId => {
-        if (!activeConIds.has(conId)) {
-          offSheetRecords.push(followUpMap[conId]);
-        }
-      });
-
-      document.getElementById('countHistory').textContent = Object.keys(followUpMap).length;
-      document.getElementById('countActiveSheet').textContent = allRawData.length;
-      document.getElementById('kpiValOffsheet').textContent = offSheetRecords.length;
-
-      if (activeTab === 'history') {
-        let historyList = Object.values(followUpMap);
-        if (q) {
-          historyList = historyList.filter(item => 
-            (item.conId && item.conId.toLowerCase().includes(q)) ||
-            (item.consumerName && item.consumerName.toLowerCase().includes(q)) ||
-            (item.remarks && item.remarks.toLowerCase().includes(q)) ||
-            (item.visitBy && item.visitBy.toLowerCase().includes(q)) ||
-            (item.visitorName && item.visitorName.toLowerCase().includes(q))
-          );
-        }
-        filteredData = historyList;
-      } else {
-        filteredData = allRawData.filter(r => {
-          const conId = r.CON_ID || '';
-          const name = r.NAME || '';
-          const mobile = r.REG_MOB_NO || '';
-          const addr = r.ADDRESS || '';
-          const osd = parseFloat(r.TOTAL_OSD || r.OUTSTANDING) || 0;
-          const rec = followUpMap[conId];
-
-          if (q && !(conId.toLowerCase().includes(q) || name.toLowerCase().includes(q) || mobile.toLowerCase().includes(q) || addr.toLowerCase().includes(q))) {
-            return false;
-          }
-          if (region && r._regionName !== region) return false;
-          if (division && r._divisionName !== division) return false;
-          if (ccc && r.CCC_CODE !== ccc) return false;
-          if (cat && r.CATEGORY !== cat) return false;
-          if (minOsd > 0 && osd < minOsd) return false;
-
-          if (status === 'VISITED' && !rec) return false;
-          if (status === 'PENDING' && rec) return false;
-          if (status && status !== 'VISITED' && status !== 'PENDING' && status !== 'OFFSHEET') {
-            if (!rec || rec.status !== status) return false;
-          }
-          if (status === 'OFFSHEET') return false;
-
-          return true;
-        });
-      }
-
-      updateKPIs();
-      currentPage = 1;
-      renderTable();
-    }
-
-    // Update Top KPI Cards
-    function updateKPIs() {
-      let totalCount = allRawData.length;
-      let totalOsdSum = 0;
-      let visitedCount = 0;
-      let paidCount = 0;
-      let paidSum = 0;
-
-      allRawData.forEach(r => {
-        const osd = parseFloat(r.TOTAL_OSD || r.OUTSTANDING) || 0;
-        totalOsdSum += osd;
-        const rec = followUpMap[r.CON_ID];
-        if (rec) {
-          visitedCount++;
-          if (rec.status === 'Paid') {
-            paidCount++;
-            paidSum += parseFloat(rec.paidAmount) || 0;
-          }
-        }
-      });
-
-      const osdCr = (totalOsdSum / 10000000).toFixed(2);
-      const pendingCount = totalCount - visitedCount;
-      const covPct = totalCount > 0 ? ((visitedCount / totalCount) * 100).toFixed(1) : '0';
-
-      document.getElementById('kpiValTotal').textContent = totalCount.toLocaleString('en-IN');
-      document.getElementById('kpiSubTotal').textContent = `₹ ${osdCr} Cr Total OSD`;
-
-      document.getElementById('kpiValVisited').textContent = visitedCount.toLocaleString('en-IN');
-      document.getElementById('kpiSubVisited').textContent = `${covPct}% Coverage`;
-
-      document.getElementById('kpiValPending').textContent = pendingCount.toLocaleString('en-IN');
-      document.getElementById('kpiSubPending').textContent = `Remaining Consumers`;
-
-      document.getElementById('kpiValPaid').textContent = paidCount.toLocaleString('en-IN');
-      document.getElementById('kpiSubPaid').textContent = `₹ ${paidSum.toLocaleString('en-IN')} Collected`;
-    }
-
-    // Render Data Table / Hierarchy Summaries
-    function renderTable() {
-      const tbody = document.getElementById('tableBody');
-      tbody.innerHTML = '';
-
-      if (activeTab === 'region_summary') {
-        renderHierarchySummary('region');
-        return;
-      } else if (activeTab === 'div_summary') {
-        renderHierarchySummary('division');
-        return;
-      } else if (activeTab === 'ccc_summary') {
-        renderHierarchySummary('ccc');
-        return;
-      }
-
-      const total = filteredData.length;
-      const start = (currentPage - 1) * pageSize;
-      const end = Math.min(start + pageSize, total);
-      const pageSlice = filteredData.slice(start, end);
-
-      if (total === 0) {
-        tbody.innerHTML = `<tr><td colspan="12" style="text-align:center; padding:30px; color:var(--text-secondary);">
-          <i class="fas fa-folder-open" style="font-size:2rem; margin-bottom:8px; display:block;"></i>
-          No records match the selected filters.
-        </td></tr>`;
-        updatePagination(0, 0, 0);
-        return;
-      }
-
-      pageSlice.forEach((item, idx) => {
-        const tr = document.createElement('tr');
-        const sl = start + idx + 1;
-        const isHistoryView = (activeTab === 'history');
-
-        let conId, instNo, name, addr, ccc, cccLabel, cat, osd, load, disconDt, mobile, rec;
-
-        if (isHistoryView) {
-          rec = item;
-          conId = rec.conId;
-          instNo = rec.instNo;
-          name = rec.consumerName || 'Off-sheet Consumer';
-          addr = rec.address || '';
-          ccc = rec.cccCode || '';
-          const info = cccLookup[ccc];
-          cccLabel = info ? info.cccName : ccc;
-          cat = rec.category || '--';
-          osd = parseFloat(rec.totalOsd) || 0;
-          load = '--';
-          disconDt = '--';
-          mobile = rec.mobile || '--';
-        } else {
-          conId = item.CON_ID;
-          instNo = item.INST_NO || '';
-          name = item.NAME || '';
-          addr = item.ADDRESS || '';
-          ccc = item.CCC_CODE || '';
-          cccLabel = item._cccName || ccc;
-          cat = item.CATEGORY || '--';
-          osd = parseFloat(item.TOTAL_OSD || item.OUTSTANDING) || 0;
-          load = item.CONNECTED_LOAD || item.LOAD || '--';
-          disconDt = item.DISCONN_DATE || item.DISCON_DT || '--';
-          mobile = item.REG_MOB_NO || '--';
-          rec = followUpMap[conId];
-        }
-
-        const osdFormatted = '₹ ' + osd.toLocaleString('en-IN');
-
-        let statusBadgeHtml = '<span class="badge badge-pending"><i class="fas fa-clock"></i> Pending Visit</span>';
-        let visitDetailsHtml = '<span style="color:var(--text-secondary); font-size:11px;">Not yet visited</span>';
-        let btnLabel = '<i class="fas fa-edit"></i> Follow-Up';
-        let btnClass = 'btn-small btn-solid';
-
-        if (rec) {
-          btnLabel = '<i class="fas fa-history"></i> View Timeline / Update';
-          btnClass = 'btn-small';
-
-          const histCount = (rec.history && rec.history.length) ? rec.history.length : 1;
-          const histBadge = histCount > 1 ? `<span style="background:#e0e7ff; color:#3730a3; padding:1px 6px; border-radius:10px; font-size:10px; margin-left:4px;"><i class="fas fa-history"></i> ${histCount}</span>` : '';
-
-          if (rec.status === 'Found Live') {
-            statusBadgeHtml = `<span class="badge badge-live"><i class="fas fa-bolt"></i> Live</span>${histBadge}`;
-          } else if (rec.status === 'Found Disconnected') {
-            statusBadgeHtml = `<span class="badge badge-discon"><i class="fas fa-plug-circle-xmark"></i> Disconnected</span>${histBadge}`;
-          } else if (rec.status === 'Premises Not Found') {
-            statusBadgeHtml = `<span class="badge badge-notfound"><i class="fas fa-map-marker-slash"></i> Premises Not Found</span>${histBadge}`;
-          } else if (rec.status === 'Using Power form other source') {
-            statusBadgeHtml = `<span class="badge badge-othersource"><i class="fas fa-triangle-exclamation"></i> Other Source</span>${histBadge}`;
-          } else if (rec.status === 'Paid') {
-            statusBadgeHtml = `<span class="badge badge-paid"><i class="fas fa-check-circle"></i> Paid</span>${histBadge}`;
-            statusBadgeHtml += `<div style="font-size:10px; color:#047857; font-weight:700; margin-top:2px;">Paid: ₹ ${parseFloat(rec.paidAmount||0).toLocaleString('en-IN')} (${rec.paidDate||''})</div>`;
-          } else {
-            statusBadgeHtml = `<span class="badge badge-visited"><i class="fas fa-check"></i> Visited</span>${histBadge}`;
-          }
-
-          const visitorText = rec.visitorName ? ` (${escapeHtml(rec.visitorName)})` : '';
-          visitDetailsHtml = `
-            <div style="font-weight:600; color:var(--text-primary);">
-              ${rec.visitDate || ''} by <strong style="color:var(--primary-color);">${escapeHtml(rec.visitBy || 'Official')}${visitorText}</strong>
-            </div>
-            <div style="font-size:10px; color:var(--text-secondary); max-width:200px; white-space:normal;" title="${escapeHtml(rec.remarks || '')}">
-              ${escapeHtml(rec.remarks || 'No notes')}
-            </div>
-          `;
-        }
-
-        tr.innerHTML = `
-          <td>${sl}</td>
-          <td>
-            <strong>${conId}</strong>
-            ${instNo ? `<div style="font-size:10px; color:var(--text-secondary);">Inst: ${instNo}</div>` : ''}
-          </td>
-          <td style="max-width:220px; white-space:normal;">
-            <div style="font-weight:700; color:var(--text-primary);">${escapeHtml(name)}</div>
-            <div style="font-size:10px; color:var(--text-secondary);">${escapeHtml(addr)}</div>
-          </td>
-          <td>
-            <strong>${cccLabel}</strong>
-            <div style="font-size:10px; color:var(--text-secondary);">Code: ${ccc}</div>
-          </td>
-          <td>${cat}</td>
-          <td style="font-weight:700; color:var(--danger-color);">${osdFormatted}</td>
-          <td>${load} kW</td>
-          <td>${formatDateString(disconDt)}</td>
-          <td>${mobile}</td>
-          <td>${statusBadgeHtml}</td>
-          <td>${visitDetailsHtml}</td>
-          <td>
-            <button class="${btnClass}" onclick="openFollowUpModal('${conId}')">${btnLabel}</button>
-          </td>
-        `;
-
-        tbody.appendChild(tr);
-      });
-
-      updatePagination(start + 1, end, total);
-    }
-
-    // Render Region, Division, and CCC Hierarchy Summaries
-    function renderHierarchySummary(level) {
-      const tbody = document.getElementById('tableBody');
-      tbody.innerHTML = '';
-
-      const thead = document.querySelector('#ddTable thead');
-      
-      if (level === 'region') {
-        thead.innerHTML = `
-          <tr>
-            <th>SL</th>
-            <th>Region Name</th>
-            <th>Total DD Consumers</th>
-            <th>Total OSD Arrears (₹ Cr)</th>
-            <th>Visited Consumers</th>
-            <th>Coverage %</th>
-            <th>Total Paid Recovered (₹)</th>
-          </tr>
-        `;
-      } else if (level === 'division') {
-        thead.innerHTML = `
-          <tr>
-            <th>SL</th>
-            <th>Division Name</th>
-            <th>Region Name</th>
-            <th>Total DD Consumers</th>
-            <th>Total OSD Arrears (₹ Cr)</th>
-            <th>Visited Consumers</th>
-            <th>Coverage %</th>
-            <th>Total Paid Recovered (₹)</th>
-          </tr>
-        `;
-      } else {
-        thead.innerHTML = `
-          <tr>
-            <th>SL</th>
-            <th>CCC Office Name & Code</th>
-            <th>Division Name</th>
-            <th>Region Name</th>
-            <th>Total DD Consumers</th>
-            <th>Total OSD Arrears (₹ Lakhs)</th>
-            <th>Visited Consumers</th>
-            <th>Coverage %</th>
-            <th>Total Paid Recovered (₹)</th>
-          </tr>
-        `;
-      }
-
-      const summaryMap = {};
-
-      allRawData.forEach(r => {
-        let key = '';
-        if (level === 'region') key = r._regionName || 'Unknown Region';
-        else if (level === 'division') key = `${r._divisionName || 'Unknown Division'}|||${r._regionName || ''}`;
-        else key = `${r.CCC_CODE || 'Unknown'}|||${r._cccName || ''}|||${r._divisionName || ''}|||${r._regionName || ''}`;
-
-        const osd = parseFloat(r.TOTAL_OSD || r.OUTSTANDING) || 0;
-
-        if (!summaryMap[key]) {
-          summaryMap[key] = { count: 0, osd: 0, visited: 0, paidSum: 0 };
-        }
-        summaryMap[key].count++;
-        summaryMap[key].osd += osd;
-
-        const rec = followUpMap[r.CON_ID];
-        if (rec) {
-          summaryMap[key].visited++;
-          if (rec.status === 'Paid') {
-            summaryMap[key].paidSum += parseFloat(rec.paidAmount || 0);
-          }
-        }
-      });
-
-      const sortedKeys = Object.keys(summaryMap).sort();
-      let sl = 1;
-
-      sortedKeys.forEach(k => {
-        const s = summaryMap[k];
-        const covPct = s.count > 0 ? ((s.visited / s.count) * 100).toFixed(1) : '0';
-        const tr = document.createElement('tr');
-
-        if (level === 'region') {
-          const osdCr = (s.osd / 10000000).toFixed(2);
-          tr.innerHTML = `
-            <td>${sl++}</td>
-            <td><strong>${k}</strong></td>
-            <td>${s.count.toLocaleString('en-IN')}</td>
-            <td style="font-weight:700; color:var(--danger-color);">₹ ${osdCr} Cr</td>
-            <td style="font-weight:700; color:var(--success-color);">${s.visited.toLocaleString('en-IN')}</td>
-            <td>${covPct}%</td>
-            <td style="font-weight:700; color:var(--secondary-color);">₹ ${s.paidSum.toLocaleString('en-IN')}</td>
-          `;
-        } else if (level === 'division') {
-          const parts = k.split('|||');
-          const divName = parts[0];
-          const regName = parts[1];
-          const osdCr = (s.osd / 10000000).toFixed(2);
-          tr.innerHTML = `
-            <td>${sl++}</td>
-            <td><strong>${divName}</strong></td>
-            <td>${regName}</td>
-            <td>${s.count.toLocaleString('en-IN')}</td>
-            <td style="font-weight:700; color:var(--danger-color);">₹ ${osdCr} Cr</td>
-            <td style="font-weight:700; color:var(--success-color);">${s.visited.toLocaleString('en-IN')}</td>
-            <td>${covPct}%</td>
-            <td style="font-weight:700; color:var(--secondary-color);">₹ ${s.paidSum.toLocaleString('en-IN')}</td>
-          `;
-        } else {
-          const parts = k.split('|||');
-          const cccCode = parts[0];
-          const cccName = parts[1];
-          const divName = parts[2];
-          const regName = parts[3];
-          const osdLakh = (s.osd / 100000).toFixed(2);
-          tr.innerHTML = `
-            <td>${sl++}</td>
-            <td><strong>${cccName}</strong> (${cccCode})</td>
-            <td>${divName}</td>
-            <td>${regName}</td>
-            <td>${s.count.toLocaleString('en-IN')}</td>
-            <td style="font-weight:700; color:var(--danger-color);">₹ ${osdLakh} L</td>
-            <td style="font-weight:700; color:var(--success-color);">${s.visited.toLocaleString('en-IN')}</td>
-            <td>${covPct}%</td>
-            <td style="font-weight:700; color:var(--secondary-color);">₹ ${s.paidSum.toLocaleString('en-IN')}</td>
-          `;
-        }
-
-        tbody.appendChild(tr);
-      });
-
-      document.getElementById('paginationControls').style.display = 'none';
-    }
-
-    // Switch Tabs
-    function switchTab(tab) {
-      activeTab = tab;
-      document.querySelectorAll('.view-tab').forEach(t => t.classList.remove('active'));
-      
-      const thead = document.querySelector('#ddTable thead');
-      thead.innerHTML = `
-        <tr>
-          <th>SL</th>
-          <th>CON ID</th>
-          <th>Name & Address</th>
-          <th>CCC Office</th>
-          <th>Cat</th>
-          <th>OSD (₹)</th>
-          <th>Load</th>
-          <th>Discon Dt</th>
-          <th>Mobile</th>
-          <th>Status</th>
-          <th>Visit Details</th>
-          <th>Action</th>
-        </tr>
-      `;
-      document.getElementById('paginationControls').style.display = 'flex';
-
-      if (tab === 'table') {
-        document.getElementById('tabMainTable').classList.add('active');
-      } else if (tab === 'history') {
-        document.getElementById('tabHistoryLog').classList.add('active');
-      } else if (tab === 'region_summary') {
-        document.getElementById('tabRegionSummary').classList.add('active');
-      } else if (tab === 'div_summary') {
-        document.getElementById('tabDivSummary').classList.add('active');
-      } else if (tab === 'ccc_summary') {
-        document.getElementById('tabCccSummary').classList.add('active');
-      }
-
-      applyFilters();
-    }
-
-    // Modal Operations: Open Follow-Up Modal & Render Timeline
-    function openFollowUpModal(conId) {
-      let consumer = allRawData.find(r => r.CON_ID === conId);
-      let rec = followUpMap[conId];
-
-      if (!consumer && rec) {
-        consumer = {
-          CON_ID: rec.conId,
-          INST_NO: rec.instNo || '',
-          NAME: rec.consumerName || 'Off-sheet Consumer',
-          ADDRESS: rec.address || '',
-          CCC_CODE: rec.cccCode || '',
-          TOTAL_OSD: rec.totalOsd || '0',
-          REG_MOB_NO: rec.mobile || ''
+    function prepare(text) {
+      all = UI.csv(text).map(function (r) {
+        var code = String(r.CCC_CODE || r.CCC || '').trim(), o = UI.office(code);
+        if (!osdDate && r.OSD_DATE) osdDate = r.OSD_DATE;
+        return {
+          raw: r, con: String(r.CON_ID || r.CONSUMER_ID || '').trim(), inst: r.INST_NO, name: UI.title(r.NAME || ''), address: r.ADDRESS || '',
+          mobile: UI.blank(r.REG_MOB_NO) ? '' : String(r.REG_MOB_NO).trim(), code: code, CCC_CODE: code, _region: o.region, _divn: o.division, _supp: o.ccc,
+          cat: String(r.CATEGORY || '').trim(), cls: String(r.BASE_CLASS || '').trim() || 'Other', osd: osdOf(r), load: r.CONN_LOAD,
+          dis: ymd(r.DISCON_DT || r.DISCONN_DATE)
         };
-      }
-
-      if (!consumer) return;
-
-      document.getElementById('modalConId').value = conId;
-
-      const osdVal = parseFloat(consumer.TOTAL_OSD || consumer.OUTSTANDING) || 0;
-      const banner = document.getElementById('modalConsumerBanner');
-      banner.innerHTML = `
-        <div style="font-weight:700; font-size:13px; color:var(--primary-color);">${escapeHtml(consumer.NAME || '')}</div>
-        <div>CON ID: <strong>${conId}</strong> | Inst No: ${consumer.INST_NO || '--'} | CCC: <strong>${consumer.CCC_CODE || '--'}</strong></div>
-        <div style="color:var(--danger-color); font-weight:700;">Total OSD: ₹ ${osdVal.toLocaleString('en-IN')}</div>
-      `;
-
-      // Render Uneditable Timeline History
-      renderModalTimeline(conId);
-
-      // Reset Form for New Entry
-      const today = new Date().toISOString().split('T')[0];
-      document.getElementById('modalVisitDate').value = today;
-      
-      const visitBySelect = document.getElementById('modalVisitBySelect');
-      const visitByCustom = document.getElementById('modalVisitByCustom');
-      visitBySelect.value = 'DM Office';
-      visitByCustom.style.display = 'none';
-      visitByCustom.value = '';
-
-      document.getElementById('modalVisitorName').value = '';
-
-      const statusSelect = document.getElementById('modalStatus');
-      statusSelect.value = 'Found Live';
-      handleStatusChange();
-
-      document.getElementById('modalPaidAmount').value = '';
-      document.getElementById('modalPaidDate').value = today;
-      document.getElementById('modalRemarks').value = '';
-
-      document.getElementById('followUpModal').classList.add('open');
+      }).filter(function (r) { return r.con; });
+      all.forEach(function (r) { r.search = (r.con + ' ' + r.name + ' ' + r.mobile + ' ' + r.address).toLowerCase(); });
+      if (window.MzoScope) all = MzoScope.filterRows(all);
+      var d = ymd(osdDate);
+      $('meta').textContent = (d ? 'Outstanding as on ' + UI.fmtDate(d) + ' · ' : '') + UI.n(all.length) + ' consumers';
+      UI.fill('classFilter', uniq(all, 'cls').map(function (c) { return { value: c, label: CLASS[c] || c }; }), 'All classes');
+      fillFilters();
     }
 
-    // Render Timeline Box inside Modal
-    function renderModalTimeline(conId) {
-      const container = document.getElementById('modalTimelineContainer');
-      container.innerHTML = '';
+    function uniq(rows, k) { var s = {}; rows.forEach(function (r) { if (r[k]) s[r[k]] = 1; }); return Object.keys(s).sort(); }
+    function fillFilters() {
+      var reg = $('regionFilter').value, div = $('divisionFilter').value;
+      UI.fill('regionFilter', uniq(all, '_region'), 'All regions');
+      var r1 = all.filter(function (r) { return !reg || r._region === reg; });
+      UI.fill('divisionFilter', uniq(r1, '_divn'), 'All divisions');
+      var r2 = r1.filter(function (r) { return !div || r._divn === div; });
+      UI.fill('cccFilter', uniq(r2, '_supp'), 'All CCCs');
+      if (!scope) scope = UI.lockScope();
+      ['regionFilter', 'divisionFilter', 'cccFilter', 'classFilter', 'catFilter', 'osdFilter'].forEach(function (id) { UI.mark($(id)); });
+    }
 
-      const rec = followUpMap[conId];
-      let historyList = (rec && rec.history && Array.isArray(rec.history)) ? rec.history : [];
-
-      // If no history array exists yet, but a record exists, create initial history item
-      if (historyList.length === 0 && rec && rec.visitDate) {
-        historyList = [{
-          id: 'v_legacy_' + conId,
-          visitDate: rec.visitDate,
-          visitByOffice: rec.visitBy || 'Official',
-          visitorName: rec.visitorName || '',
-          visitBy: rec.visitBy + (rec.visitorName ? ` (${rec.visitorName})` : ''),
-          status: rec.status || 'Visited',
-          paidAmount: rec.paidAmount || '',
-          paidDate: rec.paidDate || '',
-          remarks: rec.remarks || ''
-        }];
-      }
-
-      if (historyList.length === 0) {
-        container.innerHTML = `
-          <div style="font-size:0.75rem; color:var(--text-secondary); padding:10px; background:#f8fafc; border-radius:6px; text-align:center;">
-            <i class="fas fa-info-circle"></i> No previous visit records entered yet. Add the first visit below.
-          </div>
-        `;
-        return;
-      }
-
-      // Render timeline cards in reverse chronological order (newest first)
-      historyList.slice().reverse().forEach((item, idx) => {
-        const card = document.createElement('div');
-        const statusClass = (item.status || '').replace(/\s+/g, '-');
-        card.className = `timeline-card status-${statusClass}`;
-
-        let statusBadgeClass = 'badge-visited';
-        if (item.status === 'Found Live') statusBadgeClass = 'badge-live';
-        else if (item.status === 'Found Disconnected') statusBadgeClass = 'badge-discon';
-        else if (item.status === 'Premises Not Found') statusBadgeClass = 'badge-notfound';
-        else if (item.status === 'Using Power form other source') statusBadgeClass = 'badge-othersource';
-        else if (item.status === 'Paid') statusBadgeClass = 'badge-paid';
-
-        let paidText = '';
-        if (item.status === 'Paid' && item.paidAmount) {
-          paidText = `<div style="font-size:11px; font-weight:700; color:#047857; margin-top:2px;">Paid: ₹ ${parseFloat(item.paidAmount).toLocaleString('en-IN')} on ${item.paidDate || '--'}</div>`;
-        }
-
-        const visitorNameText = item.visitorName ? ` — <strong>${escapeHtml(item.visitorName)}</strong>` : '';
-        const adminDeleteBtn = isAdminUser() ? `<button type="button" class="btn-small" style="color:var(--danger-color); border-color:var(--danger-color); font-size:10px; padding:1px 6px;" onclick="deleteTimelineEntry('${conId}', '${item.id || idx}')"><i class="fas fa-trash"></i> Delete</button>` : '';
-
-        card.innerHTML = `
-          <div class="timeline-card-header">
-            <span class="timeline-date"><i class="far fa-calendar-alt"></i> ${item.visitDate || '--'}</span>
-            <div style="display:flex; align-items:center; gap:6px;">
-              <span class="badge ${statusBadgeClass}">${escapeHtml(item.status || 'Visited')}</span>
-              ${adminDeleteBtn}
-            </div>
-          </div>
-          <div class="timeline-by">
-            <i class="fas fa-building"></i> ${escapeHtml(item.visitByOffice || item.visitBy || 'Office')}${visitorNameText}
-          </div>
-          ${paidText}
-          <div class="timeline-remarks">
-            ${escapeHtml(item.remarks || 'No notes entered.')}
-          </div>
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px; font-size:10px; color:var(--text-secondary);">
-            <span><i class="fas fa-lock"></i> Saved Timeline Record (Uneditable)</span>
-          </div>
-        `;
-
-        container.appendChild(card);
+    function base() {
+      var q = $('q').value.trim().toLowerCase(), reg = $('regionFilter').value, div = $('divisionFilter').value, ccc = $('cccFilter').value,
+        cls = $('classFilter').value, cat = $('catFilter').value, min = +$('osdFilter').value || 0;
+      return all.filter(function (r) {
+        return (!reg || r._region === reg) && (!div || r._divn === div) && (!ccc || r._supp === ccc) && (!cls || r.cls === cls) &&
+          (!cat || r.cat === cat) && r.osd >= min && (!q || r.search.indexOf(q) !== -1);
       });
     }
-
-    function closeModal() {
-      document.getElementById('followUpModal').classList.remove('open');
+    function matchStat(r) {
+      var rec = visits[r.con];
+      if (stat === 'visited') return !!rec;
+      if (stat === 'pending') return !rec;
+      if (stat === 'Paid') return !!rec && rec.status === 'Paid';
+      return true;
     }
 
-    function handleVisitByChange() {
-      const val = document.getElementById('modalVisitBySelect').value;
-      const customInput = document.getElementById('modalVisitByCustom');
-      if (val === 'Other') {
-        customInput.style.display = 'block';
-        customInput.focus();
+    function render() {
+      var b = base(), rows = b.filter(function (r) { return matchStat(r) && (!outcome || (visits[r.con] && visits[r.con].status === outcome)); });
+      var visited = b.filter(function (r) { return visits[r.con]; }), paid = visited.filter(function (r) { return visits[r.con].status === 'Paid'; });
+      var on = {}; all.forEach(function (r) { on[r.con] = 1; });
+      var off = Object.keys(visits).filter(function (k) { return !on[k]; });
+      var set = function (k, v, s) { var el = document.querySelector('#stats [data-k="' + k + '"]'); el.querySelector('.v').textContent = v; el.querySelector('.s').textContent = s; el.setAttribute('aria-pressed', String(stat === k)); };
+      set('', UI.n(b.length), UI.inr(b.reduce(function (a, r) { return a + r.osd; }, 0)) + ' outstanding');
+      set('visited', UI.n(visited.length), UI.pct(visited.length, b.length) + ' coverage');
+      set('pending', UI.n(b.length - visited.length), UI.inr(b.filter(function (r) { return !visits[r.con]; }).reduce(function (a, r) { return a + r.osd; }, 0)) + ' outstanding');
+      set('Paid', UI.n(paid.length), UI.inr(paid.reduce(function (a, r) { return a + (parseFloat(visits[r.con].paidAmount) || 0); }, 0)) + ' collected');
+      $('sOff').textContent = UI.n(off.length);
+
+      var key = level === 'region' ? '_region' : level === 'division' ? '_divn' : '_supp', g = {};
+      b.forEach(function (r) {
+        var name = r[key] || 'Unmapped', rec = visits[r.con];
+        var x = g[name] || (g[name] = { name: name, parent: level === 'ccc' ? r._divn : level === 'division' ? r._region : '', n: 0, v: 0, osd: 0, paid: 0 });
+        x.n++; x.osd += r.osd; if (rec) { x.v++; if (rec.status === 'Paid') x.paid += parseFloat(rec.paidAmount) || 0; }
+      });
+      var list = Object.keys(g).map(function (k) { return g[k]; });
+      UI.table('officeTable', {
+        rows: list, sort: { key: 'n', dir: 'desc' }, count: false, empty: 'No consumers for these filters.',
+        columns: [
+          { key: 'name', label: { region: 'Region', division: 'Division', ccc: 'CCC' }[level], fmt: function (v, x) { return '<span class="ui-strong">' + UI.esc(v) + '</span>' + (x.parent ? '<span class="sub">' + UI.esc(x.parent) + '</span>' : ''); } },
+          { key: 'n', label: 'Consumers', num: true, fmt: UI.n },
+          { key: 'v', label: 'Visited', num: true, fmt: UI.n },
+          { key: 'cov', label: 'Coverage', sortVal: function (x) { return x.n ? x.v / x.n : 0; }, fmt: function (_, x) { return UI.bar(x.v, x.n, UI.pct(x.v, x.n)); }, width: '24%' },
+          { key: 'osd', label: 'Outstanding', num: true, fmt: UI.inr, hideSm: true },
+          { key: 'paid', label: 'Recovered', num: true, fmt: function (v) { return v ? UI.inr(v) : '<span class="ui-muted">—</span>'; }, hideSm: true }
+        ],
+        foot: list.length > 1 ? { n: b.length, v: visited.length, cov: 0, osd: b.reduce(function (a, r) { return a + r.osd; }, 0), paid: paid.reduce(function (a, r) { return a + (parseFloat(visits[r.con].paidAmount) || 0); }, 0) } : null,
+        onRow: level === 'ccc' ? null : function (x) { drill(x.name); }
+      });
+
+      UI.hist('outcomeHist', OUTCOMES.map(function (o) { return { key: o, label: HIST_LABEL[o] || o, value: visited.filter(function (r) { return visits[r.con].status === o; }).length }; }),
+        { active: outcome, onClick: function (row) { outcome = outcome === row.key ? '' : row.key; if (outcome && view !== 'sheet') setView('sheet'); render(); } });
+
+      // Visit history: every saved record (also consumers no longer on the sheet), matched on search and office filters.
+      var q = $('q').value.trim().toLowerCase();
+      var hist = Object.keys(visits).map(function (k) { var rec = visits[k], o = UI.office(rec.cccCode); return { rec: rec, con: k, name: UI.title(rec.consumerName || ''), _region: o.region, _divn: o.division, _supp: o.ccc, off: !on[k], date: UI.date(rec.visitDate), osd: parseFloat(rec.totalOsd) || 0 }; })
+        .filter(function (h) {
+          var reg = $('regionFilter').value, div = $('divisionFilter').value, ccc = $('cccFilter').value;
+          return (!reg || h._region === reg) && (!div || h._divn === div) && (!ccc || h._supp === ccc) && (!outcome || h.rec.status === outcome) &&
+            (!q || (h.con + ' ' + h.name + ' ' + (h.rec.remarks || '') + ' ' + (h.rec.visitBy || '') + ' ' + (h.rec.visitorName || '')).toLowerCase().indexOf(q) !== -1);
+        });
+      $('cSheet').textContent = UI.n(rows.length); $('cHist').textContent = UI.n(hist.length);
+      if (view === 'sheet') {
+        UI.table('listTable', { rows: rows, sort: { key: 'osd', dir: 'desc' }, limit: 50, resetPage: true, empty: 'No consumers match these filters.', columns: COLS, onRow: function (r) { detail(r.con); } });
+        window.__export = { rows: rows, cols: EXPORT_SHEET };
       } else {
-        customInput.style.display = 'none';
+        UI.table('listTable', { rows: hist, sort: { key: 'date', dir: 'desc' }, limit: 50, resetPage: true, empty: 'No visits recorded yet.', columns: HCOLS, onRow: function (h) { detail(h.con); } });
+        window.__export = { rows: hist, cols: EXPORT_HIST };
       }
+      $('clearBtn').hidden = !($('q').value || stat || outcome || ['classFilter', 'catFilter', 'osdFilter'].some(function (id) { return $(id).value; }) ||
+        ['regionFilter', 'divisionFilter', 'cccFilter'].some(function (id) { return $(id).value && !$(id).disabled; }));
     }
 
-    function handleStatusChange() {
-      const status = document.getElementById('modalStatus').value;
-      const paidContainer = document.getElementById('paidFieldsContainer');
-      const paidAmountInput = document.getElementById('modalPaidAmount');
-      const paidDateInput = document.getElementById('modalPaidDate');
-
-      if (status === 'Paid') {
-        paidContainer.style.display = 'block';
-        paidAmountInput.required = true;
-        paidDateInput.required = true;
-      } else {
-        paidContainer.style.display = 'none';
-        paidAmountInput.required = false;
-        paidDateInput.required = false;
-      }
+    function statusBadge(rec) {
+      if (!rec) return '<span class="ui-badge">Not visited</span>';
+      var cls = rec.status === 'Paid' ? 'ok' : rec.status === 'Found Live' ? 'bad' : rec.status === 'Found Disconnected' ? '' : 'warn';
+      return '<span class="ui-badge ' + cls + '">' + UI.esc(OUT_LABEL[rec.status] || rec.status || 'Visited') + '</span>';
     }
+    var COLS = [
+      { key: 'name', label: 'Consumer', fmt: function (v, r) { return '<span class="ui-strong">' + UI.esc(v || r.con) + '</span><span class="sub">' + UI.esc(r.con) + '</span>'; } },
+      { key: 'mobile', label: 'Mobile', hideSm: true },
+      { key: '_supp', label: 'CCC', fmt: function (v, r) { return UI.esc(v || r.code) + '<span class="sub">' + UI.esc(r._divn) + '</span>'; } },
+      { key: 'cls', label: 'Class', hideSm: true, fmt: function (v, r) { return UI.esc(CLASS[v] || v) + '<span class="sub">' + (r.cat === 'U' ? 'Urban' : 'Rural') + '</span>'; } },
+      { key: 'osd', label: 'Outstanding', num: true, fmt: function (v) { return '₹' + UI.n(Math.round(v)); } },
+      { key: 'visit', label: 'Visit', sortVal: function (r) { var x = visits[r.con]; return x ? (x.visitDate || '1') : ''; }, fmt: function (_, r) { var x = visits[r.con]; return statusBadge(x) + (x && x.visitDate ? '<span class="sub">' + UI.fmtDate(x.visitDate) + '</span>' : ''); } }
+    ];
+    var HCOLS = [
+      { key: 'name', label: 'Consumer', fmt: function (v, h) { return '<span class="ui-strong">' + UI.esc(v || h.con) + '</span><span class="sub">' + UI.esc(h.con) + (h.off ? ' · off sheet' : '') + '</span>'; } },
+      { key: '_supp', label: 'CCC', fmt: function (v, h) { return UI.esc(v || h.rec.cccCode || '—') + '<span class="sub">' + UI.esc(h._divn) + '</span>'; } },
+      { key: 'date', label: 'Last visit', num: true, sortVal: function (h) { return h.date ? h.date.getTime() : 0; }, fmt: function (v) { return v ? UI.fmtDate(v) : '—'; } },
+      { key: 'by', label: 'Visited by', hideSm: true, sortVal: function (h) { return h.rec.visitBy || ''; }, fmt: function (_, h) { return UI.esc(h.rec.visitBy || '—') + (h.rec.visitorName ? '<span class="sub">' + UI.esc(h.rec.visitorName) + '</span>' : ''); } },
+      { key: 'st', label: 'Outcome', sortVal: function (h) { return h.rec.status || ''; }, fmt: function (_, h) { return statusBadge(h.rec) + (h.rec.status === 'Paid' && h.rec.paidAmount ? '<span class="sub">₹' + UI.n(h.rec.paidAmount) + '</span>' : ''); } },
+      { key: 'n', label: 'Visits', num: true, hideSm: true, sortVal: function (h) { return history(h.rec).length; }, fmt: function (_, h) { return UI.n(history(h.rec).length); } }
+    ];
+    var EXPORT_SHEET = [
+      { label: 'CON_ID', csv: function (r) { return r.con; } }, { label: 'INST_NO', csv: function (r) { return r.inst; } }, { label: 'CONSUMER_NAME', csv: function (r) { return r.raw.NAME; } },
+      { label: 'ADDRESS', csv: function (r) { return r.address; } }, { label: 'CCC_CODE', csv: function (r) { return r.code; } }, { label: 'REGION', csv: function (r) { return r._region; } },
+      { label: 'DIVISION', csv: function (r) { return r._divn; } }, { label: 'CATEGORY', csv: function (r) { return r.cat; } }, { label: 'TOTAL_OSD', csv: function (r) { return r.osd; } },
+      { label: 'LOAD_KW', csv: function (r) { return r.load; } }, { label: 'DISCON_DATE', csv: function (r) { return r.raw.DISCON_DT || ''; } }, { label: 'MOBILE', csv: function (r) { return r.mobile; } },
+      { label: 'VISIT_STATUS', csv: function (r) { return visits[r.con] ? visits[r.con].status : 'Pending'; } }, { label: 'VISIT_DATE', csv: function (r) { return visits[r.con] ? visits[r.con].visitDate : ''; } },
+      { label: 'VISITED_BY', csv: function (r) { return visits[r.con] ? visits[r.con].visitBy : ''; } }, { label: 'VISITOR_NAME', csv: function (r) { return visits[r.con] ? visits[r.con].visitorName : ''; } },
+      { label: 'PAID_AMOUNT', csv: function (r) { return visits[r.con] ? visits[r.con].paidAmount : ''; } }, { label: 'REMARKS', csv: function (r) { return visits[r.con] ? visits[r.con].remarks : ''; } }
+    ];
+    var EXPORT_HIST = ['conId', 'instNo', 'consumerName', 'address', 'cccCode', 'category', 'totalOsd', 'mobile', 'visitDate', 'visitBy', 'visitorName', 'status', 'paidAmount', 'paidDate', 'remarks']
+      .map(function (k) { return { label: k.replace(/([A-Z])/g, '_$1').toUpperCase(), csv: function (h) { return h.rec[k]; } }; });
 
-    // Save Follow-Up Record (Add New Entry to Uneditable Timeline)
-    function saveFollowUp(e) {
-      e.preventDefault();
-
-      const conId = document.getElementById('modalConId').value;
-      let consumer = allRawData.find(r => r.CON_ID === conId);
-      const existingRec = followUpMap[conId];
-
-      const visitDate = document.getElementById('modalVisitDate').value;
-      const visitBySelect = document.getElementById('modalVisitBySelect').value;
-      const visitByCustom = document.getElementById('modalVisitByCustom').value;
-      const visitByOffice = (visitBySelect === 'Other') ? (visitByCustom.trim() || 'Official') : visitBySelect;
-
-      const visitorName = document.getElementById('modalVisitorName').value.trim();
-      if (!visitorName) {
-        alert('Please enter the Name of Visitor.');
-        document.getElementById('modalVisitorName').focus();
-        return;
-      }
-
-      const status = document.getElementById('modalStatus').value;
-      const paidAmount = (status === 'Paid') ? document.getElementById('modalPaidAmount').value : '';
-      const paidDate = (status === 'Paid') ? document.getElementById('modalPaidDate').value : '';
-      const remarks = document.getElementById('modalRemarks').value.trim();
-
-      const newHistoryEntry = {
-        id: 'v_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
-        visitDate: visitDate,
-        visitByOffice: visitByOffice,
-        visitorName: visitorName,
-        visitBy: visitByOffice,
-        status: status,
-        paidAmount: paidAmount,
-        paidDate: paidDate,
-        remarks: remarks,
-        createdAt: new Date().toISOString()
+    /* Row drawer: details, the uneditable visit timeline and a new-visit form */
+    function detail(con) {
+      var r = all.filter(function (x) { return x.con === con; })[0], rec = visits[con];
+      if (!r && !rec) return;
+      var c = r || { con: con, name: UI.title(rec.consumerName || 'Off-sheet consumer'), address: rec.address, mobile: rec.mobile, code: rec.cccCode, osd: parseFloat(rec.totalOsd) || 0, inst: rec.instNo, cat: rec.category, cls: '', raw: {} };
+      UI.drawer(c.name || con, [c._supp || c.code, c._divn].filter(Boolean).join(' · '), [
+        ['Consumer ID', con], ['Installation', c.inst], ['Mobile', c.mobile], ['Address', c.address],
+        ['Class', c.cls ? (CLASS[c.cls] || c.cls) : ''], ['Outstanding', '₹' + UI.n(Math.round(c.osd))], ['Disconnected on', c.dis ? UI.fmtDate(c.dis) : ''], ['Load', c.load != null && c.load !== '' ? (parseFloat(c.load) || 0) + ' kW' : '']
+      ]);
+      var sec = document.querySelector('#ui-drawer section'), old = sec.querySelector('.dv');
+      if (old) old.remove();
+      var box = document.createElement('div'); box.className = 'dv';
+      var today = new Date().toISOString().slice(0, 10);
+      box.innerHTML = '<h4>Add a visit</h4><form>' +
+        '<div class="two"><label>Visit date<input class="ui-input" type="date" name="date" value="' + today + '" required /></label>' +
+        '<label>Visited by<span class="ui-select"><select name="by"><option>ZM Office</option><option>RM Office</option><option selected>DM Office</option><option>CCC</option><option value="Other">Other</option></select></span></label></div>' +
+        '<input class="ui-input" name="byOther" placeholder="Office or level" hidden />' +
+        '<div class="two"><label>Visitor name<input class="ui-input" name="who" required /></label>' +
+        '<label>Outcome<span class="ui-select"><select name="st">' + OUTCOMES.map(function (o) { return '<option value="' + UI.esc(o) + '">' + UI.esc(OUT_LABEL[o] || o) + '</option>'; }).join('') + '</select></span></label></div>' +
+        '<div class="two" data-paid hidden><label>Amount paid (₹)<input class="ui-input" type="number" name="amt" min="0" /></label><label>Paid on<input class="ui-input" type="date" name="pdate" value="' + today + '" /></label></div>' +
+        '<textarea class="ui-input" name="remarks" placeholder="Remarks"></textarea>' +
+        '<div><button type="submit" class="ui-btn primary sm">Save visit</button></div></form><h4>Visit timeline</h4><div class="tl"></div>';
+      sec.appendChild(box);
+      var f = box.querySelector('form');
+      f.by.addEventListener('change', function () { f.byOther.hidden = f.by.value !== 'Other'; });
+      f.st.addEventListener('change', function () { var p = f.st.value === 'Paid'; box.querySelector('[data-paid]').hidden = !p; f.amt.required = p; f.pdate.required = p; });
+      var paint = function () {
+        var list = history(visits[con]).slice().reverse(), admin = isAdmin();
+        box.querySelector('.tl').innerHTML = list.map(function (it, i) {
+          return '<div class="dv-item"><div class="h">' + statusBadge(it) + '<span class="ui-note">' + UI.fmtDate(it.visitDate) + '</span></div>' +
+            '<div class="m">' + UI.esc(it.visitByOffice || it.visitBy || 'Office') + (it.visitorName ? ' · ' + UI.esc(it.visitorName) : '') +
+            (it.status === 'Paid' && it.paidAmount ? ' · Paid ₹' + UI.n(it.paidAmount) + (it.paidDate ? ' on ' + UI.fmtDate(it.paidDate) : '') : '') + '</div>' +
+            (it.remarks ? '<p>' + UI.esc(it.remarks) + '</p>' : '') +
+            (admin ? '<button type="button" class="ui-btn ghost sm" data-del="' + UI.esc(it.id || i) + '" style="margin-top:4px;color:var(--mzo-bad)">Delete</button>' : '') + '</div>';
+        }).join('') || '<p class="ui-note">No visits recorded yet.</p>';
       };
-
-      // Existing history array or initial array
-      let historyList = (existingRec && existingRec.history && Array.isArray(existingRec.history))
-        ? [...existingRec.history]
-        : [];
-
-      if (historyList.length === 0 && existingRec && existingRec.visitDate) {
-        historyList.push({
-          id: 'v_legacy_' + conId,
-          visitDate: existingRec.visitDate,
-          visitByOffice: existingRec.visitBy || 'Official',
-          visitorName: existingRec.visitorName || '',
-          visitBy: existingRec.visitBy || '',
-          status: existingRec.status || 'Visited',
-          paidAmount: existingRec.paidAmount || '',
-          paidDate: existingRec.paidDate || '',
-          remarks: existingRec.remarks || '',
-          createdAt: existingRec.updatedAt || new Date().toISOString()
-        });
-      }
-
-      historyList.push(newHistoryEntry);
-
-      const record = {
-        conId: conId,
-        instNo: consumer ? consumer.INST_NO : (existingRec ? existingRec.instNo : ''),
-        consumerName: consumer ? consumer.NAME : (existingRec ? existingRec.consumerName : ''),
-        address: consumer ? consumer.ADDRESS : (existingRec ? existingRec.address : ''),
-        cccCode: consumer ? consumer.CCC_CODE : (existingRec ? existingRec.cccCode : ''),
-        category: consumer ? consumer.CATEGORY : (existingRec ? existingRec.category : ''),
-        totalOsd: consumer ? (consumer.TOTAL_OSD || consumer.OUTSTANDING) : (existingRec ? existingRec.totalOsd : '0'),
-        mobile: consumer ? consumer.REG_MOB_NO : (existingRec ? existingRec.mobile : ''),
-        visitDate: visitDate,
-        visitBy: visitByOffice,
-        visitorName: visitorName,
-        status: status,
-        paidAmount: paidAmount,
-        paidDate: paidDate,
-        remarks: remarks,
-        updatedAt: new Date().toISOString(),
-        reportOsdDate: reportOsdDate,
-        history: historyList
-      };
-
-      // 1. Instant Local Save
-      followUpMap[conId] = record;
-      saveLocalFollowUps();
-
-      // 2. Refresh Timeline & Table
-      renderModalTimeline(conId);
-      applyFilters();
-      
-      // Reset Visitor Name and Remarks for subsequent entries
-      document.getElementById('modalVisitorName').value = '';
-      document.getElementById('modalRemarks').value = '';
-
-      showToast(`New visit timeline entry saved for CON ID: ${conId}`);
-
-      // 3. Background Async Sync to Apps Script Endpoint
-      setTimeout(() => {
-        syncRecordInBackground(record);
-      }, 100);
+      paint();
+      f.addEventListener('submit', function (e) {
+        e.preventDefault();
+        var who = f.who.value.trim(); if (!who) { f.who.focus(); return; }
+        var office = f.by.value === 'Other' ? (f.byOther.value.trim() || 'Official') : f.by.value, st = f.st.value, existing = visits[con];
+        var entry = { id: 'v_' + Date.now() + '_' + Math.floor(Math.random() * 1000), visitDate: f.date.value, visitByOffice: office, visitorName: who, visitBy: office, status: st,
+          paidAmount: st === 'Paid' ? f.amt.value : '', paidDate: st === 'Paid' ? f.pdate.value : '', remarks: f.remarks.value.trim(), createdAt: new Date().toISOString() };
+        var hist = history(existing); hist.push(entry);
+        var rec = {
+          conId: con, instNo: r ? r.inst : (existing ? existing.instNo : ''), consumerName: r ? r.raw.NAME : (existing ? existing.consumerName : ''),
+          address: r ? r.address : (existing ? existing.address : ''), cccCode: r ? r.code : (existing ? existing.cccCode : ''), category: r ? r.cat : (existing ? existing.category : ''),
+          totalOsd: r ? (r.raw.TOTAL_OSD || r.raw.OUTSTANDING) : (existing ? existing.totalOsd : '0'), mobile: r ? r.mobile : (existing ? existing.mobile : ''),
+          visitDate: entry.visitDate, visitBy: office, visitorName: who, status: st, paidAmount: entry.paidAmount, paidDate: entry.paidDate, remarks: entry.remarks,
+          updatedAt: new Date().toISOString(), reportOsdDate: osdDate, history: hist
+        };
+        visits[con] = rec; saveLocal();                 // 1. local first: the note shows at once
+        f.who.value = ''; f.remarks.value = ''; paint(); render();
+        UI.toast('Visit saved');
+        setTimeout(function () { push(rec); }, 100);   // 2. then the shared sheet
+      });
+      box.querySelector('.tl').addEventListener('click', function (e) {
+        var btn = e.target.closest('[data-del]'); if (!btn || !isAdmin()) return;
+        var rec = visits[con]; if (!rec || !confirm('Delete this visit entry?')) return;
+        var id = btn.getAttribute('data-del');
+        rec.history = history(rec).filter(function (it, i) { return String(it.id || i) !== id; });
+        if (rec.history.length) {
+          var last = rec.history[rec.history.length - 1];
+          rec.visitDate = last.visitDate; rec.visitBy = last.visitByOffice || last.visitBy; rec.visitorName = last.visitorName; rec.status = last.status;
+          rec.paidAmount = last.paidAmount; rec.paidDate = last.paidDate; rec.remarks = last.remarks;
+        } else delete visits[con];
+        saveLocal(); paint(); render(); UI.toast('Entry deleted');
+        if (visits[con]) push(visits[con]);
+      });
+    }
+    function push(rec) {
+      fetch(SYNC, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'SAVE_DD_VISIT', data: rec }) }).catch(function () {});
+    }
+    function pullRemote() {
+      fetch(SYNC + '?t=' + Date.now()).then(function (r) { return r.ok ? r.json() : null; }).then(function (j) {
+        if (!j || j.status !== 'success' || !j.data) return;
+        Object.keys(j.data).forEach(function (k) { var rr = j.data[k], lr = visits[k]; if (!lr || new Date(rr.updatedAt || 0) > new Date(lr.updatedAt || 0)) visits[k] = rr; });
+        saveLocal(); if (all.length) render();
+      }).catch(function () {});
     }
 
-    // Delete single timeline entry (Admin only)
-    function deleteTimelineEntry(conId, entryId) {
-      if (!isAdminUser()) {
-        alert('Permission Denied: Only Admin users can delete timeline records.');
-        return;
-      }
-      const rec = followUpMap[conId];
-      if (!rec || !rec.history) return;
-
-      if (confirm('Are you sure you want to delete this specific timeline entry?')) {
-        rec.history = rec.history.filter((item, idx) => (item.id || idx) != entryId);
-        if (rec.history.length > 0) {
-          const latest = rec.history[rec.history.length - 1];
-          rec.visitDate = latest.visitDate;
-          rec.visitBy = latest.visitByOffice || latest.visitBy;
-          rec.visitorName = latest.visitorName;
-          rec.status = latest.status;
-          rec.paidAmount = latest.paidAmount;
-          rec.paidDate = latest.paidDate;
-          rec.remarks = latest.remarks;
-        } else {
-          delete followUpMap[conId];
-        }
-        saveLocalFollowUps();
-        renderModalTimeline(conId);
-        applyFilters();
-        showToast('Timeline entry deleted.');
-
-        if (followUpMap[conId]) {
-          syncRecordInBackground(followUpMap[conId]);
-        }
-      }
+    function drill(name) {
+      if (level === 'region') { if ($('regionFilter').disabled) return; $('regionFilter').value = name; $('divisionFilter').value = ''; $('cccFilter').value = ''; level = 'division'; }
+      else { if ($('divisionFilter').disabled) return; $('divisionFilter').value = name; $('cccFilter').value = ''; level = 'ccc'; }
+      fillFilters(); setLevel(level);
     }
+    function setLevel(l) { level = l; [].forEach.call(document.querySelectorAll('#levelTabs .ui-tab'), function (t) { t.setAttribute('aria-selected', String(t.getAttribute('data-l') === l)); }); render(); }
+    function setView(v) { view = v; [].forEach.call(document.querySelectorAll('#listTabs .ui-tab'), function (t) { t.setAttribute('aria-selected', String(t.getAttribute('data-v') === v)); }); }
 
-    // Background Apps Script Endpoint Sync
-    async function syncRecordInBackground(record) {
-      try {
-        await fetch(SYNC_ENDPOINT, {
-          method: 'POST',
-          mode: 'no-cors',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'SAVE_DD_VISIT', data: record })
-        });
-      } catch (e) {
-        console.warn('Background sync deferred', e);
-      }
-    }
+    ['regionFilter', 'divisionFilter', 'cccFilter'].forEach(function (id) {
+      $(id).addEventListener('change', function () { if (id === 'regionFilter') { $('divisionFilter').value = ''; $('cccFilter').value = ''; } if (id === 'divisionFilter') $('cccFilter').value = ''; fillFilters(); render(); });
+    });
+    ['classFilter', 'catFilter', 'osdFilter'].forEach(function (id) { $(id).addEventListener('change', function () { UI.mark(this); render(); }); });
+    $('q').addEventListener('input', UI.debounce(render, 180));
+    $('stats').addEventListener('click', function (e) { var s = e.target.closest('button.ui-stat'); if (!s) return; var k = s.getAttribute('data-k'); stat = stat === k ? '' : k; setView('sheet'); render(); });
+    $('levelTabs').addEventListener('click', function (e) { var t = e.target.closest('.ui-tab'); if (t) setLevel(t.getAttribute('data-l')); });
+    $('listTabs').addEventListener('click', function (e) { var t = e.target.closest('.ui-tab'); if (t) { setView(t.getAttribute('data-v')); render(); } });
+    $('clearBtn').addEventListener('click', function () {
+      $('q').value = ''; stat = ''; outcome = ''; ['classFilter', 'catFilter', 'osdFilter'].forEach(function (id) { $(id).value = ''; });
+      ['regionFilter', 'divisionFilter', 'cccFilter'].forEach(function (id) { if (!$(id).disabled) $(id).value = ''; });
+      fillFilters(); setLevel('region');
+    });
+    $('exportBtn').addEventListener('click', function () { var ex = window.__export; if (ex) UI.exportCsv('dd-visit-' + (view === 'history' ? 'history-' : '') + new Date().toISOString().slice(0, 10) + '.csv', ex.cols, ex.rows); });
+    $('refreshBtn').addEventListener('click', function () {
+      var bt = this; bt.classList.add('spin');
+      Promise.resolve(window.mzoDataHub.waitForDataset('CACHE_DD_VISIT', { forceCheck: true })).catch(function () {})
+        .then(function () { return window.mzoDataHub._peek('CACHE_DD_VISIT'); }).then(function (t) { if (t) { prepare(t); render(); } pullRemote(); })
+        .then(function () { bt.classList.remove('spin'); });
+    });
 
-    // Toast Message Trigger
-    function showToast(msg) {
-      const toast = document.getElementById('toastMsg');
-      document.getElementById('toastText').textContent = msg;
-      toast.classList.add('show');
-      setTimeout(() => toast.classList.remove('show'), 3500);
-    }
-
-    // Helper: HTML Escaping
-    function escapeHtml(str) {
-      if (!str) return '';
-      return String(str)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;');
-    }
-
-    // Format Date String
-    function formatDateString(str) {
-      if (!str || str === '--') return '--';
-      return String(str).split('T')[0];
-    }
-
-    // Update Pagination Info
-    function updatePagination(start, end, total) {
-      document.getElementById('pageInfo').textContent = `Showing ${start} to ${end} of ${total} entries`;
-      document.getElementById('currentPageNum').textContent = currentPage;
-      document.getElementById('btnPrev').disabled = (currentPage <= 1);
-      document.getElementById('btnNext').disabled = (end >= total);
-    }
-
-    function changePage(delta) {
-      currentPage += delta;
-      renderTable();
-    }
-
-    function resetFilters() {
-      document.getElementById('searchInput').value = '';
-      document.getElementById('regionFilter').value = '';
-      document.getElementById('divisionFilter').value = '';
-      document.getElementById('cccFilter').value = '';
-      document.getElementById('catFilter').value = '';
-      document.getElementById('statusFilter').value = '';
-      document.getElementById('osdFilter').value = '0';
-      onRegionChange();
-    }
-
-    function filterByKpi(type) {
-      resetFilters();
-      const statusSelect = document.getElementById('statusFilter');
-      if (type === 'VISITED') statusSelect.value = 'VISITED';
-      else if (type === 'PENDING') statusSelect.value = 'PENDING';
-      else if (type === 'PAID') statusSelect.value = 'Paid';
-      else if (type === 'OFFSHEET') statusSelect.value = 'OFFSHEET';
-      applyFilters();
-    }
-
-    // CSV Export
-    function exportToCSV() {
-      if (!filteredData || filteredData.length === 0) {
-        alert('No data available to export.');
-        return;
-      }
-
-      const isHistoryView = (activeTab === 'history');
-      const csvRows = [];
-
-      if (isHistoryView) {
-        csvRows.push(['CON_ID', 'INST_NO', 'CONSUMER_NAME', 'ADDRESS', 'CCC_CODE', 'CATEGORY', 'TOTAL_OSD', 'MOBILE', 'VISIT_DATE', 'VISITED_BY_OFFICE', 'VISITOR_NAME', 'STATUS', 'PAID_AMOUNT', 'PAID_DATE', 'REMARKS']);
-        filteredData.forEach(r => {
-          csvRows.push([
-            r.conId || '',
-            r.instNo || '',
-            `"${(r.consumerName || '').replace(/"/g, '""')}"`,
-            `"${(r.address || '').replace(/"/g, '""')}"`,
-            r.cccCode || '',
-            r.category || '',
-            r.totalOsd || '0',
-            r.mobile || '',
-            r.visitDate || '',
-            `"${(r.visitBy || '').replace(/"/g, '""')}"`,
-            `"${(r.visitorName || '').replace(/"/g, '""')}"`,
-            r.status || '',
-            r.paidAmount || '',
-            r.paidDate || '',
-            `"${(r.remarks || '').replace(/"/g, '""')}"`
-          ]);
-        });
-      } else {
-        csvRows.push(['CON_ID', 'INST_NO', 'CONSUMER_NAME', 'ADDRESS', 'CCC_CODE', 'REGION', 'DIVISION', 'CATEGORY', 'TOTAL_OSD', 'LOAD_KW', 'DISCON_DATE', 'MOBILE', 'VISIT_STATUS', 'LAST_VISIT_DATE', 'VISITED_BY_OFFICE', 'VISITOR_NAME', 'PAID_AMOUNT', 'REMARKS']);
-        filteredData.forEach(r => {
-          const rec = followUpMap[r.CON_ID];
-          csvRows.push([
-            r.CON_ID || '',
-            r.INST_NO || '',
-            `"${(r.NAME || '').replace(/"/g, '""')}"`,
-            `"${(r.ADDRESS || '').replace(/"/g, '""')}"`,
-            r.CCC_CODE || '',
-            r._regionName || '',
-            r._divisionName || '',
-            r.CATEGORY || '',
-            r.TOTAL_OSD || r.OUTSTANDING || '0',
-            r.CONNECTED_LOAD || r.LOAD || '',
-            r.DISCONN_DATE || r.DISCON_DT || '',
-            r.REG_MOB_NO || '',
-            rec ? rec.status : 'Pending',
-            rec ? rec.visitDate : '',
-            rec ? `"${(rec.visitBy || '').replace(/"/g, '""')}"` : '',
-            rec ? `"${(rec.visitorName || '').replace(/"/g, '""')}"` : '',
-            rec ? rec.paidAmount : '',
-            rec ? `"${(rec.remarks || '').replace(/"/g, '""')}"` : ''
-          ]);
-        });
-      }
-
-      const csvString = csvRows.map(e => e.join(',')).join('\n');
-      const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
-      const link = document.createElement('a');
-      const url = URL.createObjectURL(blob);
-      link.setAttribute('href', url);
-      link.setAttribute('download', `DD_Visit_Report_${new Date().toISOString().split('T')[0]}.csv`);
-      link.style.visibility = 'hidden';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    }
+    loadLocal();
+    UI.load('CACHE_DD_VISIT', function (text, info) {
+      if (!text) { if (info && info.error) { $('meta').textContent = 'Could not load data'; $('listTable').innerHTML = $('officeTable').innerHTML = '<div class="ui-empty">Could not load data.</div>'; } return; }
+      prepare(text); render();
+    }).then(pullRemote);
+  });
   </script>
 </body>
 </html>

@@ -1,1846 +1,334 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html lang="en" class="ui">
 <head>
-  <script src="mzo_theme.js?v=1"></script>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Meter Installation Dashboard</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/npm/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Pending master card · MZO Reports</title>
+  <script src="/mzo_theme.js?v=3"></script>
+  <link rel="stylesheet" href="/mzo_theme.css?v=3" />
+  <script src="/mzo_ui.js?v=1" defer></script>
+  <script src="/mzo_data_hub.js" defer></script>
+  <script src="/mzo_scope.js?v=5" defer></script>
   <style>
-    :root {
-      --primary: #4f46e5;
-      --primary-hover: #4338ca;
-      --secondary: #10b981;
-      --danger: #ef4444;
-      --warning: #f59e0b;
-      --info: #3b82f6;
-      --bg-main: #f8fafc;
-      --surface: rgba(255, 255, 255, 0.9);
-      --surface-border: rgba(226, 232, 240, 0.8);
-      --text-primary: #1e293b;
-      --text-secondary: #64748b;
-      --glass-bg: rgba(255, 255, 255, 0.7);
-      --glass-border: rgba(255, 255, 255, 0.4);
-      --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-      --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-      --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-      --radius-md: 12px;
-      --radius-lg: 16px;
-    }
-
-    * {
-      -webkit-tap-highlight-color: transparent;
-      box-sizing: border-box;
-    }
-
-    body {
-      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-      background-color: var(--bg-main);
-      color: var(--text-primary);
-      margin: 0;
-      padding: 0;
-      font-size: 14px;
-      line-height: 1.5;
-      -webkit-font-smoothing: antialiased;
-    }
-
-    /* Modern Scrollbar */
-    ::-webkit-scrollbar {
-      width: 6px;
-      height: 6px;
-    }
-    ::-webkit-scrollbar-track {
-      background: transparent;
-    }
-    ::-webkit-scrollbar-thumb {
-      background: #cbd5e1;
-      border-radius: 10px;
-    }
-    ::-webkit-scrollbar-thumb:hover {
-      background: #94a3b8;
-    }
-
-    .container-fluid {
-      max-width: 1400px;
-      margin: 0 auto;
-      padding: 0 16px;
-    }
-
-    /* Compact header */
-    .dashboard-header {
-      background: #fff;
-      color: var(--text-primary);
-      padding: 0;
-      margin-bottom: 0;
-      position: sticky;
-      top: 0;
-      z-index: 40;
-      min-height: 48px;
-      border-bottom: 1px solid var(--surface-border);
-      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
-    }
-    .mc-hdr-inner {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      min-height: 48px;
-      padding: 0 12px;
-    }
-    .mc-hdr-left {
-      display: flex;
-      align-items: baseline;
-      gap: 10px;
-      min-width: 0;
-    }
-    .dashboard-header h2 {
-      font-size: 1.05rem;
-      font-weight: 700;
-      margin: 0;
-      color: var(--text-primary);
-      white-space: nowrap;
-    }
-    #updateDate {
-      font-size: 0.72rem;
-      opacity: 1;
-      margin: 0;
-      font-weight: 500;
-      color: var(--text-secondary);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .mc-filter-toggle,
-    .mc-filter-done {
-      display: none;
-      align-items: center;
-      justify-content: center;
-      min-width: 34px;
-      min-height: 34px;
-      padding: 0 10px;
-      border-radius: 8px;
-      border: 1px solid var(--surface-border);
-      background: #fff;
-      color: var(--text-primary);
-      cursor: pointer;
-    }
-    .mc-filter-head { display: none; }
-    .mc-filter-backdrop { display: none; }
-    .mc-context-bar { display: none; }
-
-    /* Header Styling */
-    .main-container {
-      position: relative;
-    }
-
-    .form-select.mzo-filter-locked,
-    select.mzo-filter-locked:disabled {
-      opacity: 1;
-      color: var(--text-primary);
-      background: #f8fafc;
-      -webkit-text-fill-color: var(--text-primary);
-    }
-
-    /* Glass Effect Utility */
-    .glass-panel {
-      background: var(--surface);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      border: 1px solid var(--glass-border);
-      border-radius: var(--radius-md);
-      box-shadow: var(--shadow-md);
-    }
-
-    /* Filter Bar */
-    .filter-container {
-      padding: 16px;
-      margin-bottom: 24px;
-    }
-    .mc-filter-panel {
-      max-width: 1400px;
-      width: calc(100% - 32px);
-      margin: 12px auto 16px;
-    }
-
-    .form-label {
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--text-secondary);
-      margin-bottom: 6px;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-
-    .form-select, .form-control {
-      font-size: 14px;
-      border: 1px solid var(--surface-border);
-      border-radius: 8px;
-      padding: 10px 12px;
-      background-color: white;
-      transition: all 0.2s ease;
-      color: var(--text-primary);
-    }
-
-    .form-select:focus, .form-control:focus {
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
-      outline: none;
-    }
-
-    /* Horizontal Filter Grid */
-    .filter-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 12px;
-    }
-
-    @media (min-width: 992px) {
-      .filter-grid {
-        grid-template-columns: repeat(5, 1fr);
-      }
-    }
-
-    @media (max-width: 991px) {
-      .search-filter-wrapper {
-        grid-column: span 2;
-      }
-    }
-
-    /* Stats Cards */
-    .stats-card {
-      border-radius: var(--radius-md);
-      padding: 20px;
-      min-height: 120px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      position: relative;
-      overflow: hidden;
-      cursor: pointer;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      border: 1px solid transparent;
-    }
-
-    .stats-card:hover {
-      transform: translateY(-4px);
-      box-shadow: var(--shadow-lg);
-    }
-
-    .stats-card.total-card {
-      background: linear-gradient(135deg, #4f46e5, #6366f1);
-      color: white;
-    }
-    .stats-card.month-card {
-      background: white;
-      border-color: var(--surface-border);
-      color: var(--text-primary);
-    }
-    .stats-card.delayed-card {
-      background: #fef2f2;
-      border-color: #fee2e2;
-      color: #991b1b;
-    }
-
-    .stats-card.active-kpi {
-      border-color: var(--primary) !important;
-      box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15), var(--shadow-lg);
-      transform: translateY(-4px);
-      z-index: 2;
-    }
-
-    .stats-card.active-kpi::before {
-      content: 'ACTIVE';
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      font-size: 10px;
-      font-weight: 800;
-      background: var(--primary);
-      color: white;
-      padding: 2px 6px;
-      border-radius: 4px;
-      z-index: 3;
-    }
-
-    .card-title {
-      font-size: 13px;
-      font-weight: 600;
-      margin: 0;
-      text-transform: uppercase;
-      letter-spacing: 0.025em;
-      opacity: 0.9;
-    }
-
-    .card-value {
-      font-size: 32px;
-      font-weight: 800;
-      margin: 8px 0 4px;
-      line-height: 1;
-    }
-
-    .card-trend {
-      font-size: 12px;
-      font-weight: 500;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-    }
-
-    .card-icon-bg {
-      position: absolute;
-      top: -10px;
-      right: -10px;
-      font-size: 80px;
-      opacity: 0.05;
-      transform: rotate(-10deg);
-    }
-
-    /* Drill-Through Section */
-    .drilldown-container {
-      margin-top: 24px;
-    }
-
-    .breadcrumb-nav {
-      background: white;
-      padding: 10px 16px;
-      border-radius: 8px;
-      margin-bottom: 12px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 13px;
-      border: 1px solid var(--surface-border);
-      box-shadow: var(--shadow-sm);
-    }
-
-    .breadcrumb-item {
-      color: var(--text-secondary);
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      transition: color 0.2s;
-    }
-
-    .breadcrumb-item:hover {
-      color: var(--primary);
-    }
-
-    .breadcrumb-item.active {
-      color: var(--text-primary);
-      font-weight: 700;
-      cursor: default;
-    }
-
-    .breadcrumb-sep {
-      color: #cbd5e1;
-      font-size: 10px;
-    }
-
-    .drill-table-container {
-      background: white;
-      border: 1px solid var(--surface-border);
-      border-radius: 10px;
-      overflow: hidden;
-      box-shadow: var(--shadow-md);
-    }
-
-    .drill-table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-
-    .drill-table th {
-      background: #f8fafc;
-      padding: 12px 16px;
-      text-align: left;
-      font-size: 11px;
-      font-weight: 700;
-      color: var(--text-secondary);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      border-bottom: 1px solid #e2e8f0;
-    }
-
-    .drill-table td {
-      padding: 14px 16px;
-      border-bottom: 1px solid #f1f5f9;
-      font-size: 14px;
-      transition: background 0.2s;
-    }
-
-    .drill-table tr:last-child td {
-      border-bottom: none;
-    }
-
-    .drill-table .drill-row {
-      cursor: pointer;
-    }
-
-    .drill-table .drill-row:hover td {
-      background-color: #f1f5f9;
-    }
-
-    .drill-table .drill-row td:first-child {
-      font-weight: 600;
-      color: var(--primary);
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .drill-table .drill-row .drill-icon {
-      font-size: 18px;
-      opacity: 0.6;
-    }
-
-    .drill-table .count-badge {
-      background: #f1f5f9;
-      padding: 2px 10px;
-      border-radius: 12px;
-      font-size: 12px;
-      font-weight: 700;
-      color: var(--text-secondary);
-    }
-
-    /* Connection List View */
-    .appl-list {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-      gap: 12px;
-      padding: 20px;
-      background: #f8fafc;
-    }
-
-    .appl-card {
-      background: white;
-      border: 1px solid #e2e8f0;
-      border-radius: 8px;
-      padding: 12px;
-      transition: all 0.2s;
-      border-left: 4px solid var(--primary);
-    }
-
-    .appl-card:hover {
-      transform: translateY(-2px);
-      box-shadow: var(--shadow-md);
-    }
-
-    .appl-no {
-      font-weight: 700;
-      color: var(--primary);
-      display: block;
-      font-size: 14px;
-      margin-bottom: 4px;
-    }
-
-    .appl-date {
-      font-size: 11px;
-      color: var(--text-secondary);
-      display: flex;
-      align-items: center;
-      gap: 4px;
-    }
-
-    /* Connection Detail Table (Last Level) */
-    .detail-table-wrapper {
-      padding: 0;
-      overflow-x: auto;
-      background: #f8fafc;
-    }
-
-    .detail-table {
-      width: 100%;
-      min-width: 900px;
-      border-collapse: collapse;
-      font-size: 13px;
-    }
-
-    .detail-table th {
-      background: #f1f5f9;
-      color: var(--text-secondary);
-      font-weight: 700;
-      text-transform: uppercase;
-      font-size: 11px;
-      letter-spacing: 0.05em;
-      padding: 12px 16px;
-      border-bottom: 2px solid #e2e8f0;
-      white-space: nowrap;
-      position: sticky;
-      top: 0;
-      z-index: 10;
-    }
-
-    .detail-table td {
-      padding: 12px 16px;
-      border-bottom: 1px solid #e2e8f0;
-      vertical-align: middle;
-      color: var(--text-primary);
-    }
-
-    .detail-table tr:hover {
-      background-color: #f1f5f9;
-    }
-
-    .detail-table .detail-row {
-      cursor: pointer;
-    }
-
-    /* Info Grid for Modal */
-    .info-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px;
-      padding: 10px 0;
-    }
-
-    .info-item {
-      display: flex;
-      flex-direction: column;
-    }
-
-    .info-label {
-      font-size: 11px;
-      font-weight: 700;
-      color: var(--text-secondary);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      margin-bottom: 4px;
-    }
-
-    .info-value {
-      font-size: 14px;
-      font-weight: 600;
-      color: var(--text-primary);
-    }
-
-    .modal-content.glass-panel {
-      background: rgba(255, 255, 255, 0.95);
-      backdrop-filter: blur(20px);
-      border: 1px solid rgba(255, 255, 255, 0.8);
-      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
-      border-radius: 16px;
-    }
-
-    .badge-class {
-      background: #e0e7ff;
-      color: #3730a3;
-      padding: 4px 8px;
-      border-radius: 4px;
-      font-weight: 600;
-      font-size: 11px;
-    }
-
-    .badge-phase {
-      background: #fef3c7;
-      color: #92400e;
-      padding: 4px 8px;
-      border-radius: 4px;
-      font-weight: 600;
-      font-size: 11px;
-    }
-
-    .badge-agency {
-      background: #d1fae5;
-      color: #065f46;
-      padding: 4px 8px;
-      border-radius: 4px;
-      font-weight: 600;
-      font-size: 11px;
-    }
-
-    .appl-no-cell {
-      font-weight: 700;
-      color: var(--primary);
-    }
-
-    .customer-name {
-      font-weight: 600;
-      color: #1e293b;
-    }
-
-    /* Summary Section */
-    .section-title {
-      font-size: 18px;
-      font-weight: 700;
-      margin: 40px 0 16px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      color: var(--text-primary);
-    }
-
-    /* Tabbed Navigation */
-    .nav-tabs-custom {
-      border-bottom: 2px solid var(--surface-border);
-      gap: 12px;
-      margin-bottom: 20px;
-    }
-
-    .nav-tabs-custom .nav-link {
-      border: none;
-      color: var(--text-secondary);
-      font-weight: 600;
-      padding: 12px 20px;
-      border-radius: 8px 8px 0 0;
-      transition: all 0.2s;
-      position: relative;
-    }
-
-    .nav-tabs-custom .nav-link:hover {
-      background: #f1f5f9;
-      color: var(--primary);
-    }
-
-    .nav-tabs-custom .nav-link.active {
-      color: var(--primary);
-      background: transparent;
-    }
-
-    .nav-tabs-custom .nav-link.active::after {
-      content: '';
-      position: absolute;
-      bottom: -2px;
-      left: 0;
-      right: 0;
-      height: 2px;
-      background: var(--primary);
-    }
-
-    .tab-content-custom {
-      background: transparent;
-    }
-
-    /* Modal Sticky Header */
-    .modal-content.glass-panel {
-      display: flex;
-      flex-direction: column;
-      max-height: 90vh;
-    }
-
-    .modal-header {
-      position: sticky;
-      top: 0;
-      z-index: 1070;
-      background: rgba(255, 255, 255, 0.9);
-      backdrop-filter: blur(10px);
-      border-bottom: 1px solid var(--surface-border) !important;
-    }
-
-    .modal-body {
-      overflow-y: auto;
-      flex-grow: 1;
-    }
-
-    /* Download Button Styles */
-    .btn-download {
-      font-size: 11px;
-      font-weight: 700;
-      padding: 4px 10px;
-      border-radius: 6px;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      background: #f1f5f9;
-      color: var(--text-secondary);
-      border: 1px solid var(--surface-border);
-      transition: all 0.2s;
-    }
-
-    .btn-download:hover {
-      background: var(--primary);
-      color: white;
-      border-color: var(--primary);
-      cursor: pointer;
-    }
-
-    .summary-grid {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 20px;
-    }
-
-    @media (min-width: 992px) {
-      .summary-grid {
-        grid-template-columns: 1.5fr 1fr;
-      }
-    }
-
-    .chart-container {
-      padding: 20px;
-      height: 350px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    /* Custom Table for Class Summary */
-    .custom-table {
-      width: 100%;
-      border-collapse: separate;
-      border-spacing: 0;
-    }
-
-    .custom-table th {
-      background: #f1f5f9;
-      padding: 12px 16px;
-      text-align: left;
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--text-secondary);
-      text-transform: uppercase;
-      border-bottom: 2px solid #e2e8f0;
-    }
-
-    .custom-table td {
-      padding: 14px 16px;
-      border-bottom: 1px solid #f1f5f9;
-      font-size: 14px;
-    }
-
-    .custom-table tr:last-child td {
-      border-bottom: none;
-    }
-
-    .custom-table tr:hover td {
-      background-color: #f8fafc;
-    }
-
-    /* Loader */
-    .loader-wrapper {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-height: 300px;
-      gap: 16px;
-    }
-
-    .shimmer {
-      background: linear-gradient(90deg, #f0f0f0 25%, #f8f8f8 50%, #f0f0f0 75%);
-      background-size: 200% 100%;
-      animation: shimmer 1.5s infinite;
-      border-radius: 4px;
-    }
-
-    @keyframes shimmer {
-      0% { background-position: 200% 0; }
-      100% { background-position: -200% 0; }
-    }
-
-    @media (max-width: 768px) {
-      .container-fluid { padding: 0 10px; }
-      .dashboard-header, .mc-hdr-inner { min-height: 42px; }
-      .mc-hdr-inner { padding: 0 10px; }
-      .dashboard-header h2 { font-size: 0.9rem; }
-      #updateDate { font-size: 0.62rem; max-width: 42vw; }
-      .mc-filter-toggle, .mc-filter-done { display: inline-flex; }
-      .mc-filter-toggle[aria-expanded="true"] {
-        border-color: var(--primary);
-        color: var(--primary);
-        background: rgba(79, 70, 229, 0.08);
-      }
-      .mc-filter-head {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin-bottom: 8px;
-        font-size: 13px;
-        font-weight: 700;
-      }
-      .mc-filter-backdrop {
-        display: none;
-        position: fixed;
-        inset: 0;
-        background: rgba(15, 23, 42, 0.4);
-        z-index: 60;
-      }
-      body.mc-filters-open .mc-filter-backdrop { display: block; }
-      .mc-filter-panel {
-        display: none;
-        position: fixed;
-        left: 10px;
-        right: 10px;
-        top: 52px;
-        z-index: 70;
-        max-height: min(78vh, 520px);
-        overflow-x: hidden;
-        overflow-y: auto;
-        padding: 12px !important;
-        margin: 0 !important;
-        width: auto;
-        max-width: none;
-        border-radius: 12px !important;
-        box-shadow: 0 16px 40px rgba(15, 23, 42, 0.18);
-        pointer-events: auto;
-      }
-      body.mc-filters-open .mc-filter-panel { display: block; }
-      .mc-context-bar {
-        display: block;
-        padding: 6px 2px 8px;
-        font-size: 11px;
-        font-weight: 600;
-        color: var(--text-secondary);
-        white-space: nowrap;
-        overflow-x: auto;
-        cursor: pointer;
-      }
-      .filter-grid {
-        grid-template-columns: 1fr !important;
-        gap: 8px !important;
-      }
-      .search-filter-wrapper { grid-column: auto !important; }
-      .form-select, .form-control { padding: 8px 10px !important; font-size: 13px !important; width: 100%; }
-      .stats-card {
-        padding: 8px !important;
-        min-height: 64px !important;
-        border-radius: 8px;
-      }
-      .stats-card:hover, .stats-card.active-kpi { transform: none; }
-      .stats-card.active-kpi::before { display: none; }
-      .card-value { font-size: 1.15rem !important; margin: 2px 0 0 !important; }
-      .card-title { font-size: 0.62rem !important; }
-      .card-trend, .card-icon-bg { display: none !important; }
-      .section-title {
-        font-size: 0.85rem;
-        margin: 12px 0 8px;
-        gap: 6px;
-      }
-      .nav-tabs-custom {
-        display: flex;
-        gap: 0;
-        margin-bottom: 8px;
-        flex-wrap: nowrap;
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-      }
-      .nav-tabs-custom .nav-link {
-        padding: 8px 10px;
-        font-size: 0.72rem;
-        white-space: nowrap;
-      }
-      .tab-pane .glass-panel { min-height: 0 !important; }
-      .custom-table th, .custom-table td { padding: 6px 8px; font-size: 12px; }
-      .loader-wrapper { min-height: 160px; gap: 8px; }
-      .mt-5 { margin-top: 0.75rem !important; }
-    }
-
-    /* ===== Theme integration (shared MzoTheme: html[data-mzo-theme]) ===== */
-    /* KPI text always inherits the card's own colour (shared rules must not recolour it) */
-    .stats-card .card-title,
-    .stats-card .card-value,
-    .stats-card .card-trend,
-    .stats-card .card-trend span { color: inherit !important; }
-
-    html[data-mzo-theme="dark"] {
-      --bg-main: #0b1120;
-      --surface: rgba(17, 28, 51, 0.94);
-      --surface-border: rgba(148, 163, 184, 0.18);
-      --text-primary: #f1f5f9;
-      --text-secondary: #94a3b8;
-      --glass-bg: rgba(17, 28, 51, 0.7);
-      --glass-border: rgba(148, 163, 184, 0.14);
-      --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.35);
-      --shadow-md: 0 4px 10px -1px rgb(0 0 0 / 0.45), 0 2px 4px -2px rgb(0 0 0 / 0.4);
-      --shadow-lg: 0 10px 20px -3px rgb(0 0 0 / 0.5), 0 4px 6px -4px rgb(0 0 0 / 0.4);
-    }
-    /* Header */
-    html[data-mzo-theme="dark"] .dashboard-header { background: #0e1628; border-bottom-color: var(--surface-border); box-shadow: 0 1px 2px rgba(0,0,0,0.4); }
-    html[data-mzo-theme="dark"] .dashboard-header h2 { color: var(--text-primary); }
-    html[data-mzo-theme="dark"] .mc-filter-toggle,
-    html[data-mzo-theme="dark"] .mc-filter-done { background: #16223d; color: var(--text-primary); border-color: var(--surface-border); }
-    /* Filter block */
-    html[data-mzo-theme="dark"] .filter-container.glass-panel { background: var(--surface); border-color: var(--glass-border); }
-    html[data-mzo-theme="dark"] .form-select,
-    html[data-mzo-theme="dark"] .form-control { background-color: #090e1a !important; color: var(--text-primary) !important; border-color: var(--surface-border) !important; }
-    html[data-mzo-theme="dark"] .form-select.mzo-filter-locked,
-    html[data-mzo-theme="dark"] select.mzo-filter-locked:disabled { background: #16223d !important; color: var(--text-secondary) !important; -webkit-text-fill-color: var(--text-secondary); }
-    html[data-mzo-theme="dark"] .form-control::placeholder { color: var(--text-secondary); }
-    /* KPI cards */
-    html[data-mzo-theme="dark"] .stats-card.month-card { background: var(--surface); border-color: var(--surface-border); color: var(--text-primary); }
-    html[data-mzo-theme="dark"] .stats-card.delayed-card { background: rgba(239, 68, 68, 0.12); border-color: rgba(239, 68, 68, 0.32); color: #fca5a5; }
-    html[data-mzo-theme="dark"] .stats-card[style*="#eff6ff"] { background: rgba(59, 130, 246, 0.14) !important; border-color: rgba(59, 130, 246, 0.35) !important; color: #93c5fd !important; }
-    html[data-mzo-theme="dark"] .stats-card.active-kpi { border-color: #818cf8 !important; box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.22), var(--shadow-lg); }
-    /* Drill-down, tables, lists */
-    html[data-mzo-theme="dark"] .breadcrumb-nav,
-    html[data-mzo-theme="dark"] .drill-table-container { background: var(--surface); border-color: var(--surface-border); }
-    html[data-mzo-theme="dark"] .breadcrumb-sep { color: #475569; }
-    html[data-mzo-theme="dark"] .drill-table th,
-    html[data-mzo-theme="dark"] .detail-table th,
-    html[data-mzo-theme="dark"] .custom-table th { background: #16223d; color: var(--text-secondary); border-bottom-color: var(--surface-border); }
-    html[data-mzo-theme="dark"] .drill-table td,
-    html[data-mzo-theme="dark"] .custom-table td { border-bottom-color: var(--surface-border); color: var(--text-primary); }
-    html[data-mzo-theme="dark"] .detail-table td { border-bottom-color: var(--surface-border); color: var(--text-primary); }
-    html[data-mzo-theme="dark"] .drill-table .drill-row:hover td,
-    html[data-mzo-theme="dark"] .custom-table tr:hover td { background-color: rgba(255, 255, 255, 0.05); }
-    html[data-mzo-theme="dark"] .detail-table tr:hover { background-color: rgba(255, 255, 255, 0.05); }
-    html[data-mzo-theme="dark"] .drill-table .count-badge,
-    html[data-mzo-theme="dark"] .btn-download { background: #16223d; color: var(--text-secondary); border-color: var(--surface-border); }
-    html[data-mzo-theme="dark"] .btn-download:hover { background: var(--primary); color: #fff; }
-    html[data-mzo-theme="dark"] .appl-list,
-    html[data-mzo-theme="dark"] .detail-table-wrapper { background: #0e1628; }
-    html[data-mzo-theme="dark"] .appl-card { background: var(--surface); border-color: var(--surface-border); border-left-color: var(--primary); }
-    html[data-mzo-theme="dark"] .customer-name { color: var(--text-primary); }
-    html[data-mzo-theme="dark"] .appl-no, html[data-mzo-theme="dark"] .appl-no-cell, html[data-mzo-theme="dark"] .drill-table .drill-row td:first-child { color: #a5b4fc; }
-    html[data-mzo-theme="dark"] .badge-class { background: rgba(99, 102, 241, 0.2); color: #c7d2fe; }
-    html[data-mzo-theme="dark"] .badge-phase { background: rgba(245, 158, 11, 0.18); color: #fcd34d; }
-    html[data-mzo-theme="dark"] .badge-agency { background: rgba(16, 185, 129, 0.18); color: #6ee7b7; }
-    html[data-mzo-theme="dark"] .nav-tabs-custom .nav-link:hover { background: rgba(255, 255, 255, 0.05); }
-    /* Modal */
-    html[data-mzo-theme="dark"] .modal-content.glass-panel { background: rgba(17, 28, 51, 0.97); border-color: var(--surface-border); box-shadow: 0 10px 40px rgba(0, 0, 0, 0.55); }
-    html[data-mzo-theme="dark"] .modal-header { background: rgba(14, 22, 40, 0.95); }
-    html[data-mzo-theme="dark"] .shimmer { background: linear-gradient(90deg, #16223d 25%, #1e2d4d 50%, #16223d 75%); background-size: 200% 100%; }
-    html[data-mzo-theme="dark"] ::-webkit-scrollbar-thumb { background: #334155; }
+    .mc-copy { margin-left: auto; }
+    #ui-drawer header .mc-copy + [data-x] { margin-left: 4px; }
   </style>
-  <link rel="stylesheet" href="mzo_theme.css?v=1" />
 </head>
-
 <body>
-  <header class="dashboard-header">
-    <div class="container-fluid mc-hdr-inner">
-      <div class="mc-hdr-left">
-        <h2>Pending MCs</h2>
-        <p id="updateDate">As on: …</p>
+  <main class="ui-page">
+    <header class="ui-head">
+      <div>
+        <h1>Pending master card</h1>
+        <p id="meta">Loading…</p>
       </div>
-      <div class="d-flex align-items-center gap-2">
-        <button type="button" id="mcCloudSyncBtn" class="btn btn-sm btn-success fw-bold px-2 py-1 rounded shadow-sm" style="display: none; font-size: 11px; background: #059669; border-color: #047857; color: white;" title="Sync data directly from source Google Sheet to Cloud Cache">
-          <i class='bx bx-cloud-upload me-1'></i>Sync Sheet
-        </button>
-        <button type="button" class="mc-filter-toggle" id="mcFilterToggle" aria-expanded="false" aria-controls="mcFilterPanel" title="Filters">
-          <i class='bx bx-slider-alt'></i>
-        </button>
+      <div class="ui-actions">
+        <button type="button" class="ui-btn" id="syncBtn" hidden><svg class="ui-i"><use href="#ui-sync"/></svg>Sync sheet</button>
+        <button type="button" class="ui-btn icon" id="refreshBtn" aria-label="Refresh" title="Refresh"><svg class="ui-i"><use href="#ui-refresh"/></svg></button>
       </div>
+    </header>
+
+    <div class="ui-filters">
+      <label class="ui-search"><svg class="ui-i"><use href="#ui-search"/></svg><input class="ui-input" id="q" type="search" placeholder="Application, consumer ID or name" autocomplete="off" /></label>
+      <span class="ui-select"><select id="regionFilter" aria-label="Region"><option value="">All regions</option></select></span>
+      <span class="ui-select"><select id="divisionFilter" aria-label="Division"><option value="">All divisions</option></select></span>
+      <span class="ui-select"><select id="cccFilter" aria-label="CCC"><option value="">All CCCs</option></select></span>
+      <span class="ui-select"><select id="classFilter" aria-label="Class"><option value="">All classes</option></select></span>
+      <button type="button" class="ui-btn ghost" id="clearBtn" hidden><svg class="ui-i"><use href="#ui-x"/></svg>Clear</button>
     </div>
-  </header>
-  <div class="mc-filter-backdrop" id="mcFilterBackdrop" hidden></div>
-  <div class="filter-container glass-panel p-3 mb-3 mc-filter-panel" id="mcFilterPanel">
-    <div class="mc-filter-head">
-      <span>Filters</span>
-      <button type="button" class="mc-filter-done" id="mcFilterDone">Done</button>
-    </div>
-    <div class="filter-grid">
-      <div>
-        <select id="regionFilter" class="form-select"></select>
-      </div>
-      <div>
-        <select id="divisionFilter" class="form-select"></select>
-      </div>
-      <div>
-        <select id="cccFilter" class="form-select"></select>
-      </div>
-      <div>
-        <select id="classFilter" class="form-select"></select>
-      </div>
-      <div class="search-filter-wrapper">
-        <input type="text" id="searchInput" class="form-control" placeholder="Search Appl No / Name...">
-      </div>
-    </div>
-  </div>
 
-  <div class="container-fluid">
-    <div class="main-container">
-      <div class="mc-context-bar" id="mcContextBar"></div>
+    <section class="ui-stats" style="--n:4" id="stats" aria-label="Summary">
+      <button type="button" class="ui-stat" data-k=""><div class="k">Pending</div><div class="v"><span class="ui-skel"></span></div><div class="s">&nbsp;</div></button>
+      <button type="button" class="ui-stat" data-k="WithinMonth"><div class="k">Within 30 days</div><div class="v"><span class="ui-skel"></span></div><div class="s">&nbsp;</div></button>
+      <button type="button" class="ui-stat" data-k="Delayed"><div class="k"><span class="ui-dot bad"></span>90 days or more</div><div class="v"><span class="ui-skel"></span></div><div class="s">&nbsp;</div></button>
+      <button type="button" class="ui-stat" data-k="Industrial"><div class="k">Industrial</div><div class="v"><span class="ui-skel"></span></div><div class="s">&nbsp;</div></button>
+    </section>
 
-      <!-- Loading State -->
-      <div id="loadingIndicator" class="loader-wrapper">
-        <div class="spinner-border text-primary" role="status">
-          <span class="visually-hidden">Loading...</span>
-        </div>
-        <p class="text-secondary fw-medium">Fetching latest records...</p>
-      </div>
-
-      <!-- Dashboard Content -->
-      <div id="dashboardContent" style="display: none;">
-        <!-- Stats Cards -->
-        <div class="row g-2 mc-kpi-row" id="cardsContainer"></div>
-
-        <!-- Breakdown Section -->
-        <div id="breakdownSection" class="drilldown-container" style="display: none;">
-          <div class="section-title">
-            <i class='bx bx-list-ul'></i>
-            <span id="breakdownTitle">Region-wise Breakdown</span>
-          </div>
-          
-          <div class="breadcrumb-nav" id="drillBreadcrumbs">
-            <!-- Breadcrumbs will be injected here -->
-          </div>
-
-          <div class="drill-table-container">
-            <div id="drilldownContent"></div>
+    <div class="ui-grid">
+      <section class="ui-panel">
+        <div class="ui-panel-h">
+          <h2>Breakdown</h2>
+          <div class="ui-tabs" role="tablist" id="levelTabs">
+            <button type="button" class="ui-tab" role="tab" data-l="region" aria-selected="true">Region</button>
+            <button type="button" class="ui-tab" role="tab" data-l="division">Division</button>
+            <button type="button" class="ui-tab" role="tab" data-l="ccc">CCC</button>
+            <button type="button" class="ui-tab" role="tab" data-l="agency">Agency</button>
           </div>
         </div>
-
-        <!-- Multi-Board Tabbed Summaries -->
-        <div class="mt-5">
-          <div class="section-title mb-2">
-            <i class='bx bx-data'></i>
-            <span>Summaries</span>
-          </div>
-
-          <ul class="nav nav-tabs nav-tabs-custom" id="summaryTabs" role="tablist">
-            <li class="nav-item" role="presentation">
-              <button class="nav-link" id="class-tab" data-bs-toggle="tab" data-bs-target="#class-pane" type="button" role="tab">
-                <i class='bx bx-list-check me-2'></i>Class-wise
-              </button>
-            </li>
-            <li class="nav-item" role="presentation">
-              <button class="nav-link" id="region-tab" data-bs-toggle="tab" data-bs-target="#region-pane" type="button" role="tab">
-                <i class='bx bx-map-alt me-2'></i>Region-wise
-              </button>
-            </li>
-            <li class="nav-item" role="presentation">
-              <button class="nav-link active" id="division-tab" data-bs-toggle="tab" data-bs-target="#division-pane" type="button" role="tab">
-                <i class='bx bx-git-branch me-2'></i>Division-wise
-              </button>
-            </li>
-            <li class="nav-item" role="presentation">
-              <button class="nav-link" id="ccc-tab" data-bs-toggle="tab" data-bs-target="#ccc-pane" type="button" role="tab">
-                <i class='bx bx-map-alt me-2'></i>CCC-wise
-              </button>
-            </li>
-            <li class="nav-item" role="presentation">
-              <button class="nav-link" id="consumer-tab" data-bs-toggle="tab" data-bs-target="#consumer-pane" type="button" role="tab">
-                <i class='bx bx-user me-2'></i>Consumer-wise
-              </button>
-            </li>
-          </ul>
-
-          <div class="tab-content tab-content-custom" id="summaryTabsContent">
-            <div class="tab-pane fade" id="class-pane" role="tabpanel">
-              <div class="glass-panel overflow-hidden" id="classTable"></div>
-            </div>
-            <div class="tab-pane fade" id="region-pane" role="tabpanel">
-              <div class="glass-panel overflow-hidden" id="regionTable"></div>
-            </div>
-            <div class="tab-pane fade show active" id="division-pane" role="tabpanel">
-              <div class="glass-panel overflow-hidden" id="divisionTable"></div>
-            </div>
-            <div class="tab-pane fade" id="ccc-pane" role="tabpanel">
-              <div class="glass-panel overflow-hidden" id="cccTable"></div>
-            </div>
-            <div class="tab-pane fade" id="consumer-pane" role="tabpanel">
-              <div class="glass-panel overflow-hidden" id="consumerTable"></div>
-            </div>
-          </div>
-        </div>
+        <div id="officeTable" style="--max-h:520px"><div class="ui-empty">Loading…</div></div>
+      </section>
+      <div>
+        <section class="ui-panel">
+          <div class="ui-panel-h"><h2>Days since meter installed</h2></div>
+          <div class="ui-panel-b"><div id="ageHist"></div></div>
+        </section>
+        <section class="ui-panel">
+          <div class="ui-panel-h"><h2>By class</h2></div>
+          <div class="ui-panel-b"><div id="classHist"></div></div>
+        </section>
       </div>
-
-      <div class="bottom-spacing"></div>
     </div>
-  </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
-  <script src="mzo_data_hub.js?v=87"></script>
-  <script src="mzo_scope.js?v=9"></script>
-  <script src="mzo_presets_hub.js"></script>
+    <section class="ui-panel">
+      <div class="ui-panel-h">
+        <h2>Applications <small id="appCount"></small></h2>
+        <button type="button" class="ui-btn sm" id="exportBtn"><svg class="ui-i"><use href="#ui-download"/></svg>Export CSV</button>
+      </div>
+      <div id="appTable"><div class="ui-empty">Loading…</div></div>
+    </section>
+  </main>
 
   <script>
-    const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQmOUW4jxUtEGWhPHaoNBsvpBcGzhHJZRUx_9mxFBp91sfg4yD8WIqIK_xv0vlFs2yP-Ljz09JW1U2c/pub?gid=0&single=true&output=csv";
-    const MC_CACHE_KEY = 'CACHE_PENDING_MC';
-    const MC_PARSED_KEY = 'CACHE_PENDING_MC_PARSED';
-    const BREAKDOWN_LEVELS = ['Region', 'Division', 'CCC', 'APPL_NO'];
-    
-    let rawData = [];
-    const filters = { region: '', division: '', ccc: '', search: '', classSearch: '', kpiFilter: 'Total' };
-    try {
-      const _urlParams = new URLSearchParams(window.location.search);
-      if (_urlParams.get('kpiFilter')) filters.kpiFilter = _urlParams.get('kpiFilter');
-      if (_urlParams.get('division')) filters.division = _urlParams.get('division');
-      if (_urlParams.get('region')) filters.region = _urlParams.get('region');
-      if (_urlParams.get('ccc')) filters.ccc = _urlParams.get('ccc');
-    } catch (_) {}
-    
-    // Drill-through state
-    let drillState = {
-      level: 0,
-      path: [],
-      data: [],
-      currentTitle: 'Region-wise Breakdown'
+  document.addEventListener('DOMContentLoaded', function () {
+    'use strict';
+    var $ = function (id) { return document.getElementById(id); };
+    var KEY = 'CACHE_PENDING_MC';
+    var CLASS = { D: 'Domestic', C: 'Commercial', I: 'Industrial', A: 'Agriculture', T: 'Temporary', J: 'Public', P: 'Public', W: 'Water works' };
+    var AGE = [
+      { key: 'a0', label: 'Up to 7 days', max: 7 },
+      { key: 'a1', label: '8–30 days', max: 30 },
+      { key: 'a2', label: '31–60 days', max: 60 },
+      { key: 'a3', label: '61–89 days', max: 89 },
+      { key: 'a4', label: '90 days or more', max: Infinity }
+    ];
+    var STAT = {
+      WithinMonth: function (r) { return r.days != null && r.days <= 30; },
+      Delayed: function (r) { return r.days != null && r.days >= 90; },
+      Industrial: function (r) { return r.cls === 'I'; }
     };
+    var all = [], f = { q: '', stat: '', age: '' }, level = 'region', scope = null;
 
-    // Utility functions
-    const parseDate = d => {
-      if (!d || typeof d !== 'string') return null;
-      const parts = d.match(/^(\d{1,2})[-\/](\d{1,2})[-\/](\d{4})(?:\s+.*)?$/);
-      if (parts) {
-        const [, day, month, year] = parts;
-        return new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-      }
-      const parsed = new Date(d);
-      return isNaN(parsed) ? null : parsed;
-    };
-
-    const formatDateShort = d => {
-      const date = parseDate(d);
-      if (!date) return d || 'N/A';
-      const day = String(date.getDate()).padStart(2, '0');
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const year = String(date.getFullYear()).slice(-2);
-      return `${day}/${month}/${year}`;
-    };
-
-    const getDaysDifference = (date1, date2) => Math.round((date1 - date2) / (24 * 60 * 60 * 1000));
-
-    function canonicalCcc(raw, division) {
-      const s = String(raw == null ? '' : raw).trim();
-      if (!s) return '';
-      if (window.MzoScope && typeof window.MzoScope.cccNameInDivision === 'function') {
-        return window.MzoScope.cccNameInDivision(s, division) || s;
-      }
-      if (window.MzoScope && typeof window.MzoScope.cccNameOf === 'function') {
-        return window.MzoScope.cccNameOf(s) || s;
-      }
-      return s;
+    function ccc(raw, division) {
+      var s = String(raw == null ? '' : raw).trim(), S = window.MzoScope;
+      if (!s || !S) return s;
+      return (S.cccNameInDivision && S.cccNameInDivision(s, division)) || (S.cccNameOf && S.cccNameOf(s)) || s;
     }
 
-    function normalizeMcRows(rows) {
-      return (rows || []).filter(d => d && d.Region).map(row => {
-        if (row.Division && window.MzoScope && window.MzoScope.divisionNameOf) {
-          const div = window.MzoScope.divisionNameOf(row.Division);
-          if (div) row.Division = div;
-        }
-        if (row.CCC) row.CCC = canonicalCcc(row.CCC, row.Division);
-        return row;
-      });
-    }
-
-    function cccOptionLabel(value) {
-      if (window.MzoScope && window.MzoScope.unitDisplayName) {
-        return window.MzoScope.unitDisplayName(value) || value;
-      }
-      return value;
-    }
-
-    function updateContextBar() {
-      const el = document.getElementById('mcContextBar');
-      if (!el) return;
-      const parts = [
-        filters.region,
-        filters.division,
-        filters.ccc ? cccOptionLabel(filters.ccc) : '',
-        filters.classSearch,
-        filters.search
-      ].filter(Boolean);
-      el.textContent = parts.length ? parts.join(' · ') : 'All offices';
-    }
-
-    function setMcFiltersOpen(open) {
-      document.body.classList.toggle('mc-filters-open', !!open);
-      const btn = document.getElementById('mcFilterToggle');
-      const backdrop = document.getElementById('mcFilterBackdrop');
-      if (btn) btn.setAttribute('aria-expanded', open ? 'true' : 'false');
-      if (backdrop) backdrop.hidden = !open;
-    }
-
-    // Filter Functions
-    function loadFilters() {
-      const regionSet = new Set();
-      const divisionSet = new Set();
-      const cccSet = new Set();
-      const classSet = new Set();
-
-      rawData.forEach(row => {
-        if (row.Region) regionSet.add(row.Region);
-        if (row.CLASS) classSet.add(row.CLASS);
-        if (!filters.region || row.Region === filters.region) {
-          if (row.Division) divisionSet.add(row.Division);
-        }
-        if ((!filters.division || row.Division === filters.division) &&
-          (!filters.region || row.Region === filters.region)) {
-          if (row.CCC) cccSet.add(row.CCC);
-        }
-      });
-
-      populateSelect('regionFilter', Array.from(regionSet).sort(), filters.region);
-      populateSelect('divisionFilter', Array.from(divisionSet).sort(), filters.division);
-      populateSelect('cccFilter', Array.from(cccSet).sort(), filters.ccc, true);
-      populateSelect('classFilter', Array.from(classSet).sort(), filters.classSearch);
-      if (window.MzoScope) window.MzoScope.lockFilters();
-      syncFiltersFromSelects();
-      updateContextBar();
-    }
-
-    function isLockedFilter(id) {
-      return !!(window.MzoScope && typeof window.MzoScope.isFilterLocked === 'function' &&
-        window.MzoScope.isFilterLocked(id));
-    }
-
-    function syncFiltersFromSelects() {
-      ['region', 'division', 'ccc'].forEach(key => {
-        const el = document.getElementById(key + 'Filter');
-        if (!el || !isLockedFilter(el.id)) return;
-        if (el.value) filters[key] = el.value;
-      });
-    }
-
-    function populateSelect(id, items, selectedValue, isCcc) {
-      const select = document.getElementById(id);
-      if (!select) return;
-      if (isLockedFilter(id) && select.options.length > 1) return;
-      const labelMap = {
-        'regionFilter': 'All Regions',
-        'divisionFilter': 'All Divisions',
-        'cccFilter': 'All CCCs',
-        'classFilter': 'All Classes'
-      };
-      const placeholder = labelMap[id] || 'All';
-      const locked = isLockedFilter(id);
-      const opts = locked
-        ? items.map(i => {
-            const label = isCcc ? cccOptionLabel(i) : i;
-            return `<option value="${i}" selected>${label}</option>`;
-          }).join('')
-        : `<option value="">${placeholder}</option>` +
-          items.map(i => {
-            const label = isCcc ? cccOptionLabel(i) : i;
-            return `<option value="${i}" ${selectedValue === i ? 'selected' : ''}>${label}</option>`;
-          }).join('');
-      select.innerHTML = opts;
-      if (!locked) select.disabled = false;
-    }
-
-    function getFilteredData(withKpi = true) {
-      return rawData.filter(row => {
-        const matchRegion = !filters.region || row.Region === filters.region;
-        const matchDivision = !filters.division || row.Division === filters.division;
-        const matchCCC = !filters.ccc || row.CCC === filters.ccc;
-        
-        const matchSearch = !filters.search || 
-          String(row.APPL_NO).toLowerCase().includes(filters.search.toLowerCase()) ||
-          String(row.FNAME).toLowerCase().includes(filters.search.toLowerCase()) ||
-          String(row.LNAME).toLowerCase().includes(filters.search.toLowerCase());
-
-        const matchClass = !filters.classSearch || 
-          String(row.CLASS) === filters.classSearch;
-
-        if (!withKpi) return matchRegion && matchDivision && matchCCC && matchSearch && matchClass;
-
-        // KPI Segment Filtering
-        let matchKPI = true;
-        if (filters.kpiFilter === 'Industrial') {
-          matchKPI = String(row.CLASS).toUpperCase() === 'I';
-        } else if (filters.kpiFilter === 'WithinMonth') {
-          const r = parseDate(row['Report Date']);
-          const i = parseDate(row['Meter Installation Date']);
-          matchKPI = r && i && getDaysDifference(r, i) <= 30;
-        } else if (filters.kpiFilter === 'Delayed') {
-          const r = parseDate(row['Report Date']);
-          const i = parseDate(row['Meter Installation Date']);
-          matchKPI = r && i && getDaysDifference(r, i) >= 90;
-        }
-        
-        return matchRegion && matchDivision && matchCCC && matchSearch && matchClass && matchKPI;
-      });
-    }
-
-    function toggleKpiFilter(type) {
-      filters.kpiFilter = (filters.kpiFilter === type) ? 'Total' : type;
-      updateDashboard();
-    }
-
-    // Dashboard Rendering
-    function updateDashboard() {
-      const baseData = getFilteredData(false);
-      renderStats(baseData);
-      const finalData = getFilteredData(true);
-      renderAllSummaries(finalData);
-      updateContextBar();
-    }
-
-    function renderStats(data) {
-      const total = data.length;
-      const withinMonth = data.filter(row => {
-        const r = parseDate(row['Report Date']);
-        const i = parseDate(row['Meter Installation Date']);
-        return r && i && getDaysDifference(r, i) <= 30;
-      }).length;
-
-      const delayed = data.filter(row => {
-        const r = parseDate(row['Report Date']);
-        const i = parseDate(row['Meter Installation Date']);
-        return r && i && getDaysDifference(r, i) >= 90;
-      }).length;
-
-      const industrial = data.filter(row => String(row.CLASS).toUpperCase() === 'I').length;
-
-      const cards = [
-        { label: 'Total', val: total, id: 'Total', icon: 'bx-layer', trend: 'All in Zone', color: 'total-card' },
-        { label: 'Ind', val: industrial, id: 'Industrial', icon: 'bx-factory', trend: 'Pending MC', color: 'delayed-card', style: 'background: #eff6ff; border-color: #dbeafe; color: #1e40af;' },
-        { label: '≤30d', val: withinMonth, id: 'WithinMonth', icon: 'bx-calendar-check', trend: `${((withinMonth/total)*100 || 0).toFixed(0)}%`, color: 'month-card' },
-        { label: '≥90d', val: delayed, id: 'Delayed', icon: 'bx-error-alt', trend: `${((delayed/total)*100 || 0).toFixed(0)}%`, color: 'delayed-card' }
-      ];
-
-      document.getElementById('cardsContainer').innerHTML = cards.map(c => `
-        <div class="col-6 col-lg-3">
-          <div class="stats-card glass-panel ${c.color} ${filters.kpiFilter === c.id ? 'active-kpi' : ''}" style="${c.style || ''}" onclick="toggleKpiFilter('${c.id}')">
-            <i class='bx ${c.icon} card-icon-bg'></i>
-            <div>
-              <p class="card-title">${c.label}</p>
-              <h3 class="card-value">${c.val.toLocaleString()}</h3>
-            </div>
-            <div class="card-trend">
-              <i class='bx ${c.id === 'Delayed' ? 'bx-trending-up' : 'bx-info-circle'}'></i>
-              <span>${c.trend}</span>
-            </div>
-          </div>
-        </div>
-      `).join('');
-    }
-
-    // Filter-driven summaries logic remains, but inline drilldown is disabled for summaries
-    function initDrillBreakdown(title, customData = null, type = 'Total') {
-      const data = customData || filterData();
-      let filtered = data;
-      
-      if (type === 'WithinMonth') {
-        filtered = data.filter(row => {
-          const r = parseDate(row['Report Date']);
-          const i = parseDate(row['Meter Installation Date']);
-          return r && i && getDaysDifference(r, i) <= 30;
-        });
-      } else if (type === 'Delayed') {
-        filtered = data.filter(row => {
-          const r = parseDate(row['Report Date']);
-          const i = parseDate(row['Meter Installation Date']);
-          return r && i && getDaysDifference(r, i) >= 90;
-        });
-      } else if (type === 'Industrial') {
-        filtered = data.filter(row => String(row.CLASS).toUpperCase().startsWith('I'));
-      }
-
-      // For search results, we can still use the modal instead of inline
-      showConsumerListModal(title, filtered);
-    }
-
-    function renderConsumerTableHTML(currentData) {
-      return `
-        <div class="detail-table-wrapper">
-          <table class="detail-table">
-            <thead>
-              <tr>
-                <th>APPL_NO</th>
-                <th>Customer Name</th>
-                <th>Division</th>
-                <th>CCC</th>
-                <th>Load</th>
-                <th>Class</th>
-                <th>Phase</th>
-                <th>Agency</th>
-                <th>Installation Date</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${currentData.map(row => {
-                const name = [row.FNAME, row.LNAME].filter(Boolean).join(' ');
-                return `
-                  <tr class="detail-row" onclick="showConsumerModal('${row.APPL_NO}')">
-                    <td class="appl-no-cell">${row.APPL_NO || 'N/A'}</td>
-                    <td class="customer-name">${name || 'Private Customer'}</td>
-                    <td class="small fw-medium">${row.Division || 'N/A'}</td>
-                    <td class="small fw-medium">${row.CCC || 'N/A'}</td>
-                    <td>${row.LOAD || 'N/A'}</td>
-                    <td><span class="badge-class">${row.CLASS || 'N/A'}</span></td>
-                    <td><span class="badge-phase">${row.PHASE || 'N/A'}</span></td>
-                    <td><span class="badge-agency">${row.WO_ASSIGNEE_TYPE || 'Individual'}</span></td>
-                    <td class="text-secondary">${formatDateShort(row['Meter Installation Date'])}</td>
-                  </tr>
-                `;
-              }).join('')}
-            </tbody>
-          </table>
-        </div>
-      `;
-    }
-
-    function renderDrillView() {
-      // This function is now legacy/unused as per user request to move to modals
-      // But keeping logic for potential future use or search fallback
-    }
-
-    function drillIn(val) {
-      if (drillState.level < BREAKDOWN_LEVELS.length - 1) {
-        drillState.path.push(val);
-        drillState.level++;
-        renderDrillView();
-      }
-    }
-
-    function drillOut(toLevel) {
-      drillState.path = drillState.path.slice(0, toLevel);
-      drillState.level = toLevel;
-      renderDrillView();
-    }
-
-    function updateDrillBreadcrumbs() {
-      const container = document.getElementById('drillBreadcrumbs');
-      let html = `<div class="breadcrumb-item ${drillState.level === 0 ? 'active' : ''}" onclick="drillOut(0)">Overview</div>`;
-      
-      drillState.path.forEach((p, i) => {
-        html += `
-          <i class='bx bx-chevron-right breadcrumb-sep'></i>
-          <div class="breadcrumb-item ${i + 1 === drillState.level ? 'active' : ''}" onclick="drillOut(${i + 1})">${p}</div>
-        `;
-      });
-      container.innerHTML = html;
-    }
-
-    function renderAllSummaries(data) {
-      renderSummaryTable(data, 'classTable', 'CLASS', 'Consumer Class');
-      renderSummaryTable(data, 'regionTable', 'Region', 'Region');
-      renderSummaryTable(data, 'divisionTable', 'Division', 'Division');
-      renderSummaryTable(data, 'cccTable', 'CCC', 'CCC');
-      window.currentConsumerData = data;
-      const consumerPane = document.getElementById('consumer-pane');
-      if (consumerPane && consumerPane.classList.contains('active')) {
-        renderConsumerTab(data);
-      } else {
-        const container = document.getElementById('consumerTable');
-        if (container) container.innerHTML = '<p class="text-secondary small p-3 mb-0">Open this tab to load the consumer list.</p>';
-      }
-    }
-
-    function renderConsumerTab(data) {
-      const sortedByDate = [...(data || [])].sort((a, b) => {
-        const d1 = parseDate(a['Meter Installation Date']) || new Date(8640000000000000);
-        const d2 = parseDate(b['Meter Installation Date']) || new Date(8640000000000000);
-        return d1 - d2;
-      });
-      const container = document.getElementById('consumerTable');
-      container.innerHTML = `
-        <div class="d-flex justify-content-between align-items-center p-3 border-bottom bg-light">
-          <span class="fw-bold small text-secondary">CHRONOLOGICAL CONSUMER LIST</span>
-          <button class="btn-download" onclick="downloadCSV(window.currentConsumerData, 'consumer_wise_pending.csv')">
-            <i class='bx bx-download'></i> CSV
-          </button>
-        </div>
-        ${renderConsumerTableHTML(sortedByDate)}
-      `;
-      window.currentConsumerData = sortedByDate;
-    }
-
-    function renderSummaryTable(data, containerId, key, label) {
-      const summary = {};
-      data.forEach(row => {
-        const val = row[key] || 'Unknown';
-        summary[val] = (summary[val] || 0) + 1;
-      });
-
-      const sorted = Object.entries(summary).sort((a, b) => b[1] - a[1]);
-      const total = data.length || 1;
-
-      // Summary Table Header with Download
-      const container = document.getElementById(containerId);
-      container.innerHTML = `
-        <div class="d-flex justify-content-between align-items-center p-3 border-bottom bg-light">
-          <span class="fw-bold small text-secondary">${label.toUpperCase()}</span>
-          <button class="btn-download" onclick="exportSummary('${label}')">
-            <i class='bx bx-download'></i> CSV
-          </button>
-        </div>
-        <table class="custom-table">
-          <thead>
-            <tr><th>${label}</th><th>Count</th><th>%</th></tr>
-          </thead>
-          <tbody>
-            ${sorted.map(([val, count]) => `
-              <tr class="drill-row" onclick="showConsumerListModal('${label}: ${val.replace(/'/g, "\\'")}', rawData.filter(r => r['${key}'] === '${val.replace(/'/g, "\\'")}'))">
-                <td><span class="fw-bold" style="font-size: 13px;">${val}</span></td>
-                <td>${count.toLocaleString()}</td>
-                <td><span class="text-secondary small">${(count/total*100).toFixed(1)}%</span></td>
-              </tr>
-            `).join('')}
-          </tbody>
-        </table>
-      `;
-    }
-
-    // CSV Export Utilities
-    function downloadCSV(data, filename) {
-      if (!data || data.length === 0) return;
-      const headers = Object.keys(data[0]).join(',');
-      const rows = data.map(row => 
-        Object.values(row).map(val => `"${String(val).replace(/"/g, '""')}"`).join(',')
-      );
-      const csvContent = "data:text/csv;charset=utf-8," + headers + "\n" + rows.join("\n");
-      const encodedUri = encodeURI(csvContent);
-      const link = document.createElement("a");
-      link.setAttribute("href", encodedUri);
-      link.setAttribute("download", filename);
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    }
-
-    function exportSummary(label) {
-      // Find the summary data currently displayed
-      const table = Array.from(document.querySelectorAll('.section-title')).find(t => t.innerText.includes(label)) 
-                  ? document.getElementById(label.toLowerCase() + 'Table') 
-                  : document.querySelector('.tab-pane.active .custom-table');
-      
-      const rows = Array.from(table.querySelectorAll('tbody tr')).map(tr => {
-        const td = tr.querySelectorAll('td');
-        return { Category: td[0].innerText, Count: td[1].innerText, Share: td[2].innerText };
-      });
-      downloadCSV(rows, `pending_mc_${label.toLowerCase()}_summary.csv`);
-    }
-
-    function exportFullList() {
-      const title = document.getElementById('listModalTitle').textContent.split(': ')[1] || 'Export';
-      // Use the global lastFilteredListData (need to track it)
-      downloadCSV(lastFilteredListData, `pending_mc_${title.toLowerCase()}_list.csv`);
-    }
-
-    // Handlers
-    function handleResults(data) {
-      rawData = normalizeMcRows(Array.isArray(data) ? data : []);
-      if (window.MzoScope) rawData = window.MzoScope.filterRows(rawData);
-      if (filters.ccc) filters.ccc = canonicalCcc(filters.ccc, filters.division);
-      
-      const reportDates = rawData.map(row => parseDate(row['Report Date'])).filter(d => d instanceof Date && !isNaN(d));
-      if (reportDates.length > 0) {
-        const maxDate = new Date(Math.max(...reportDates));
-        document.getElementById('updateDate').textContent = `As on: ${maxDate.toLocaleDateString('en-GB')}`;
-      }
-
-      document.getElementById('loadingIndicator').style.display = 'none';
-      document.getElementById('dashboardContent').style.display = 'block';
-
-      loadFilters();
-
-      if (window.MzoScope) window.MzoScope.lockFilters();
-
-      updateDashboard();
-    }
-
-    function parseMcCsv(csvText) {
-      const results = Papa.parse(String(csvText || '').trim(), {
-        header: true,
-        skipEmptyLines: true
-      });
-      return results.data;
-    }
-
-    async function cacheParsedRows(rows, version) {
-      if (!window.mzoDataHub || !rows || !rows.length) return;
-      try {
-        await mzoDataHub.set(MC_PARSED_KEY, rows);
-        if (version) localStorage.setItem('mzo_hub_ver_' + MC_PARSED_KEY, version);
-      } catch (e) {}
-    }
-
-    // Event Listeners
-    ['regionFilter', 'divisionFilter', 'cccFilter'].forEach(id => {
-      document.getElementById(id).addEventListener('change', (e) => {
-        const key = id.replace('Filter', '');
-        filters[key] = e.target.value;
-        if (key === 'region') { filters.division = ''; filters.ccc = ''; }
-        if (key === 'division') { filters.ccc = ''; }
-        loadFilters();
-        updateDashboard();
-      });
-    });
-
-    document.getElementById('searchInput').addEventListener('input', (e) => {
-      filters.search = e.target.value;
-      updateDashboard();
-    });
-
-    document.getElementById('classFilter').addEventListener('change', (e) => {
-      filters.classSearch = e.target.value;
-      updateDashboard();
-    });
-
-    const mcFilterToggle = document.getElementById('mcFilterToggle');
-    const mcFilterDone = document.getElementById('mcFilterDone');
-    const mcFilterBackdrop = document.getElementById('mcFilterBackdrop');
-    if (mcFilterToggle) mcFilterToggle.addEventListener('click', () => {
-      setMcFiltersOpen(!document.body.classList.contains('mc-filters-open'));
-    });
-    if (mcFilterDone) mcFilterDone.addEventListener('click', () => setMcFiltersOpen(false));
-    if (mcFilterBackdrop) mcFilterBackdrop.addEventListener('click', () => setMcFiltersOpen(false));
-    const mcContextBar = document.getElementById('mcContextBar');
-    if (mcContextBar) mcContextBar.addEventListener('click', () => {
-      if (window.matchMedia('(max-width: 768px)').matches) setMcFiltersOpen(true);
-    });
-
-    const consumerTab = document.getElementById('consumer-tab');
-    if (consumerTab) {
-      consumerTab.addEventListener('shown.bs.tab', () => {
-        renderConsumerTab(window.currentConsumerData || getFilteredData(true));
-      });
-    }
-
-    // Init — show cached rows immediately, then revalidate in the background
-    async function init() {
-      try {
-        let shown = false;
-        let rawVer = '';
-        let parsedVer = '';
-        try {
-          rawVer = localStorage.getItem('mzo_hub_ver_' + MC_CACHE_KEY) || '';
-          parsedVer = localStorage.getItem('mzo_hub_ver_' + MC_PARSED_KEY) || '';
-        } catch (e) {}
-
-        if (typeof mzoDataHub !== 'undefined') {
-          if (rawVer && parsedVer === rawVer) {
-            const cachedParsed = await mzoDataHub._peek(MC_PARSED_KEY);
-            if (cachedParsed && Array.isArray(cachedParsed) && cachedParsed.length) {
-              handleResults(cachedParsed);
-              shown = true;
-            }
-          }
-          if (!shown) {
-            const csv = await mzoDataHub._peek(MC_CACHE_KEY);
-            if (csv && typeof csv === 'string' && csv.length > 40) {
-              const rows = parseMcCsv(csv);
-              handleResults(rows);
-              shown = true;
-              cacheParsedRows(rawData, rawVer || 'v1');
-            }
-          }
-        }
-
-        const refresh = async () => {
-          if (typeof mzoDataHub === 'undefined') {
-            Papa.parse(CSV_URL, {
-              download: true, header: true, skipEmptyLines: true,
-              complete: (r) => handleResults(r.data),
-              error: (e) => console.error(e)
-            });
-            return;
-          }
-          await mzoDataHub.waitForDataset(MC_CACHE_KEY);
-          const csv = await mzoDataHub.get(MC_CACHE_KEY);
-          let newVer = '';
-          try { newVer = localStorage.getItem('mzo_hub_ver_' + MC_CACHE_KEY) || ''; } catch (e) {}
-          let oldParsed = '';
-          try { oldParsed = localStorage.getItem('mzo_hub_ver_' + MC_PARSED_KEY) || ''; } catch (e) {}
-          if (!csv) return;
-          if (shown && newVer && oldParsed && newVer === oldParsed) return;
-          if (typeof csv === 'string') {
-            handleResults(parseMcCsv(csv));
-            cacheParsedRows(rawData, newVer || 'v1');
-          } else if (Array.isArray(csv)) {
-            handleResults(csv);
-            cacheParsedRows(rawData, newVer || 'v1');
-          }
+    function prepare(text) {
+      var latest = null;
+      var rows = Array.isArray(text) ? text : UI.csv(text);
+      all = rows.filter(function (d) { return d && (d.Region || d.APPL_NO); }).map(function (d) {
+        var S = window.MzoScope;
+        var division = (S && S.divisionNameOf && S.divisionNameOf(d.Division)) || UI.title(d.Division);
+        var rep = UI.date(d['Report Date']), inst = UI.date(d['Meter Installation Date']);
+        if (rep && (!latest || rep > latest)) latest = rep;
+        var code = String(d['SUBSTR(A.SUPP_OFF,-7,7)'] || '').trim();
+        var r = {
+          appl: String(d.APPL_NO || '').trim(), con: String(d.CON_ID || '').trim(),
+          name: [d.FNAME, d.LNAME].filter(function (x) { return !UI.blank(x); }).map(UI.title).join(' '),
+          address: [d.ADDR1, d.ADDR2].filter(function (x) { return !UI.blank(x); }).join(', '),
+          _region: UI.regionName(d.Region), _divn: division, _supp: ccc(d.CCC, division), CCC_CODE: code,
+          cls: String(d.CLASS || '').trim().toUpperCase(), desc: UI.blank(d.DESC) ? '' : UI.title(d.DESC),
+          phase: String(d.PHASE || '').trim().toUpperCase(), load: parseFloat(d.LOAD) || 0,
+          tariff: UI.blank(d.TARIFF_CLASS) ? '' : d.TARIFF_CLASS, type: UI.blank(d.PROB_TYPE) ? '' : d.PROB_TYPE,
+          agency: UI.blank(d.WO_ASSIGNEE_TYPE) ? 'Individual' : UI.title(d.WO_ASSIGNEE_TYPE),
+          wo: UI.blank(d.WO_NO) ? '' : d.WO_NO, woStatus: d.WO_STATUS === 'C' ? 'Completed' : '',
+          collected: d.COLL_DATE, installed: inst, report: rep, docs: UI.blank(d.DOCS_SUNMITTED) ? '' : d.DOCS_SUNMITTED,
+          area: d.CATG === 'U' ? 'Urban' : d.CATG === 'R' ? 'Rural' : ''
         };
-
-        if (shown) {
-          refresh().catch((e) => console.error(e));
-        } else {
-          await refresh();
-        }
-        checkCloudSyncAuth().catch(() => {});
-      } catch (e) {
-        console.error(e);
-        document.getElementById('updateDate').textContent = 'As on: failed to load';
-      }
+        r.days = rep && inst ? Math.round((rep - inst) / 864e5) : null;
+        r.ageKey = r.days == null ? '' : AGE.filter(function (b) { return r.days <= b.max; })[0].key;
+        r.label = CLASS[r.cls] || r.desc || r.cls || '—';
+        return r;
+      });
+      if (window.MzoScope) all = window.MzoScope.filterRows(all);
+      $('meta').textContent = (latest ? 'As on ' + UI.fmtDate(latest) + ' · ' : '') + UI.n(all.length) + ' meters installed, master card pending';
+      fillFilters();
     }
 
-    async function checkCloudSyncAuth() {
-      try {
-        const res = await fetch('/api/pending-mc/meta', { credentials: 'same-origin' });
-        if (res.ok) {
-          const meta = await res.json();
-          const btn = document.getElementById('mcCloudSyncBtn');
-          if (btn && (meta.canSync || meta.isAdmin)) {
-            btn.style.display = 'inline-flex';
-          }
-        }
-      } catch (_) {}
+    function uniq(rows, k) { var s = {}; rows.forEach(function (r) { if (r[k]) s[r[k]] = 1; }); return Object.keys(s).sort(); }
+    function fillFilters() {
+      var reg = $('regionFilter').value, div = $('divisionFilter').value;
+      UI.fill('regionFilter', uniq(all, '_region'), 'All regions');
+      var r1 = all.filter(function (r) { return !reg || r._region === reg; });
+      UI.fill('divisionFilter', uniq(r1, '_divn'), 'All divisions');
+      var r2 = r1.filter(function (r) { return !div || r._divn === div; });
+      UI.fill('cccFilter', uniq(r2, '_supp'), 'All CCCs');
+      var cls = {}; all.forEach(function (r) { if (r.cls) cls[r.cls] = r.label; });
+      UI.fill('classFilter', Object.keys(cls).sort().map(function (c) { return { value: c, label: cls[c] }; }), 'All classes');
+      if (!scope) scope = UI.lockScope();
     }
 
-    const mcCloudSyncBtn = document.getElementById('mcCloudSyncBtn');
-    if (mcCloudSyncBtn) {
-      mcCloudSyncBtn.addEventListener('click', async () => {
-        const conf = confirm(
-          "Sync Pending Master Card from Google Sheet now?\n\nThis will download the latest records from Google Sheets, update the Supabase Cloud Storage cache, and refresh the dashboard."
-        );
-        if (!conf) return;
-
-        mcCloudSyncBtn.disabled = true;
-        const originalHtml = mcCloudSyncBtn.innerHTML;
-        mcCloudSyncBtn.innerHTML = "<i class='bx bx-loader-alt bx-spin me-1'></i>Syncing...";
-
-        try {
-          const res = await fetch('/api/pending-mc/sync', {
-            method: 'POST',
-            credentials: 'same-origin',
-            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }
-          });
-          const text = await res.text();
-          let data = {};
-          try {
-            data = JSON.parse(text);
-          } catch (_) {
-            if (res.status === 401) throw new Error('Session expired. Please re-login.');
-            throw new Error(`Server returned HTTP ${res.status}.`);
-          }
-          if (!res.ok || data.status !== 'success') {
-            throw new Error(data.message || 'Sync failed');
-          }
-
-          if (window.mzoDataHub && typeof window.mzoDataHub.refresh === 'function') {
-            try { await window.mzoDataHub.refresh(MC_CACHE_KEY); } catch (_) {}
-            try { await window.mzoDataHub.delete(MC_PARSED_KEY); } catch (_) {}
-          }
-          try {
-            localStorage.removeItem('mzo_hub_ver_' + MC_CACHE_KEY);
-            localStorage.removeItem('mzo_hub_ver_' + MC_PARSED_KEY);
-          } catch (_) {}
-
-          await init();
-          alert("Sync complete!\n\n" + (data.message || "Pending Master Card refreshed successfully."));
-        } catch (err) {
-          alert("Sync failed: " + (err.message || String(err)));
-        } finally {
-          mcCloudSyncBtn.disabled = false;
-          mcCloudSyncBtn.innerHTML = originalHtml;
-        }
+    function base() {
+      var q = f.q.toLowerCase(), reg = $('regionFilter').value, div = $('divisionFilter').value, cc = $('cccFilter').value, cl = $('classFilter').value;
+      return all.filter(function (r) {
+        return (!reg || r._region === reg) && (!div || r._divn === div) && (!cc || r._supp === cc) && (!cl || r.cls === cl) &&
+          (!q || r.appl.indexOf(q) !== -1 || r.con.indexOf(q) !== -1 || r.name.toLowerCase().indexOf(q) !== -1);
       });
     }
 
-    function showConsumerModal(applNo) {
-      // Find the consumer in the full dataset
-      const consumer = rawData.find(r => String(r.APPL_NO) === String(applNo));
-      if (!consumer) return;
+    function render() {
+      var b = base();
+      var view = b.filter(function (r) { return (!f.stat || STAT[f.stat](r)) && (!f.age || r.ageKey === f.age); });
 
-      const name = [consumer.FNAME, consumer.LNAME].filter(Boolean).join(' ');
-      const fields = [
-        { label: 'Application No', key: 'APPL_NO', val: consumer.APPL_NO },
-        { label: 'Full Name', key: 'NAME', val: name || 'N/A' },
-        { label: 'Consumer Class', key: 'CLASS', val: consumer.CLASS },
-        { label: 'Phase', key: 'PHASE', val: consumer.PHASE },
-        { label: 'Connected Load', key: 'LOAD', val: consumer.LOAD },
-        { label: 'WO Assignee (Agency)', key: 'AGENCY', val: consumer.WO_ASSIGNEE_TYPE || 'Individual' },
-        { label: 'Installation Date', key: 'INST_DATE', val: formatDateShort(consumer['Meter Installation Date']) },
-        { label: 'Report Date', key: 'REP_DATE', val: formatDateShort(consumer['Report Date']) },
-        { label: 'Region', key: 'REG', val: consumer.Region },
-        { label: 'Division', key: 'DIV', val: consumer.Division },
-        { label: 'CCC', key: 'CCC_VAL', val: consumer.CCC }
-      ];
+      [].forEach.call(document.querySelectorAll('#stats .ui-stat'), function (el) {
+        var k = el.getAttribute('data-k'), c = k ? b.filter(STAT[k]).length : b.length;
+        el.querySelector('.v').textContent = UI.n(c);
+        el.querySelector('.s').textContent = k ? UI.pct(c, b.length) + ' of pending' : 'Across ' + uniq(b, '_supp').length + ' CCCs';
+        el.setAttribute('aria-pressed', String(f.stat === k));
+      });
 
-      document.getElementById('modalTitle').textContent = `Details: ${consumer.APPL_NO}`;
-      document.getElementById('modalContent').innerHTML = `
-        <div class="info-grid">
-          ${fields.map(f => `
-            <div class="info-item">
-              <span class="info-label">${f.label}</span>
-              <span class="info-value">${f.val || 'N/A'}</span>
-            </div>
-          `).join('')}
-        </div>
-      `;
+      var key = { region: '_region', division: '_divn', ccc: '_supp', agency: 'agency' }[level], groups = {};
+      view.forEach(function (r) {
+        var name = r[key] || 'Unmapped';
+        var g = groups[name] || (groups[name] = { name: name, parent: level === 'ccc' ? r._divn : level === 'division' ? r._region : '', n: 0, late: 0 });
+        g.n++; if (STAT.Delayed(r)) g.late++;
+      });
+      var list = Object.keys(groups).map(function (k) { return groups[k]; }), max = Math.max.apply(null, list.map(function (g) { return g.n; }).concat([0]));
+      var label = { region: 'Region', division: 'Division', ccc: 'CCC', agency: 'Agency' }[level];
+      UI.table('officeTable', {
+        rows: list, sort: { key: 'n', dir: 'desc' }, count: level === 'agency',
+        empty: 'Nothing pending for these filters.',
+        columns: [
+          { key: 'name', label: label, cls: level === 'agency' ? 'wrap' : '', fmt: function (v, g) { return '<span class="ui-strong">' + UI.esc(v) + '</span>' + (g.parent ? '<span class="sub">' + UI.esc(g.parent) + '</span>' : ''); } },
+          { key: 'n', label: 'Pending', num: true, fmt: UI.n },
+          { key: 'late', label: '90+ days', num: true, fmt: UI.n },
+          { key: 'share', label: 'Share', sortVal: function (g) { return g.n; }, fmt: function (_, g) { return UI.bar(g.n, max, UI.pct(g.n, view.length)); }, hideSm: true, width: '30%' }
+        ],
+        foot: list.length > 1 ? { n: view.length, late: view.filter(STAT.Delayed).length } : null,
+        onRow: level === 'region' || level === 'division' ? function (g) { drill(g.name); } : level === 'agency' ? function (g) { f.q = ''; $('q').value = ''; showAgency(g.name); } : null
+      });
 
-      // Set global data for copy function
-      window.lastViewedConsumer = fields;
+      var forAge = b.filter(function (r) { return !f.stat || STAT[f.stat](r); });
+      UI.hist('ageHist', AGE.map(function (a) { return { key: a.key, label: a.label, value: forAge.filter(function (r) { return r.ageKey === a.key; }).length }; }),
+        { active: f.age, onClick: function (row) { f.age = f.age === row.key ? '' : row.key; render(); } });
+      var cls = {}; view.forEach(function (r) { cls[r.cls] = cls[r.cls] || { n: 0, label: r.label }; cls[r.cls].n++; });
+      UI.hist('classHist', Object.keys(cls).sort(function (x, y) { return cls[y].n - cls[x].n; }).slice(0, 6).map(function (c) { return { key: c, label: cls[c].label, value: cls[c].n }; }),
+        { active: $('classFilter').value, onClick: function (row) { var s = $('classFilter'); s.value = s.value === row.key ? '' : row.key; UI.mark(s); render(); } });
 
-      // Show Consumer Modal (Level 2)
-      const modal = new bootstrap.Modal(document.getElementById('consumerModal'));
-      modal.show();
+      var shown = agencyOnly ? view.filter(function (r) { return r.agency === agencyOnly; }) : view;
+      $('appCount').textContent = UI.n(shown.length) + (agencyOnly ? ' · ' + agencyOnly : '');
+      UI.table('appTable', { rows: shown, sort: { key: 'days', dir: 'desc' }, limit: 50, resetPage: true, empty: 'No applications match these filters.', columns: APP_COLS, onRow: detail });
+      $('clearBtn').hidden = !(f.q || f.stat || f.age || agencyOnly || $('classFilter').value || ['regionFilter', 'divisionFilter', 'cccFilter'].some(function (id) { return $(id).value && !$(id).disabled; }));
+      window.__view = shown;
     }
 
-    async function copyConsumerToWhatsApp() {
-      if (!window.lastViewedConsumer) return;
-      
-      const header = `*PENDING MASTER CARD DETAILS*\n----------------------------\n`;
-      const body = window.lastViewedConsumer.map(f => `*${f.label}:* ${f.val || 'N/A'}`).join('\n');
-      const footer = `\n----------------------------\n_Generated via MZO App_`;
-      
-      const text = header + body + footer;
+    var agencyOnly = '';
+    function showAgency(name) { agencyOnly = agencyOnly === name ? '' : name; render(); $('appTable').scrollIntoView({ behavior: 'smooth', block: 'start' }); }
 
-      try {
-        await navigator.clipboard.writeText(text);
-        
-        const btn = document.getElementById('copyBtn');
-        const icon = btn.querySelector('i');
-        const originalHtml = btn.innerHTML;
-        
-        btn.classList.replace('btn-outline-primary', 'btn-success');
-        btn.innerHTML = `<i class='bx bx-check'></i>`;
-        
-        setTimeout(() => {
-          btn.classList.replace('btn-success', 'btn-outline-primary');
-          btn.innerHTML = originalHtml;
-        }, 1500);
-      } catch (err) {
-        console.error('Failed to copy: ', err);
-        alert('Failed to copy to clipboard.');
+    var APP_COLS = [
+      { key: 'appl', label: 'Application', fmt: function (v, r) { return '<span class="ui-strong">' + UI.esc(v || '—') + '</span><span class="sub">' + UI.esc(r.con) + '</span>'; } },
+      { key: 'name', label: 'Name', hideSm: true, cls: 'wrap' },
+      { key: '_supp', label: 'CCC', fmt: function (v, r) { return UI.esc(v || '—') + '<span class="sub">' + UI.esc(r._divn) + '</span>'; } },
+      { key: 'label', label: 'Class', hideSm: true, fmt: function (v, r) { return UI.esc(v) + '<span class="sub">' + (r.phase === 'III' ? 'Three phase' : r.phase === 'I' ? 'Single phase' : '') + '</span>'; } },
+      { key: 'load', label: 'Load', num: true, hideSm: true, fmt: function (v) { return v ? UI.n(v) : '—'; } },
+      { key: 'agency', label: 'Agency', hideSm: true, cls: 'wrap' },
+      { key: 'installed', label: 'Meter installed', num: true, hideSm: true, sortVal: function (r) { return r.installed ? r.installed.getTime() : 0; }, fmt: function (v) { return UI.fmtDate(v); }, csv: function (r) { return UI.fmtDate(r.installed); } },
+      { key: 'days', label: 'Days', num: true, sortVal: function (r) { return r.days == null ? -1 : r.days; }, fmt: function (v) { return v == null ? '—' : (v >= 90 ? '<span class="ui-badge bad">' + UI.n(v) + '</span>' : UI.n(v)); }, csv: function (r) { return r.days == null ? '' : r.days; } }
+    ];
+
+    var current = null;
+    function pairs(r) {
+      return [
+        ['Consumer ID', r.con], ['Name', r.name], ['Address', r.address], ['Class', r.label + (r.area ? ' · ' + r.area : '')],
+        ['Phase', r.phase === 'III' ? 'Three phase' : r.phase === 'I' ? 'Single phase' : ''], ['Load', r.load ? UI.n(r.load) : ''], ['Tariff', r.tariff],
+        ['Connection type', r.type], ['Collected on', UI.blank(r.collected) ? '' : UI.fmtDate(r.collected)], ['Meter installed', UI.fmtDate(r.installed)],
+        ['Days pending', r.days == null ? '' : UI.n(r.days)], ['Agency', r.agency], ['Work order', r.wo + (r.woStatus ? ' · ' + r.woStatus : '')],
+        ['Region', r._region], ['Division', r._divn], ['CCC', r._supp], ['Report date', UI.fmtDate(r.report)]
+      ];
+    }
+    function detail(r) {
+      current = r;
+      UI.drawer('Application ' + (r.appl || '—'), [r._supp, r._divn].filter(Boolean).join(' · '), pairs(r));
+      var head = document.querySelector('#ui-drawer header');
+      if (head && !head.querySelector('.mc-copy')) {
+        head.querySelector('[data-x]').insertAdjacentHTML('beforebegin', '<button type="button" class="ui-btn sm mc-copy"><svg class="ui-i"><use href="#ui-copy"/></svg>Copy</button>');
+        head.querySelector('.mc-copy').addEventListener('click', function () {
+          if (!current) return;
+          var lines = ['*Pending master card — ' + current.appl + '*'].concat(pairs(current).filter(function (p) { return !UI.blank(p[1]); }).map(function (p) { return p[0] + ': ' + p[1]; }));
+          UI.copy(lines.join('\n')).then(function () { UI.toast('Details copied'); });
+        });
       }
     }
 
-    let lastFilteredListData = [];
-
-    function showConsumerListModal(title, data) {
-      lastFilteredListData = data;
-      document.getElementById('listModalTitle').textContent = title;
-      document.getElementById('listModalContent').innerHTML = renderConsumerTableHTML(data);
-      
-      // Show List Modal (Level 1)
-      const modal = new bootstrap.Modal(document.getElementById('listModal'));
-      modal.show();
+    function setLevel(l) {
+      level = l;
+      [].forEach.call(document.querySelectorAll('#levelTabs .ui-tab'), function (t) { t.setAttribute('aria-selected', String(t.getAttribute('data-l') === l)); });
+      render();
     }
+    function drill(name) {
+      if (level === 'region') { $('regionFilter').value = name; $('divisionFilter').value = ''; level = 'division'; }
+      else { $('divisionFilter').value = name; level = 'ccc'; }
+      $('cccFilter').value = '';
+      offices();
+      setLevel(level);
+    }
+    function offices() { fillFilters(); ['regionFilter', 'divisionFilter', 'cccFilter', 'classFilter'].forEach(function (x) { UI.mark($(x)); }); }
 
-    window.toggleKpiFilter = toggleKpiFilter;
-    window.showConsumerModal = showConsumerModal;
-    window.showConsumerListModal = showConsumerListModal;
-    window.exportSummary = exportSummary;
-    window.exportFullList = exportFullList;
-    window.copyConsumerToWhatsApp = copyConsumerToWhatsApp;
-    init();
+    ['regionFilter', 'divisionFilter', 'cccFilter'].forEach(function (id) {
+      $(id).addEventListener('change', function () {
+        if (id === 'regionFilter') $('divisionFilter').value = '';
+        if (id !== 'cccFilter') $('cccFilter').value = '';
+        offices(); render();
+      });
+    });
+    $('classFilter').addEventListener('change', function () { UI.mark(this); render(); });
+    $('q').addEventListener('input', UI.debounce(function () { f.q = this.value.trim(); render(); }, 160));
+    $('stats').addEventListener('click', function (e) { var s = e.target.closest('.ui-stat'); if (!s) return; var k = s.getAttribute('data-k'); f.stat = f.stat === k ? '' : k; render(); });
+    $('levelTabs').addEventListener('click', function (e) { var t = e.target.closest('.ui-tab'); if (t) setLevel(t.getAttribute('data-l')); });
+    $('clearBtn').addEventListener('click', function () {
+      f.q = ''; f.stat = ''; f.age = ''; agencyOnly = ''; $('q').value = ''; $('classFilter').value = '';
+      ['regionFilter', 'divisionFilter', 'cccFilter'].forEach(function (id) { if (!$(id).disabled) $(id).value = ''; });
+      offices(); render();
+    });
+    $('exportBtn').addEventListener('click', function () {
+      UI.exportCsv('pending-master-card.csv', [
+        { key: 'appl', label: 'Application' }, { key: 'con', label: 'Consumer ID' }, { key: 'name', label: 'Name' },
+        { key: '_region', label: 'Region' }, { key: '_divn', label: 'Division' }, { key: '_supp', label: 'CCC' },
+        { key: 'label', label: 'Class' }, { key: 'phase', label: 'Phase' }, { key: 'load', label: 'Load' }, { key: 'agency', label: 'Agency' },
+        { key: 'wo', label: 'Work order' }].concat(APP_COLS.slice(6)), window.__view || []);
+    });
+
+    function reload(text) { if (text) { prepare(text); render(); } }
+    $('refreshBtn').addEventListener('click', function () {
+      var b = this; b.classList.add('spin');
+      Promise.resolve(window.mzoDataHub.waitForDataset(KEY, { forceCheck: true })).catch(function () {})
+        .then(function () { return window.mzoDataHub._peek(KEY); }).then(reload)
+        .then(function () { b.classList.remove('spin'); });
+    });
+
+    // Sync from the Google Sheet (authorised users only)
+    fetch('/api/pending-mc/meta', { credentials: 'same-origin' }).then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (m) { if (m && (m.canSync || m.isAdmin)) $('syncBtn').hidden = false; }).catch(function () {});
+    $('syncBtn').addEventListener('click', function () {
+      if (!confirm('Pull the latest pending master cards from the Google Sheet now?')) return;
+      var b = this; b.disabled = true; b.classList.add('spin');
+      fetch('/api/pending-mc/sync', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', Accept: 'application/json' } })
+        .then(function (r) { return r.json().catch(function () { return { status: 'error', message: r.status === 401 ? 'Session expired. Sign in again.' : 'HTTP ' + r.status }; }); })
+        .then(function (d) {
+          if (d.status !== 'success') throw new Error(d.message || 'Sync failed');
+          try { localStorage.removeItem('mzo_hub_ver_' + KEY); localStorage.removeItem('mzo_hub_ver_CACHE_PENDING_MC_PARSED'); } catch (e) {}
+          return Promise.resolve(window.mzoDataHub.delete('CACHE_PENDING_MC_PARSED')).catch(function () {})
+            .then(function () { return window.mzoDataHub.refresh(KEY); })
+            .then(function () { return window.mzoDataHub._peek(KEY); });
+        })
+        .then(function (t) { reload(t); UI.toast('Synced from the sheet'); })
+        .catch(function (e) { UI.toast(e.message || 'Sync failed'); })
+        .then(function () { b.disabled = false; b.classList.remove('spin'); });
+    });
+
+    // Deep links: ?kpiFilter=Delayed|Industrial|WithinMonth, ?region=, ?division=, ?ccc=
+    var params = new URLSearchParams(location.search), first = true;
+    UI.load(KEY, function (text, info) {
+      if (!text) { if (info && info.error) { $('meta').textContent = 'Could not load data'; $('appTable').innerHTML = $('officeTable').innerHTML = '<div class="ui-empty">Could not load data.</div>'; } return; }
+      prepare(text);
+      if (first) {
+        first = false;
+        var k = params.get('kpiFilter'); if (STAT[k]) f.stat = k;
+        var pick = function (id, val) {
+          var el = $(id); if (!val || el.disabled) return false;
+          var m = [].filter.call(el.options, function (o) { return o.value.toLowerCase() === val.toLowerCase(); })[0];
+          if (m) { el.value = m.value; offices(); return true; } return false;
+        };
+        if (pick('regionFilter', UI.regionName(params.get('region') || ''))) level = 'division';
+        if (pick('divisionFilter', params.get('division'))) level = 'ccc';
+        if (pick('cccFilter', params.get('ccc'))) level = 'ccc';
+        if (scope && (scope.level === 'division' || scope.level === 'ccc')) level = 'ccc';
+        else if (scope && scope.level === 'region' && level === 'region') level = 'division';
+        [].forEach.call(document.querySelectorAll('#levelTabs .ui-tab'), function (t) { t.setAttribute('aria-selected', String(t.getAttribute('data-l') === level)); });
+      }
+      render();
+    });
+  });
   </script>
-
-  <!-- Level 1: Consumer List Modal -->
-  <div class="modal fade" id="listModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-xl">
-      <div class="modal-content glass-panel" style="max-height: 90vh;">
-        <div class="modal-header border-0 pb-3 d-flex justify-content-between align-items-center">
-          <h5 class="modal-title fw-bold" id="listModalTitle">Segment Analysis</h5>
-          <div class="d-flex gap-2">
-            <button class="btn btn-outline-primary btn-sm rounded-pill px-3" onclick="exportFullList()">
-              <i class='bx bx-download me-1'></i> CSV
-            </button>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-        </div>
-        <div class="modal-body overflow-auto p-0" id="listModalContent">
-          <!-- Table injected here -->
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Level 2: Consumer Detail Modal -->
-  <div class="modal fade" id="consumerModal" tabindex="-1" aria-hidden="true" style="z-index: 1060;">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-      <div class="modal-content glass-panel">
-        <div class="modal-header border-0 pb-0 d-flex justify-content-between align-items-center">
-          <h5 class="modal-title fw-bold" id="modalTitle">Consumer Details</h5>
-          <div class="d-flex gap-2 pe-3">
-             <button id="copyBtn" class="btn btn-outline-primary btn-sm rounded-pill px-3" onclick="copyConsumerToWhatsApp()" title="Copy for WhatsApp">
-              <i class='bx bx-copy'></i><i class='bx bxl-whatsapp ms-1'></i>
-            </button>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-        </div>
-        <div class="modal-body pt-4" id="modalContent">
-          <!-- Details injected here -->
-        </div>
-        <div class="modal-footer border-0">
-          <button type="button" class="btn btn-primary px-4 rounded-pill" data-bs-dismiss="modal">Close</button>
-        </div>
-      </div>
-    </div>
-  </div>
-  
-  <!-- Backdrop for nested modals -->
-  <style>
-    .modal-backdrop + .modal-backdrop { z-index: 1055; }
-    #consumerModal { z-index: 1060; }
-  </style>
 </body>
 </html>

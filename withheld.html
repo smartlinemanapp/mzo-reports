@@ -1,2393 +1,318 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html lang="en" class="ui">
 <head>
-  <script src="mzo_theme.js?v=1"></script>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Withheld NSC Dashboard</title>
-    <!-- Resource preconnects -->
-    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
-    <link rel="preconnect" href="https://cdn.jsdelivr.net">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-
-    <!-- Tailwind CSS (Static) -->
-    <link rel="stylesheet" href="tailwind_dist.css">
-    <!-- Font Awesome for icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
-    <script src="mzo_data_hub.js?v=87"></script>
-    <script src="mzo_scope.js?v=3"></script>
-    <script src="mzo_presets_hub.js?v=87"></script>
-    <script src="mzo_app_update.js?v=87"></script>
-    <!-- Inter font from Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <!-- MZO Universal Core Design System -->
-    <link rel="stylesheet" href="css/mzo_ui_core.css">
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f8fafc; /* Slate 50 */
-            color: #1e293b; /* Slate 800 */
-        }
-
-        .card {
-            background-color: #ffffff;
-            border: 1px solid #e2e8f0;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-        }
-
-        .modal-overlay {
-            background-color: rgba(15, 23, 42, 0.4);
-            backdrop-filter: blur(4px);
-            transition: opacity 0.3s ease-in-out;
-        }
-
-        .modal-content {
-            transform: scale(0.98);
-            transition: all 0.2s ease-out;
-            background: #ffffff;
-            border: 1px solid #e2e8f0;
-        }
-
-        .modal-container.open .modal-overlay { opacity: 1; }
-        .modal-container.open .modal-content { transform: scale(1); }
-        .modal-container { display: none; }
-        .modal-container.open { display: flex; }
-
-        .custom-scrollbar::-webkit-scrollbar { width: 5px; height: 5px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 10px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-
-        .checkbox-container {
-            display: flex;
-            align-items: center;
-            cursor: pointer;
-            user-select: none;
-            padding: 0.35rem 0.85rem;
-            border-radius: 8px;
-            background-color: #f1f5f9;
-            border: 1px solid #e2e8f0;
-            transition: all 0.2s ease;
-        }
-
-        .checkbox-container:hover {
-            background-color: #e2e8f0;
-            border-color: #cbd5e1;
-        }
-
-        .checkbox-container input { display: none; }
-
-        .checkmark {
-            display: inline-block;
-            width: 1rem;
-            height: 1rem;
-            border: 2px solid #cbd5e1;
-            border-radius: 4px;
-            position: relative;
-            margin-right: 0.5rem;
-            transition: all 0.15s ease;
-            flex-shrink: 0;
-            background: white;
-        }
-
-        .checkbox-container input:checked + .checkmark {
-            background-color: #4f46e5;
-            border-color: #4f46e5;
-        }
-
-        .checkmark:after {
-            content: "";
-            position: absolute;
-            display: none;
-            left: 0.25rem;
-            top: 0.05rem;
-            width: 0.25rem;
-            height: 0.5rem;
-            border: solid white;
-            border-width: 0 2px 2px 0;
-            transform: rotate(45deg);
-        }
-
-        .checkbox-container input:checked + .checkmark:after { display: block; }
-
-        /* Removed #leftPanel styles */
-        
-        .reason-dropdown {
-            position: relative;
-            z-index: 100;
-        }
-        
-        #reasonFilterList {
-            display: none;
-            position: absolute;
-            top: 100%;
-            left: 0;
-            width: 100%;
-            min-width: 280px;
-            max-height: 400px;
-            background: white;
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-            padding: 8px;
-            overflow-y: auto;
-            margin-top: 4px;
-        }
-        
-        #reasonFilterList.show {
-            display: block;
-        }
-
-        .reason-option {
-            padding: 6px 10px;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-        
-        .reason-option:hover {
-            background-color: #f1f5f9;
-        }
-
-        .stat-card {
-            transition: all 0.2s ease;
-            background: white;
-            border: 1px solid #e2e8f0;
-        }
-        .stat-card:hover {
-            border-color: #cbd5e1;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-        }
-
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-
-        .btn-minimal {
-            @apply flex-1 p-2 text-xs font-semibold rounded-lg transition-all;
-        }
-
-        .sticky-total {
-            background-color: #f8fafc;
-            border-top: 2px solid #e2e8f0;
-        }
-    </style>
-  <link rel="stylesheet" href="mzo_theme.css?v=1" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Withheld NSC · MZO Reports</title>
+  <script src="/mzo_theme.js?v=3"></script>
+  <link rel="stylesheet" href="/mzo_theme.css?v=3" />
+  <script src="/mzo_ui.js?v=1" defer></script>
+  <script src="/mzo_data_hub.js" defer></script>
+  <script src="/mzo_scope.js?v=5" defer></script>
+  <style>
+    /* Long reason names: label and count on one line, bar below */
+    #reasonHist .row { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "l v" "b b"; height: auto; row-gap: 6px; padding: 6px 4px; }
+    #reasonHist .row > span:first-child { grid-area: l; white-space: normal; }
+    #reasonHist .row > i { grid-area: b; }
+    #reasonHist .row > span:last-child { grid-area: v; }
+  </style>
 </head>
-
-<body class="flex min-h-screen">
-
-    <!-- Loading Overlay -->
-    <div id="loadingOverlay"
-        class="fixed inset-0 z-[2000] bg-white bg-opacity-90 flex flex-col items-center justify-center transition-opacity duration-300">
-        <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-600 mb-4"></div>
-        <p class="text-sm font-medium text-slate-600">Preparing Dashboard...</p>
-    </div>
-
-    <!-- Removed Left Panel -->
-
-    <!-- Main Content Wrapper -->
-    <div id="mainContent" class="flex-1">
-        <!-- Header -->
-        <header class="sticky top-0 z-50 bg-white border-b border-slate-200">
-            <div class="container mx-auto px-4 py-3 flex justify-between items-center">
-                <div class="flex justify-between items-center w-full">
-                    <div class="flex flex-col">
-                        <h1 class="text-sm font-bold text-slate-900 uppercase tracking-tight">Withheld Dashboard</h1>
-                        <span id="update-date" class="text-[9px] uppercase tracking-wider text-slate-500 font-semibold">Loading...</span>
-                    </div>
-                    <div></div>
-                </div>
-            </div>
-        </header>
-
-        <!-- Main Content Container -->
-        <div class="container mx-auto p-4">
-            <!-- Search & Quick Filters -->
-            <div class="bg-gray-100/50 p-2.5 rounded-xl border border-gray-200 mb-3 flex flex-col md:flex-row items-center gap-3">
-                <div class="relative flex-1 w-full">
-                    <div class="absolute inset-y-0 left-4 flex items-center pointer-events-none">
-                        <i class="fas fa-search text-slate-400 text-xs"></i>
-                    </div>
-                    <input type="text" id="smartSearch"
-                        class="block w-full pl-12 pr-4 py-2 bg-white border border-slate-200 rounded-lg text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition-all text-xs"
-                        placeholder="Search applications...">
-                </div>
-                <div class="flex items-center justify-between w-full md:w-auto gap-3 px-2">
-                    <label class="checkbox-container text-xs font-semibold flex-1 justify-center md:flex-none md:justify-start">
-                        <input type="checkbox" id="portalCheckbox" checked>
-                        <span class="checkmark"></span>
-                        <span class="text-slate-600">Portal <span id="portal-percent" class="text-indigo-600 ml-0.5"></span></span>
-                    </label>
-                    <label class="checkbox-container text-xs font-semibold flex-1 justify-center md:flex-none md:justify-start">
-                        <input type="checkbox" id="offlineCheckbox" checked>
-                        <span class="checkmark"></span>
-                        <span class="text-slate-600">Offline <span id="offline-percent" class="text-orange-600 ml-0.5"></span></span>
-                    </label>
-                </div>
-            </div>
-
-            <!-- Primary Filters Row -->
-            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2 mb-4">
-                <select id="region" class="bg-white border border-slate-200 text-slate-700 text-xs font-medium rounded-lg p-2 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none">
-                    <option value="">All Regions</option>
-                </select>
-                <select id="division" class="bg-white border border-slate-200 text-slate-700 text-xs font-medium rounded-lg p-2 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none">
-                    <option value="">All Divisions</option>
-                </select>
-                <select id="support" class="bg-white border border-slate-200 text-slate-700 text-xs font-medium rounded-lg p-2 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none">
-                    <option value="">All CCCs</option>
-                </select>
-                <select id="connClass" class="bg-white border border-slate-200 text-slate-700 text-xs font-medium rounded-lg p-2 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none">
-                    <option value="">All Classes</option>
-                </select>
-                
-                <!-- New Reason Filter Dropdown -->
-                <div class="reason-dropdown col-span-2 md:col-span-1">
-                    <button id="reasonDropdownButton" class="w-full bg-white border border-slate-200 text-slate-700 text-xs font-medium rounded-lg p-2 flex justify-between items-center hover:bg-slate-50 transition-all">
-                        <span id="selectedReasonsCount">All Reasons</span>
-                        <i class="fas fa-chevron-down text-[10px] text-slate-400"></i>
-                    </button>
-                    <div id="reasonFilterList" class="custom-scrollbar">
-                        <div class="p-2 border-b border-slate-100 flex flex-col gap-2">
-                             <input type="text" id="reasonSearch" placeholder="Search reasons..." class="w-full text-[11px] p-1.5 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500/10">
-                             <div class="flex justify-between items-center px-1">
-                                <button id="selectAllReasons" class="text-[10px] font-bold text-indigo-500 hover:text-indigo-700">Select All</button>
-                                <button id="clearReasons" class="text-[10px] font-bold text-slate-400 hover:text-rose-500">Clear All</button>
-                             </div>
-                        </div>
-                        <div id="reasonFilterContainer" class="py-1 max-h-64 overflow-y-auto custom-scrollbar">
-                            <!-- Populated dynamically -->
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Wrapper for Dashboard Summary (to be hidden during search) -->
-            <div id="dashboardSummary">
-                <!-- Dashboard Stats -->
-                <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
-                <div id="card-total" class="stat-card p-3 rounded-xl shadow-sm border-l-4 border-indigo-500 cursor-pointer">
-                    <div class="flex items-center space-x-3">
-                        <div class="flex-shrink-0 w-9 h-9 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600">
-                            <i class="fas fa-database text-sm"></i>
-                        </div>
-                        <div>
-                            <h3 class="text-[9px] uppercase tracking-widest font-bold text-slate-400">Total</h3>
-                            <p id="total-count" class="text-lg font-bold text-slate-800">0</p>
-                        </div>
-                    </div>
-                </div>
-                <div id="card-7" class="stat-card p-3 rounded-xl shadow-sm border-l-4 border-emerald-500 cursor-pointer">
-                    <div class="flex items-center space-x-3">
-                        <div class="flex-shrink-0 w-9 h-9 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600">
-                            <i class="fas fa-calendar-week text-sm"></i>
-                        </div>
-                        <div>
-                            <h3 class="text-[9px] uppercase tracking-widest font-bold text-slate-400">7 Days</h3>
-                            <p id="count-7" class="text-lg font-bold text-slate-800">0</p>
-                        </div>
-                    </div>
-                </div>
-                <div id="card-30" class="stat-card p-3 rounded-xl shadow-sm border-l-4 border-rose-500 cursor-pointer">
-                    <div class="flex items-center space-x-3">
-                        <div class="flex-shrink-0 w-9 h-9 rounded-lg bg-rose-50 flex items-center justify-center text-rose-600">
-                            <i class="fas fa-calendar-alt text-sm"></i>
-                        </div>
-                        <div>
-                            <h3 class="text-[9px] uppercase tracking-widest font-bold text-slate-400">1 Month</h3>
-                            <p id="count-30" class="text-lg font-bold text-slate-800">0</p>
-                        </div>
-                    </div>
-                </div>
-                <div id="card-90" class="stat-card p-3 rounded-xl shadow-sm border-l-4 border-amber-500 cursor-pointer">
-                    <div class="flex items-center space-x-3">
-                        <div class="flex-shrink-0 w-9 h-9 rounded-lg bg-amber-50 flex items-center justify-center text-amber-600">
-                            <i class="fas fa-calendar-check text-sm"></i>
-                        </div>
-                        <div>
-                            <h3 class="text-[9px] uppercase tracking-widest font-bold text-slate-400">3 Months</h3>
-                            <p id="count-90" class="text-lg font-bold text-slate-800">0</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Tabbed Panel -->
-            <div class="bg-white p-4 rounded-xl border border-slate-200">
-                <div class="flex border-b border-slate-100 mb-4 overflow-x-auto no-scrollbar">
-                    <button id="chart-tab"
-                        class="py-2 px-4 text-xs font-bold text-slate-400 border-b-2 border-transparent focus:outline-none transition-colors hover:text-slate-600 whitespace-nowrap">Trend
-                        Chart</button>
-                    <button id="data-tab"
-                        class="py-2 px-4 text-xs font-bold text-slate-400 border-b-2 border-transparent focus:outline-none transition-colors hover:text-slate-600 whitespace-nowrap">Trend
-                        Data</button>
-                    <button id="region-tab"
-                        class="py-2 px-4 text-xs font-bold text-slate-400 border-b-2 border-transparent focus:outline-none transition-colors hover:text-slate-600 whitespace-nowrap">Region
-                        Wise</button>
-                    <button id="division-tab"
-                        class="py-2 px-4 text-xs font-bold text-slate-400 border-b-2 border-transparent focus:outline-none transition-colors hover:text-slate-600 whitespace-nowrap">Division
-                        Wise</button>
-                    <button id="ccc-tab"
-                        class="py-2 px-4 text-xs font-bold text-indigo-600 border-b-2 border-indigo-600 focus:outline-none transition-colors whitespace-nowrap">CCC
-                        Wise</button>
-                    <button id="class-tab"
-                        class="py-2 px-4 text-xs font-bold text-slate-400 border-b-2 border-transparent focus:outline-none transition-colors hover:text-slate-600 whitespace-nowrap">Class
-                        Wise</button>
-                    <button id="reason-tab"
-                        class="py-2 px-4 text-xs font-bold text-slate-400 border-b-2 border-transparent focus:outline-none transition-colors hover:text-slate-600 whitespace-nowrap">Reason
-                        Wise</button>
-                </div>
-                <div id="tab-content">
-                    <!-- Trend Chart View -->
-                    <div id="chart-view">
-                        <div class="h-96 w-full overflow-x-auto">
-                            <canvas id="timelineChart"></canvas>
-                        </div>
-                    </div>
-                    <!-- Trend Data View (hidden by default) -->
-                    <div id="data-view" class="hidden">
-                        <div id="trendDataTable" class="max-h-96 overflow-y-auto custom-scrollbar overflow-x-auto">
-                            <!-- Dynamically populated table -->
-                        </div>
-                    </div>
-                    <!-- Region Summary View -->
-                    <div id="region-view" class="hidden">
-                        <div id="regionSummaryTable" class="max-h-96 overflow-y-auto custom-scrollbar overflow-x-auto"></div>
-                    </div>
-                    <!-- Division Summary View -->
-                    <div id="division-view" class="hidden">
-                        <div id="divisionSummaryTable" class="max-h-96 overflow-y-auto custom-scrollbar overflow-x-auto"></div>
-                    </div>
-                    <!-- CCC Summary View -->
-                    <div id="ccc-view" class="hidden">
-                        <div id="cccSummaryTable" class="max-h-96 overflow-y-auto custom-scrollbar overflow-x-auto"></div>
-                    </div>
-                    <!-- Class Summary View -->
-                    <div id="class-view" class="hidden">
-                        <div id="classSummaryTable" class="max-h-96 overflow-y-auto custom-scrollbar overflow-x-auto"></div>
-                    </div>
-                    <!-- Reason Summary View -->
-                    <div id="reason-view" class="hidden">
-                        <div id="reasonSummaryTable" class="max-h-96 overflow-y-auto custom-scrollbar overflow-x-auto"></div>
-                    </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Search Results View (Hidden by default) -->
-            <div id="searchResultsView" style="display: none;">
-                 <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
-                        Results for "<span id="searchQueryDisplay" class="text-indigo-600 font-bold"></span>" 
-                        <span id="searchResultCount" class="ml-2 px-2 py-0.5 bg-indigo-50 text-indigo-500 rounded-full font-bold">0 Found</span>
-                    </h2>
-                    <button id="clearSearchBtn" class="text-[9px] font-bold text-slate-500 hover:text-rose-600 bg-white px-2 py-1.5 rounded-lg transition-all border border-slate-200 shadow-sm flex items-center">
-                        <i class="fas fa-times mr-1.5"></i> Exit Search
-                    </button>
-                 </div>
-                 <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
-                    <div id="searchResultsContent" class="overflow-x-auto custom-scrollbar"></div>
-                    <div id="searchLoadMoreContainer" class="p-4 border-t border-slate-100 flex justify-center hidden">
-                        <button id="searchLoadMoreBtn" class="px-6 py-2 w-full sm:w-auto bg-indigo-50 text-indigo-600 text-xs font-bold rounded-full hover:bg-white hover:border border-indigo-200 transition-all shadow-sm">
-                            Load More Results
-                        </button>
-                    </div>
-                 </div>
-            </div>
-        </main>
-    </div>
-
-    <!-- Modal for Drill-down -->
-    <div id="detailsModal" class="modal-container fixed inset-0 z-[2000] items-center justify-center p-2 sm:p-4">
-        <div class="modal-overlay fixed inset-0 opacity-0"></div>
-        <div class="modal-content m-auto relative w-full max-w-5xl max-h-[90vh] bg-white rounded-xl shadow-2xl p-4 sm:p-6 text-slate-800 flex flex-col">
-
-            <!-- Modal Header -->
-            <div class="flex items-center justify-between pb-4 border-b border-slate-100 mb-4 shrink-0">
-                <h3 id="modalTitle" class="text-lg font-bold text-slate-900">Details</h3>
-                <div class="flex items-center space-x-2">
-                    <button id="modalBackButton"
-                        class="hidden py-1.5 px-3 rounded-lg bg-slate-50 text-slate-600 hover:bg-slate-100 transition-colors text-xs font-bold border border-slate-200">
-                        <i class="fas fa-arrow-left mr-1"></i> Back
-                    </button>
-                    <button id="modalDownloadButton"
-                        class="py-1.5 px-3 rounded-lg bg-white text-slate-600 hover:bg-slate-50 transition-all text-[10px] font-bold border border-slate-200 flex items-center shadow-sm hover:shadow-md active:scale-95 group">
-                        <i class="fas fa-download mr-1.5 text-indigo-500 group-hover:scale-110 transition-transform"></i> Download Table
-                    </button>
-                    <button id="modalCloseButton"
-                        class="p-2 rounded-lg bg-slate-50 text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors border border-slate-200">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Modal Tabs -->
-            <div class="flex border-b border-slate-100 mb-4 overflow-x-auto no-scrollbar shrink-0" id="modalTabs">
-                <button id="modal-tab-region"
-                    class="py-2 px-4 text-xs font-bold text-indigo-600 border-b-2 border-indigo-600 focus:outline-none transition-colors whitespace-nowrap">Region</button>
-                <button id="modal-tab-division"
-                    class="py-2 px-4 text-xs font-bold text-slate-400 border-b-2 border-transparent focus:outline-none transition-colors hover:text-slate-600 whitespace-nowrap">Division</button>
-                <button id="modal-tab-ccc"
-                    class="py-2 px-4 text-xs font-bold text-slate-400 border-b-2 border-transparent focus:outline-none transition-colors hover:text-slate-600 whitespace-nowrap">CCC</button>
-            </div>
-
-            <!-- Modal Body -->
-            <div id="modalBody" class="flex-1 min-h-0 min-w-0 overflow-y-auto custom-scrollbar relative overflow-x-auto">
-                <!-- Loading spinner for modal content -->
-                <div id="modalLoader"
-                    class="absolute inset-0 bg-white/80 flex items-center justify-center transition-opacity duration-300 hidden">
-                    <div class="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-indigo-600"></div>
-                </div>
-                <!-- Content will be injected here -->
-                <div id="modal-content-region" class="modal-tab-content"></div>
-                <div id="modal-content-division" class="modal-tab-content hidden"></div>
-                <div id="modal-content-ccc" class="modal-tab-content hidden"></div>
-                <div id="modal-content-application-list" class="modal-tab-content hidden"></div>
-            </div>
+<body>
+  <main class="ui-page">
+    <header class="ui-head">
+      <div>
+        <h1>Withheld NSC</h1>
+        <p id="meta">Loading…</p>
+      </div>
+      <div class="ui-actions">
+        <div class="ui-seg" id="source" role="group" aria-label="Source">
+          <button type="button" data-s="" aria-pressed="true">All</button>
+          <button type="button" data-s="Y" aria-pressed="false">Portal</button>
+          <button type="button" data-s="N" aria-pressed="false">Offline</button>
         </div>
+        <button type="button" class="ui-btn icon" id="refreshBtn" aria-label="Refresh" title="Refresh"><svg class="ui-i"><use href="#ui-refresh"/></svg></button>
+      </div>
+    </header>
+
+    <div class="ui-filters">
+      <label class="ui-search"><svg class="ui-i"><use href="#ui-search"/></svg><input class="ui-input" id="q" type="search" placeholder="Application, name or phone" autocomplete="off" /></label>
+      <span class="ui-select"><select id="regionFilter" aria-label="Region"><option value="">All regions</option></select></span>
+      <span class="ui-select"><select id="divisionFilter" aria-label="Division"><option value="">All divisions</option></select></span>
+      <span class="ui-select"><select id="cccFilter" aria-label="CCC"><option value="">All CCCs</option></select></span>
+      <span class="ui-select"><select id="classFilter" aria-label="Class"><option value="">All classes</option></select></span>
+      <span class="ui-select"><select id="reasonFilter" aria-label="Reason"><option value="">All reasons</option></select></span>
+      <button type="button" class="ui-btn ghost" id="clearBtn" hidden><svg class="ui-i"><use href="#ui-x"/></svg>Clear</button>
     </div>
 
-    <!-- Attention Modal -->
-    <div id="attentionModal" class="modal-container fixed inset-0 z-[2001] items-center justify-center p-4">
-        <div class="modal-overlay fixed inset-0 opacity-0"></div>
-        <div
-            class="modal-content m-auto relative w-full max-w-sm bg-white rounded-xl shadow-2xl p-6 sm:p-8 text-slate-800 text-center border border-slate-100">
-            <h3 class="text-xl font-bold mb-4 flex items-center justify-center text-slate-900">
-                <i class="fas fa-circle-exclamation text-amber-500 text-2xl mr-3"></i> Attention
-            </h3>
-            <p class="text-sm text-slate-600 mb-8 leading-relaxed font-medium">No application should be withheld without a valid reason.</p>
-            <button id="attentionModalOkButton"
-                class="py-2.5 bg-indigo-600 text-white text-sm font-bold rounded-lg hover:bg-indigo-700 transition-all w-full shadow-lg shadow-indigo-200">Got it!</button>
+    <section class="ui-stats" style="--n:5" id="stats" aria-label="Summary">
+      <button type="button" class="ui-stat" data-k=""><div class="k">Withheld</div><div class="v"><span class="ui-skel"></span></div><div class="s">&nbsp;</div></button>
+      <button type="button" class="ui-stat" data-k="d7"><div class="k">Last 7 days</div><div class="v"><span class="ui-skel"></span></div><div class="s">&nbsp;</div></button>
+      <button type="button" class="ui-stat" data-k="d30"><div class="k">Last 30 days</div><div class="v"><span class="ui-skel"></span></div><div class="s">&nbsp;</div></button>
+      <button type="button" class="ui-stat" data-k="d90"><div class="k">Last 90 days</div><div class="v"><span class="ui-skel"></span></div><div class="s">&nbsp;</div></button>
+      <button type="button" class="ui-stat" data-k="invalid"><div class="k"><span class="ui-dot bad"></span>No valid reason</div><div class="v"><span class="ui-skel"></span></div><div class="s">&nbsp;</div></button>
+    </section>
+
+    <div class="ui-grid">
+      <section class="ui-panel">
+        <div class="ui-panel-h">
+          <h2>Breakdown</h2>
+          <div class="ui-tabs" role="tablist" id="levelTabs">
+            <button type="button" class="ui-tab" role="tab" data-l="region" aria-selected="true">Region</button>
+            <button type="button" class="ui-tab" role="tab" data-l="division">Division</button>
+            <button type="button" class="ui-tab" role="tab" data-l="ccc">CCC</button>
+            <button type="button" class="ui-tab" role="tab" data-l="cls">Class</button>
+          </div>
         </div>
+        <div id="officeTable" style="--max-h:520px"><div class="ui-empty">Loading…</div></div>
+      </section>
+      <div>
+        <section class="ui-panel">
+          <div class="ui-panel-h"><h2>By reason</h2><span class="ui-note">Every withheld application needs a valid reason</span></div>
+          <div class="ui-panel-b"><div id="reasonHist"></div></div>
+        </section>
+        <section class="ui-panel">
+          <div class="ui-panel-h"><h2>Withheld by year</h2></div>
+          <div class="ui-panel-b"><div id="yearHist"></div></div>
+        </section>
+      </div>
     </div>
 
-    <!-- Chart.js and custom script -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>
-        // Constants and state variables
-        let rawData = [];
-        let filteredData = [];
-        let chart;
-        let searchCurrentPageIndex = 0;
-        let searchFullResults = [];
-        const SEARCH_PAGE_SIZE = 50;
-        let currentModalLevel = 0; // 0: closed, 1: region, 2: division, 3: ccc, 4: application list
-        let maxTodayDate = null; // Global variable to store the latest "TODAY" date from data
-        let currentModalContext = {}; // Stores data and filters for the modal drill-down
-        let tableSortStates = {
-            region: { key: 'count', dir: 'desc' },
-            division: { key: 'count', dir: 'desc' },
-            ccc: { key: 'count', dir: 'desc' },
-            reason: { key: 'count', dir: 'desc' },
-            class: { key: 'count', dir: 'desc' },
-            trend: { key: 'year', dir: 'desc' }
+    <section class="ui-panel">
+      <div class="ui-panel-h">
+        <h2>Applications <small id="appCount"></small></h2>
+        <button type="button" class="ui-btn sm" id="exportBtn"><svg class="ui-i"><use href="#ui-download"/></svg>Export CSV</button>
+      </div>
+      <div id="appTable"><div class="ui-empty">Loading…</div></div>
+    </section>
+  </main>
+
+  <script>
+  document.addEventListener('DOMContentLoaded', function () {
+    'use strict';
+    var $ = function (id) { return document.getElementById(id); };
+    var KEY = 'CACHE_WITHHELD_v4';
+    var CLASS = { D: 'Domestic', C: 'Commercial', A: 'Agriculture', I: 'Industrial', S: 'Street light', J: 'Public', P: 'Public', W: 'Water works', T: 'Temporary' };
+    var INVALID = ['', 'Not Specified', 'LT Infrastructure required', 'Earthing Not Completed', 'WBSEDCL is unable to provide connection', 'n', 'N', 'NO', 'Y',
+      'Dependent on other application', 'Particulars of capacitor bank(if installed) not Found', 'Meter and Main Switch should be separated', 'YES', 'y', 'no',
+      'Location of installation of Transformer need to be identified clearly', 'yes'];
+    var NO_REASON = 'No valid reason';
+    var all = [], asOn = null, f = { q: '', src: '', stat: '', year: '' }, level = 'region', scope = null;
+
+    function prepare(text) {
+      var rows = Array.isArray(text) ? text : UI.csv(text), today = null, seen = {};
+      all = [];
+      rows.forEach(function (d) {
+        var appl = String(d.APPL_NO || '').trim();
+        if (!appl) return;
+        var t = UI.date(d.TODAY); if (t && (!today || t > today)) today = t;
+        var reason = String(d.SCN_WITHELD_REASON || '').trim();
+        var invalid = INVALID.indexOf(reason) !== -1;
+        var r = {
+          appl: appl, name: UI.blank(d.NAME) ? '' : UI.title(d.NAME), phone: UI.blank(d.PHONE_NO) ? '' : d.PHONE_NO,
+          _region: UI.regionName(d.REGION), _divn: UI.title(d.DIVN_NAME), _supp: UI.title(d.SUPP_OFF), CCC_CODE: String(d.CCC_CODE || '').trim(),
+          cls: String(d.CONN_CLASS || '').trim().toUpperCase(), phase: String(d.APPLIED_PHASE || '').trim().toUpperCase(),
+          paid: UI.date(d.COLL_DATE), withheld: UI.date(d.SCN_WITHELD_DATE),
+          reason: reason || 'Not specified', invalid: invalid, group: invalid ? NO_REASON : reason,
+          portal: d.IS_PORTAL_APPL === 'Y' ? 'Y' : 'N'
         };
+        r.label = CLASS[r.cls] || r.cls || '—';
+        r.year = r.withheld ? String(r.withheld.getFullYear()) : '';
+        // Count each application once; the last row wins.
+        if (seen[appl] != null) all[seen[appl]] = r; else { seen[appl] = all.length; all.push(r); }
+      });
+      if (window.MzoScope) all = window.MzoScope.filterRows(all);
+      if (today && (!asOn || today > asOn)) asOn = today;
+      all.forEach(function (r) { r.ago = r.withheld && asOn ? Math.floor((asOn - r.withheld) / 864e5) : null; });
+      paintMeta();
+      fillFilters();
+    }
+    function paintMeta() { $('meta').textContent = (asOn ? 'As on ' + UI.fmtDate(asOn) + ' · ' : '') + UI.n(all.length) + ' applications'; }
 
-        const INVALID_REASONS = [
-            'Not Specified', 'LT Infrastructure required', 'Earthing Not Completed',
-            'WBSEDCL is unable to provide connection', 'n', 'N', 'NO', 'Y',
-            'Dependent on other application', 'Particulars of capacitor bank(if installed) not Found',
-            'Meter and Main Switch should be separated', 'YES', 'y', 'no',
-            'Location of installation of Transformer need to be identified clearly', 'yes'
-        ];
-        let isInvalidReasonsExpanded = false;
+    var STAT = {
+      d7: function (r) { return r.ago != null && r.ago >= 0 && r.ago <= 7; },
+      d30: function (r) { return r.ago != null && r.ago >= 0 && r.ago <= 30; },
+      d90: function (r) { return r.ago != null && r.ago >= 0 && r.ago <= 90; },
+      invalid: function (r) { return r.invalid; }
+    };
 
-        function toggleInvalidReasons() {
-            isInvalidReasonsExpanded = !isInvalidReasonsExpanded;
-            updateSummaryTables();
+    function uniq(rows, k) { var s = {}; rows.forEach(function (r) { if (r[k]) s[r[k]] = 1; }); return Object.keys(s).sort(); }
+    function fillFilters() {
+      var reg = $('regionFilter').value, div = $('divisionFilter').value;
+      UI.fill('regionFilter', uniq(all, '_region'), 'All regions');
+      var r1 = all.filter(function (r) { return !reg || r._region === reg; });
+      UI.fill('divisionFilter', uniq(r1, '_divn'), 'All divisions');
+      var r2 = r1.filter(function (r) { return !div || r._divn === div; });
+      UI.fill('cccFilter', uniq(r2, '_supp'), 'All CCCs');
+      var cls = {}; all.forEach(function (r) { if (r.cls) cls[r.cls] = r.label; });
+      UI.fill('classFilter', Object.keys(cls).sort().map(function (c) { return { value: c, label: cls[c] === c ? c : cls[c] + ' (' + c + ')' }; }), 'All classes');
+      var reasons = uniq(all.filter(function (r) { return !r.invalid; }), 'group');
+      UI.fill('reasonFilter', [{ value: NO_REASON, label: NO_REASON }].concat(reasons), 'All reasons');
+      if (!scope) scope = UI.lockScope();
+    }
+
+    function base() {
+      var q = f.q.toLowerCase(), reg = $('regionFilter').value, div = $('divisionFilter').value, cc = $('cccFilter').value, cl = $('classFilter').value, rs = $('reasonFilter').value;
+      return all.filter(function (r) {
+        return (!f.src || r.portal === f.src) && (!reg || r._region === reg) && (!div || r._divn === div) && (!cc || r._supp === cc) &&
+          (!cl || r.cls === cl) && (!rs || r.group === rs) &&
+          (!q || r.appl.indexOf(q) !== -1 || r.name.toLowerCase().indexOf(q) !== -1 || r.phone.indexOf(q) !== -1);
+      });
+    }
+
+    function render() {
+      var b = base();
+      var view = b.filter(function (r) { return (!f.stat || STAT[f.stat](r)) && (!f.year || (f.year.indexOf('<=') === 0 ? (r.year && r.year <= f.year.slice(2)) : r.year === f.year)); });
+
+      [].forEach.call(document.querySelectorAll('#stats .ui-stat'), function (el) {
+        var k = el.getAttribute('data-k'), c = k ? b.filter(STAT[k]).length : b.length;
+        el.querySelector('.v').textContent = UI.n(c);
+        el.querySelector('.s').textContent = k ? UI.pct(c, b.length) + ' of withheld' : UI.pct(b.filter(function (r) { return r.portal === 'Y'; }).length, b.length) + ' from the portal';
+        el.setAttribute('aria-pressed', String(f.stat === k));
+      });
+
+      var key = { region: '_region', division: '_divn', ccc: '_supp', cls: 'label' }[level], groups = {};
+      view.forEach(function (r) {
+        var name = r[key] || 'Unmapped';
+        var g = groups[name] || (groups[name] = { name: name, parent: level === 'ccc' ? r._divn : level === 'division' ? r._region : '', n: 0, d30: 0, portal: 0, invalid: 0 });
+        g.n++; if (STAT.d30(r)) g.d30++; if (r.portal === 'Y') g.portal++; if (r.invalid) g.invalid++;
+      });
+      var list = Object.keys(groups).map(function (k) { return groups[k]; }), max = Math.max.apply(null, list.map(function (g) { return g.n; }).concat([0]));
+      UI.table('officeTable', {
+        rows: list, sort: { key: 'n', dir: 'desc' }, count: level === 'ccc' || level === 'cls',
+        empty: 'Nothing withheld for these filters.',
+        columns: [
+          { key: 'name', label: { region: 'Region', division: 'Division', ccc: 'CCC', cls: 'Class' }[level], fmt: function (v, g) { return '<span class="ui-strong">' + UI.esc(v) + '</span>' + (g.parent ? '<span class="sub">' + UI.esc(g.parent) + '</span>' : ''); } },
+          { key: 'n', label: 'Withheld', num: true, fmt: UI.n },
+          { key: 'd30', label: 'Last 30 days', num: true, fmt: UI.n },
+          { key: 'invalid', label: 'No valid reason', num: true, fmt: UI.n, hideSm: true },
+          { key: 'portal', label: 'Portal', num: true, hideSm: true, sortVal: function (g) { return g.n ? g.portal / g.n : 0; }, fmt: function (v, g) { return UI.pct(v, g.n); } },
+          { key: 'share', label: 'Share', sortVal: function (g) { return g.n; }, fmt: function (_, g) { return UI.bar(g.n, max, UI.pct(g.n, view.length)); }, hideSm: true, width: '24%' }
+        ],
+        foot: list.length > 1 ? { n: view.length, d30: view.filter(STAT.d30).length, invalid: view.filter(STAT.invalid).length, portal: view.filter(function (r) { return r.portal === 'Y'; }).length } : null,
+        onRow: level === 'region' || level === 'division' ? function (g) { drill(g.name); } : null
+      });
+
+      var rs = {}; view.forEach(function (r) { rs[r.group] = (rs[r.group] || 0) + 1; });
+      UI.hist('reasonHist', Object.keys(rs).sort(function (a, c) { return rs[c] - rs[a]; }).slice(0, 8).map(function (k) { return { key: k, label: k, value: rs[k] }; }),
+        { active: $('reasonFilter').value, onClick: function (row) { var s = $('reasonFilter'); s.value = s.value === row.key ? '' : row.key; UI.mark(s); render(); } });
+      var yr = {}; b.filter(function (r) { return !f.stat || STAT[f.stat](r); }).forEach(function (r) { if (r.year) yr[r.year] = (yr[r.year] || 0) + 1; });
+      var years = Object.keys(yr).sort().reverse(), rowsY = years.slice(0, 9).map(function (y) { return { key: y, label: y, value: yr[y] }; });
+      if (years.length > 9) {
+        var cut = years[9];
+        rowsY.push({ key: '<=' + cut, label: cut + ' and earlier', value: years.slice(9).reduce(function (a, y) { return a + yr[y]; }, 0) });
+      }
+      UI.hist('yearHist', rowsY, { active: f.year, onClick: function (row) { f.year = f.year === row.key ? '' : row.key; render(); } });
+
+      $('appCount').textContent = UI.n(view.length);
+      UI.table('appTable', { rows: view, sort: { key: 'withheld', dir: 'desc' }, limit: 50, resetPage: true, empty: 'No applications match these filters.', columns: APP_COLS, onRow: detail });
+      $('clearBtn').hidden = !(f.q || f.src || f.stat || f.year || $('classFilter').value || $('reasonFilter').value || ['regionFilter', 'divisionFilter', 'cccFilter'].some(function (id) { return $(id).value && !$(id).disabled; }));
+      window.__view = view;
+    }
+
+    var APP_COLS = [
+      { key: 'appl', label: 'Application', fmt: function (v, r) { return '<span class="ui-strong">' + UI.esc(v) + '</span><span class="sub">' + (r.portal === 'Y' ? 'Portal' : 'Offline') + '</span>'; } },
+      { key: 'name', label: 'Name', cls: 'wrap', hideSm: true },
+      { key: 'phone', label: 'Phone', hideSm: true },
+      { key: '_supp', label: 'CCC', fmt: function (v, r) { return UI.esc(v || '—') + '<span class="sub">' + UI.esc(r._divn) + '</span>'; } },
+      { key: 'label', label: 'Class', hideSm: true, fmt: function (v, r) { return UI.esc(v) + '<span class="sub">' + (r.phase === 'III' ? 'Three phase' : 'Single phase') + '</span>'; } },
+      { key: 'withheld', label: 'Withheld on', num: true, sortVal: function (r) { return r.withheld ? r.withheld.getTime() : 0; }, fmt: function (v) { return UI.fmtDate(v); }, csv: function (r) { return UI.fmtDate(r.withheld); } },
+      { key: 'reason', label: 'Reason', cls: 'wrap', fmt: function (v, r) { return r.invalid ? '<span class="ui-badge bad">' + UI.esc(v) + '</span>' : UI.esc(v); } }
+    ];
+
+    function detail(r) {
+      UI.drawer('Application ' + r.appl, [r._supp, r._divn, r._region].filter(Boolean).join(' · '), [
+        ['Name', r.name], ['Phone', r.phone], ['Class', r.label + (r.cls && r.label !== r.cls ? ' (' + r.cls + ')' : '')], ['Phase', r.phase === 'III' ? 'Three phase' : 'Single phase'],
+        ['Source', r.portal === 'Y' ? 'Portal' : 'Offline'], ['Paid on', r.paid ? UI.fmtDate(r.paid) : ''], ['Withheld on', r.withheld ? UI.fmtDate(r.withheld) : ''],
+        ['Withheld for', r.ago != null ? UI.age(r.ago) : ''], ['Reason', r.reason + (r.invalid ? ' (not a valid reason)' : '')], ['CCC code', r.CCC_CODE]
+      ]);
+    }
+
+    function setLevel(l) {
+      level = l;
+      [].forEach.call(document.querySelectorAll('#levelTabs .ui-tab'), function (t) { t.setAttribute('aria-selected', String(t.getAttribute('data-l') === l)); });
+      render();
+    }
+    function drill(name) {
+      if (level === 'region') { $('regionFilter').value = name; $('divisionFilter').value = ''; level = 'division'; }
+      else { $('divisionFilter').value = name; level = 'ccc'; }
+      $('cccFilter').value = '';
+      offices(); setLevel(level);
+    }
+    function offices() { fillFilters(); ['regionFilter', 'divisionFilter', 'cccFilter', 'classFilter', 'reasonFilter'].forEach(function (x) { UI.mark($(x)); }); }
+
+    ['regionFilter', 'divisionFilter', 'cccFilter'].forEach(function (id) {
+      $(id).addEventListener('change', function () {
+        if (id === 'regionFilter') $('divisionFilter').value = '';
+        if (id !== 'cccFilter') $('cccFilter').value = '';
+        offices(); render();
+      });
+    });
+    ['classFilter', 'reasonFilter'].forEach(function (id) { $(id).addEventListener('change', function () { UI.mark(this); render(); }); });
+    $('q').addEventListener('input', UI.debounce(function () { f.q = this.value.trim().toLowerCase(); render(); }, 180));
+    $('source').addEventListener('click', function (e) {
+      var b = e.target.closest('button'); if (!b) return;
+      f.src = b.getAttribute('data-s');
+      [].forEach.call(this.querySelectorAll('button'), function (x) { x.setAttribute('aria-pressed', String(x === b)); });
+      render();
+    });
+    $('stats').addEventListener('click', function (e) { var s = e.target.closest('.ui-stat'); if (!s) return; var k = s.getAttribute('data-k'); f.stat = f.stat === k ? '' : k; render(); });
+    $('levelTabs').addEventListener('click', function (e) { var t = e.target.closest('.ui-tab'); if (t) setLevel(t.getAttribute('data-l')); });
+    $('clearBtn').addEventListener('click', function () {
+      f.q = ''; f.stat = ''; f.year = ''; f.src = ''; $('q').value = ''; $('classFilter').value = ''; $('reasonFilter').value = '';
+      [].forEach.call(document.querySelectorAll('#source button'), function (x) { x.setAttribute('aria-pressed', String(x.getAttribute('data-s') === '')); });
+      ['regionFilter', 'divisionFilter', 'cccFilter'].forEach(function (id) { if (!$(id).disabled) $(id).value = ''; });
+      offices(); render();
+    });
+    $('exportBtn').addEventListener('click', function () {
+      UI.exportCsv('withheld-nsc.csv', [
+        { key: 'appl', label: 'Application' }, { key: 'name', label: 'Name' }, { key: 'phone', label: 'Phone' },
+        { key: '_region', label: 'Region' }, { key: '_divn', label: 'Division' }, { key: '_supp', label: 'CCC' }, { key: 'cls', label: 'Class' }, { key: 'phase', label: 'Phase' },
+        { key: 'paid', label: 'Paid on', csv: function (r) { return r.paid ? UI.fmtDate(r.paid) : ''; } }].concat(APP_COLS.slice(5))
+        .concat([{ key: 'portal', label: 'Source', csv: function (r) { return r.portal === 'Y' ? 'Portal' : 'Offline'; } }]), window.__view || []);
+    });
+
+    function reload(text) { if (text) { prepare(text); render(); } }
+    $('refreshBtn').addEventListener('click', function () {
+      var b = this; b.classList.add('spin');
+      Promise.resolve(window.mzoDataHub.waitForDataset(KEY, { forceCheck: true })).catch(function () {})
+        .then(function () { return window.mzoDataHub._peek(KEY); }).then(reload)
+        .then(function () { b.classList.remove('spin'); });
+    });
+
+    // A fresh NSC upload (nsc/upload.html) asks this page to reload its dump.
+    try {
+      new BroadcastChannel('mzo-withheld').onmessage = function (ev) {
+        if (ev && ev.data && ev.data.type === 'withheld-uploaded') { try { localStorage.setItem('mzo_withheld_pending_refresh', '1'); } catch (e) {} location.reload(); }
+      };
+    } catch (e) {}
+
+    // "As on": the later of the dump's TODAY and the NSC upload report date.
+    fetch('/api/nsc/meta?ts=' + Date.now(), { credentials: 'same-origin' }).then(function (r) { return r.ok ? r.json() : null; }).then(function (j) {
+      var m = (j && j.meta) || {}, d = UI.date(m.reportDate) || UI.date((m.stats || {}).today);
+      if (d && (!asOn || d > asOn)) {
+        asOn = d;
+        if (all.length) { all.forEach(function (r) { r.ago = r.withheld ? Math.floor((asOn - r.withheld) / 864e5) : null; }); paintMeta(); render(); }
+      }
+    }).catch(function () {});
+
+    var pending = false;
+    try { pending = localStorage.getItem('mzo_withheld_pending_refresh') === '1'; } catch (e) {}
+    var start = pending
+      ? Promise.resolve(window.mzoDataHub.refresh(KEY)).catch(function () {}).then(function () { try { localStorage.removeItem('mzo_withheld_pending_refresh'); } catch (e) {} })
+      : Promise.resolve();
+    start.then(function () {
+      UI.load(KEY, function (text, info) {
+        if (!text) { if (info && info.error) { $('meta').textContent = 'Could not load data'; $('appTable').innerHTML = $('officeTable').innerHTML = '<div class="ui-empty">Could not load data.</div>'; } return; }
+        var firstPaint = !all.length;
+        prepare(text);
+        if (firstPaint) {
+          if (scope && (scope.level === 'division' || scope.level === 'ccc')) level = 'ccc'; else if (scope && scope.level === 'region') level = 'division';
+          [].forEach.call(document.querySelectorAll('#levelTabs .ui-tab'), function (t) { t.setAttribute('aria-selected', String(t.getAttribute('data-l') === level)); });
         }
-
-
-        // Constants for lazy loading applications
-        const APPLICATION_PAGE_SIZE = 50;
-
-        // DOM Elements
-        const loadingOverlay = document.getElementById('loadingOverlay');
-        const regionSelect = document.getElementById('region');
-        const divisionSelect = document.getElementById('division');
-        const supportSelect = document.getElementById('support');
-        const connClassSelect = document.getElementById('connClass');
-        const smartSearch = document.getElementById('smartSearch');
-        const portalCheckbox = document.getElementById('portalCheckbox');
-        const offlineCheckbox = document.getElementById('offlineCheckbox');
-        const portalPercentEl = document.getElementById('portal-percent');
-        const offlinePercentEl = document.getElementById('offline-percent');
-        
-        // Reason Dropdown Elements
-        const reasonDropdownButton = document.getElementById('reasonDropdownButton');
-        const reasonFilterList = document.getElementById('reasonFilterList');
-        const reasonSearch = document.getElementById('reasonSearch');
-        const selectAllReasons = document.getElementById('selectAllReasons');
-        const clearReasons = document.getElementById('clearReasons');
-        const selectedReasonsCount = document.getElementById('selectedReasonsCount');
-        const reasonFilterContainer = document.getElementById('reasonFilterContainer');
-
-        const mainContent = document.getElementById('mainContent');
-        const dashboardSummary = document.getElementById('dashboardSummary');
-        const searchResultsView = document.getElementById('searchResultsView');
-        const searchQueryDisplay = document.getElementById('searchQueryDisplay');
-        const clearSearchBtn = document.getElementById('clearSearchBtn');
-        const searchResultsContent = document.getElementById('searchResultsContent');
-        const searchLoadMoreContainer = document.getElementById('searchLoadMoreContainer');
-        const searchLoadMoreBtn = document.getElementById('searchLoadMoreBtn');
-        const searchResultCount = document.getElementById('searchResultCount');
-        
-
-        const statCards = document.querySelectorAll('.stat-card');
-        const totalCountEl = document.getElementById('total-count');
-        const count7El = document.getElementById('count-7');
-        const count30El = document.getElementById('count-30');
-        const count90El = document.getElementById('count-90');
-        const detailsModal = document.getElementById('detailsModal');
-        const modalTitle = document.getElementById('modalTitle');
-        const modalBody = document.getElementById('modalBody');
-        const modalBackButton = document.getElementById('modalBackButton');
-        const modalDownloadButton = document.getElementById('modalDownloadButton');
-        const modalCloseButton = document.getElementById('modalCloseButton');
-        const modalLoader = document.getElementById('modalLoader');
-        const attentionModal = document.getElementById('attentionModal');
-        const attentionModalOkButton = document.getElementById('attentionModalOkButton');
-        // Tab-specific elements
-        const chartTabButton = document.getElementById('chart-tab');
-        const dataTabButton = document.getElementById('data-tab');
-        const chartView = document.getElementById('chart-view');
-        const dataView = document.getElementById('data-view');
-        const trendDataTable = document.getElementById('trendDataTable');
-
-        // Modal Tab Elements
-        const modalTabRegionBtn = document.getElementById('modal-tab-region');
-        const modalTabDivisionBtn = document.getElementById('modal-tab-division');
-        const modalTabCccBtn = document.getElementById('modal-tab-ccc');
-        const modalContentRegion = document.getElementById('modal-content-region');
-        const modalContentDivision = document.getElementById('modal-content-division');
-        const modalContentCcc = document.getElementById('modal-content-ccc');
-        const modalContentApplicationList = document.getElementById('modal-content-application-list');
-
-        // Main Tab Buttons
-        const regionTabButton = document.getElementById('region-tab');
-        const divisionTabButton = document.getElementById('division-tab');
-        const cccTabButton = document.getElementById('ccc-tab');
-        const reasonTabButton = document.getElementById('reason-tab');
-        const classTabButton = document.getElementById('class-tab');
-
-        // View Containers
-        const regionView = document.getElementById('region-view');
-        const divisionView = document.getElementById('division-view');
-        const cccView = document.getElementById('ccc-view');
-        const reasonView = document.getElementById('reason-view');
-        const classView = document.getElementById('class-view');
-
-        // Summary Table Element Refs
-        const regionSummaryTable = document.getElementById('regionSummaryTable');
-        const divisionSummaryTable = document.getElementById('divisionSummaryTable');
-        const cccSummaryTable = document.getElementById('cccSummaryTable');
-        const reasonSummaryTable = document.getElementById('reasonSummaryTable');
-        const classSummaryTable = document.getElementById('classSummaryTable');
-
-
-        // Chart.js global settings for light theme
-        Chart.defaults.color = '#64748b';
-        Chart.defaults.borderColor = '#f1f5f9';
-        Chart.defaults.font.family = 'Inter';
-
-        // Event Listeners
-        const WITHHELD_CACHE_KEY = 'CACHE_WITHHELD_v4';
-        const WITHHELD_PARSED_CACHE_KEY = 'CACHE_WITHHELD_PARSED_v4';
-
-        function pickWithheldField(row, names) {
-            if (!row || typeof row !== 'object') return '';
-            const keys = Object.keys(row);
-            for (let n = 0; n < names.length; n++) {
-                const want = String(names[n]).replace(/^\uFEFF/, '').trim().toLowerCase();
-                for (let i = 0; i < keys.length; i++) {
-                    const k = String(keys[i]).replace(/^\uFEFF/, '').trim();
-                    if (k.toLowerCase() === want && row[keys[i]] != null && String(row[keys[i]]).trim() !== '') {
-                        return String(row[keys[i]]).trim();
-                    }
-                }
-            }
-            return '';
-        }
-
-        function normalizeWithheldRow(row) {
-            if (!row || typeof row !== 'object') return {};
-            const out = Object.assign({}, row);
-            const region = row.REGION || row.REG || row.Region || row.region || pickWithheldField(row, ['REGION', 'REG', 'Region', 'region']);
-            const divn = row.DIVN_NAME || row.DIVISION || row.Division || row.DIVN || pickWithheldField(row, ['DIVN_NAME', 'DIVISION', 'Division', 'DIVN']);
-            const supp = row.SUPP_OFF || row.CCC || row.Office || pickWithheldField(row, ['SUPP_OFF', 'CCC', 'Support Office', 'UNIT_NAME', 'Office']);
-            const code = row.CCC_CODE || row.ccc_code || pickWithheldField(row, ['CCC_CODE', 'ccc_code', 'CCC Code']);
-            if (region) out.REGION = String(region).trim();
-            if (divn) {
-                const trimmedDivn = String(divn).trim();
-                out.DIVN_NAME = trimmedDivn;
-                out.DIVISION = trimmedDivn;
-            }
-            if (supp) {
-                const trimmedSupp = String(supp).trim();
-                out.SUPP_OFF = trimmedSupp;
-                out.CCC = trimmedSupp;
-            }
-            if (code) out.CCC_CODE = String(code).trim();
-            if (out.SCN_WITHELD_DATE && !(out.SCN_WITHELD_DATE instanceof Date)) {
-                out.SCN_WITHELD_DATE = parseDate(out.SCN_WITHELD_DATE);
-            }
-            return out;
-        }
-
-        function parseWithheldCsv(csvText) {
-            if (!csvText || typeof csvText !== 'string') return [];
-            if (typeof Papa === 'undefined') {
-                throw new Error('CSV parser failed to load. Refresh the page.');
-            }
-            const parsed = Papa.parse(csvText.trim(), {
-                header: true,
-                skipEmptyLines: true,
-                dynamicTyping: false
-            });
-            if (parsed.errors && parsed.errors.length) {
-                console.warn('[Withheld] CSV parse warnings:', parsed.errors.slice(0, 3));
-            }
-            const rows = Array.isArray(parsed.data) ? parsed.data : [];
-            return rows.map(normalizeWithheldRow);
-        }
-
-        async function loadWithheldRows() {
-            let forceRefresh = false;
-            try {
-                forceRefresh = localStorage.getItem('mzo_withheld_pending_refresh') === '1';
-            } catch (_) {}
-
-            if (forceRefresh && typeof mzoDataHub !== 'undefined' && mzoDataHub.refresh) {
-                try {
-                    if (typeof mzoDataHub.delete === 'function') {
-                        await mzoDataHub.delete(WITHHELD_PARSED_CACHE_KEY);
-                    }
-                    await mzoDataHub.refresh(WITHHELD_CACHE_KEY);
-                    localStorage.removeItem('mzo_withheld_pending_refresh');
-                } catch (_) {}
-            }
-
-            let rawVersion = '';
-            try {
-                rawVersion = localStorage.getItem('mzo_hub_ver_' + WITHHELD_CACHE_KEY) || '';
-            } catch (_) {}
-
-            if (!forceRefresh && typeof mzoDataHub !== 'undefined') {
-                let parsedVersion = '';
-                try {
-                    parsedVersion = localStorage.getItem('mzo_hub_ver_' + WITHHELD_PARSED_CACHE_KEY) || '';
-                } catch (_) {}
-
-                if (rawVersion && parsedVersion && rawVersion === parsedVersion) {
-                    const cachedParsed = await mzoDataHub._peek(WITHHELD_PARSED_CACHE_KEY);
-                    if (cachedParsed && Array.isArray(cachedParsed) && cachedParsed.length > 0) {
-                        console.log(`[Withheld] Fast loaded ${cachedParsed.length} pre-parsed rows from IndexedDB cache.`);
-                        if (typeof mzoDataHub.waitForDataset === 'function') {
-                            mzoDataHub.waitForDataset(WITHHELD_CACHE_KEY).then(function (result) {
-                                if (result === 'updated') {
-                                    try { window.location.reload(); } catch (_) {}
-                                }
-                            }).catch(function () {});
-                        }
-                        return cachedParsed;
-                    }
-                }
-            }
-
-            let rows = [];
-            if (typeof mzoDataHub !== 'undefined') {
-                let cached = await mzoDataHub._peek(WITHHELD_CACHE_KEY);
-                if (!cached && typeof mzoDataHub.waitForDataset === 'function') {
-                    try { await mzoDataHub.waitForDataset(WITHHELD_CACHE_KEY); } catch (_) {}
-                    cached = await mzoDataHub._peek(WITHHELD_CACHE_KEY);
-                }
-                if (cached && typeof cached === 'string') {
-                    rows = parseWithheldCsv(cached).filter((r) => String((r && r.APPL_NO) || '').trim());
-                    const prevRows = rows.slice();
-                    const nscToday = await todayFromNscHub();
-                    const whToday = firstTodayRaw(rows);
-                    if (nscToday && (!whToday || !sameAsOnDay(nscToday, whToday)) && typeof mzoDataHub.refresh === 'function') {
-                        try {
-                            if (typeof mzoDataHub.delete === 'function') {
-                                await mzoDataHub.delete(WITHHELD_PARSED_CACHE_KEY);
-                            }
-                            await mzoDataHub.refresh(WITHHELD_CACHE_KEY);
-                            const fresh = await mzoDataHub.get(WITHHELD_CACHE_KEY);
-                            const freshRows = (fresh && typeof fresh === 'string')
-                                ? parseWithheldCsv(fresh).filter((r) => String((r && r.APPL_NO) || '').trim())
-                                : [];
-                            if (freshRows.length) rows = freshRows;
-                            else if (prevRows.length) rows = prevRows;
-                        } catch (_) {}
-                    }
-                    console.log('Successfully fetched Withheld data from DataHub.');
-                } else {
-                    const legacy = await mzoDataHub.get('CACHE_WITHHELD_v2');
-                    if (legacy && Array.isArray(legacy) && legacy.length) {
-                        if (typeof mzoDataHub.refresh === 'function') {
-                            if (typeof mzoDataHub.delete === 'function') {
-                                await mzoDataHub.delete(WITHHELD_PARSED_CACHE_KEY);
-                            }
-                            await mzoDataHub.refresh(WITHHELD_CACHE_KEY);
-                            cached = await mzoDataHub.get(WITHHELD_CACHE_KEY);
-                            if (cached && typeof cached === 'string') rows = parseWithheldCsv(cached);
-                        } else {
-                            rows = legacy.map(normalizeWithheldRow);
-                        }
-                    } else if (typeof mzoDataHub.retryDataset === 'function') {
-                        await mzoDataHub.retryDataset(WITHHELD_CACHE_KEY);
-                        cached = await mzoDataHub.get(WITHHELD_CACHE_KEY);
-                        if (cached && typeof cached === 'string') {
-                            rows = parseWithheldCsv(cached);
-                        }
-                    }
-                }
-            }
-
-            if (!rows || !rows.length) {
-                console.log('Downloading Withheld data from network...');
-                const response = await fetch('/api/withheld/dataset', {
-                    credentials: 'same-origin'
-                });
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                const csvText = await response.text();
-                if (typeof mzoDataHub !== 'undefined' && typeof mzoDataHub.set === 'function') {
-                    try { await mzoDataHub.set(WITHHELD_CACHE_KEY, csvText); } catch (_) {}
-                }
-                rows = parseWithheldCsv(csvText).filter((r) => String((r && r.APPL_NO) || '').trim());
-            }
-
-            if (typeof mzoDataHub !== 'undefined' && typeof mzoDataHub.set === 'function' && rows && rows.length > 0) {
-                try {
-                    const curVer = localStorage.getItem('mzo_hub_ver_' + WITHHELD_CACHE_KEY) || 'v1';
-                    await mzoDataHub.set(WITHHELD_PARSED_CACHE_KEY, rows);
-                    localStorage.setItem('mzo_hub_ver_' + WITHHELD_PARSED_CACHE_KEY, curVer);
-                } catch (e) {
-                    console.warn('[Withheld] Failed to store pre-parsed dataset in IndexedDB:', e);
-                }
-            }
-
-            return rows;
-        }
-
-        document.addEventListener('DOMContentLoaded', async () => {
-            try {
-                try {
-                    const ch = new BroadcastChannel('mzo-withheld');
-                    ch.onmessage = (ev) => {
-                        if (ev && ev.data && ev.data.type === 'withheld-uploaded') {
-                            try { localStorage.setItem('mzo_withheld_pending_refresh', '1'); } catch (_) {}
-                            location.reload();
-                        }
-                    };
-                } catch (_) {}
-
-                const allRows = await loadWithheldRows();
-                rawData = window.MzoScope ? window.MzoScope.filterRows(allRows) : allRows;
-
-                const asOn = (await resolveAsOnDate(allRows)) || new Date();
-                maxTodayDate = new Date(asOn);
-                maxTodayDate.setHours(23, 59, 59, 999);
-                document.getElementById('update-date').textContent = `Updated on ${formatAsOnDate(maxTodayDate)}`;
-
-                // Initial population of filters and data
-                populateRegionFilter();
-                updateDivisionAndCccFilters();
-                populateReasonPanel();
-                if (window.MzoScope) window.MzoScope.lockFilters();
-
-                if (window.MzoScope) window.MzoScope.lockFilters();
-
-                applyFilters();
-
-                loadingOverlay.classList.add('opacity-0');
-                setTimeout(() => {
-                    loadingOverlay.style.display = 'none';
-                    attentionModal.classList.add('open');
-                }, 300);
-
-                // Listeners for remaining filters
-                regionSelect.addEventListener('change', () => {
-                    updateDivisionAndCccFilters(); // Update division and CCC based on new region
-                    applyFilters(); // Apply all filters
-                });
-                divisionSelect.addEventListener('change', () => {
-                    updateCccFilters(); // Update CCC based on new division
-                    applyFilters(); // Apply all filters
-                });
-                supportSelect.addEventListener('change', applyFilters); // Only apply filters for CCC change
-                connClassSelect.addEventListener('change', applyFilters);
-
-                reasonFilterContainer.addEventListener('change', applyFilters);
-
-                reasonFilterContainer.addEventListener('change', (e) => {
-                    updateSelectedReasonsCount();
-                    applyFilters();
-                });
-
-                smartSearch.addEventListener('input', () => {
-                    applyFilters();
-                });
-
-                portalCheckbox.addEventListener('change', applyFilters);
-                offlineCheckbox.addEventListener('change', applyFilters);
-
-                clearSearchBtn.addEventListener('click', () => {
-                    smartSearch.value = '';
-                    applyFilters();
-                });
-
-                searchLoadMoreBtn.addEventListener('click', () => {
-                    searchCurrentPageIndex++;
-                    renderSearchResultsChunk(false);
-                });
-
-                // --- Search Placeholder Typing Animation ---
-                const hints = [
-                    "Search by Applicant Name...",
-                    "Search by Application Number...",
-                    "Search by Phone Number...",
-                    "e.g. Biswajit Mondal...",
-                    "e.g. 500123456...",
-                    "e.g. 9876543210..."
-                ];
-                let hintIndex = 0;
-                let charIndex = 0;
-                let isDeleting = false;
-                let typeSpeed = 100;
-
-                function typeHint() {
-                    const currentHint = hints[hintIndex];
-                    if (isDeleting) {
-                        smartSearch.placeholder = currentHint.substring(0, charIndex--);
-                        typeSpeed = 50;
-                    } else {
-                        smartSearch.placeholder = currentHint.substring(0, charIndex++);
-                        typeSpeed = 100;
-                    }
-
-                    if (!isDeleting && charIndex === currentHint.length + 1) {
-                        isDeleting = true;
-                        typeSpeed = 2000;
-                    } else if (isDeleting && charIndex === 0) {
-                        isDeleting = false;
-                        hintIndex = (hintIndex + 1) % hints.length;
-                        typeSpeed = 500;
-                    }
-                    setTimeout(typeHint, typeSpeed);
-                }
-                typeHint();
-                // ------------------------------------------
-
-                // --- Reason Dropdown Logic ---
-                reasonDropdownButton.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    reasonFilterList.classList.toggle('show');
-                });
-
-                document.addEventListener('click', (e) => {
-                    if (!reasonFilterList.contains(e.target) && !reasonDropdownButton.contains(e.target)) {
-                        reasonFilterList.classList.remove('show');
-                    }
-                });
-
-                reasonSearch.addEventListener('input', (e) => {
-                    const query = e.target.value.toLowerCase();
-                    document.querySelectorAll('.reason-option').forEach(opt => {
-                        const text = opt.dataset.reason.toLowerCase();
-                        opt.style.display = text.includes(query) ? 'flex' : 'none';
-                    });
-                });
-
-                clearReasons.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    document.querySelectorAll('#reasonFilterContainer input[name="reason"]').forEach(cb => cb.checked = false);
-                    updateSelectedReasonsCount();
-                    applyFilters();
-                });
-
-                selectAllReasons.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    document.querySelectorAll('#reasonFilterContainer input[name="reason"]').forEach(cb => cb.checked = true);
-                    updateSelectedReasonsCount();
-                    applyFilters();
-                });
-
-                statCards.forEach(card => {
-                    card.addEventListener('click', () => {
-                        const range = card.id.split('-')[1];
-                        const cardTitle = card.querySelector('h3').textContent;
-                        const cardCount = card.querySelector('p').textContent;
-                        handleModalOpen(range, cardTitle, cardCount);
-                    });
-                });
-
-                modalBackButton.addEventListener('click', () => {
-                    handleModalBack();
-                });
-                modalDownloadButton.addEventListener('click', () => {
-                    downloadModalAsCSV();
-                });
-                modalCloseButton.addEventListener('click', () => closeModal());
-                attentionModalOkButton.addEventListener('click', () => attentionModal.classList.remove('open'));
-
-                chartTabButton.addEventListener('click', () => showTab('chart'));
-                dataTabButton.addEventListener('click', () => showTab('data'));
-                regionTabButton.addEventListener('click', () => showTab('region'));
-                divisionTabButton.addEventListener('click', () => showTab('division'));
-                cccTabButton.addEventListener('click', () => showTab('ccc'));
-                reasonTabButton.addEventListener('click', () => showTab('reason'));
-                classTabButton.addEventListener('click', () => showTab('class'));
-
-                // Modal Tab Listeners
-                modalTabRegionBtn.addEventListener('click', () => showModalTab('region'));
-                modalTabDivisionBtn.addEventListener('click', () => showModalTab('division'));
-                modalTabCccBtn.addEventListener('click', () => showModalTab('ccc'));
-
-
-
-
-
-
-
-                showTab('ccc');
-            } catch (error) {
-                console.error('Error fetching data:', error);
-                loadingOverlay.innerHTML = `<div class="p-6 bg-red-800 text-white rounded-lg shadow-xl"><h2 class="text-xl font-bold mb-2">Error</h2><p>${error.message}. Try refreshing, or ask an authorised user to re-upload NSC (publishes Withheld too).</p></div>`;
-            }
-        });
-
-        // Helper Functions
-        function parseDate(dateStr) {
-            if (dateStr instanceof Date) {
-                return isNaN(dateStr.getTime()) ? null : dateStr;
-            }
-            if (dateStr == null || dateStr === '') return null;
-            const raw = String(dateStr).trim();
-            if (!raw) return null;
-            if (/^\d+(\.\d+)?$/.test(raw)) {
-                const n = Number(raw);
-                if (n > 20000 && n < 80000) {
-                    const utc = Date.UTC(1899, 11, 30) + Math.round(n) * 86400000;
-                    const d = new Date(utc);
-                    return isNaN(d.getTime()) ? null : d;
-                }
-            }
-            const s = raw.replace(/[T ].*$/, '');
-            let match = s.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2}|\d{4})$/);
-            if (match) {
-                const dd = parseInt(match[1], 10);
-                const mm = parseInt(match[2], 10);
-                let yyyy = parseInt(match[3], 10);
-                if (yyyy < 100) yyyy += 2000;
-                const d = new Date(yyyy, mm - 1, dd);
-                return isNaN(d.getTime()) ? null : d;
-            }
-            match = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
-            if (match) {
-                const d = new Date(`${match[1]}-${match[2]}-${match[3]}T00:00:00`);
-                return isNaN(d.getTime()) ? null : d;
-            }
-            match = raw.match(/^(\d{1,2})\s+([A-Za-z]{3,9})\s+(\d{2}|\d{4})$/);
-            if (match) {
-                let yyyy = match[3];
-                if (yyyy.length === 2) yyyy = '20' + yyyy;
-                const d = new Date(`${match[1]} ${match[2]} ${yyyy}`);
-                return isNaN(d.getTime()) ? null : d;
-            }
-            return null;
-        }
-
-        function formatAsOnDate(d) {
-            return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
-        }
-
-        function firstTodayRaw(rows) {
-            for (let i = 0; i < (rows || []).length; i++) {
-                const r = rows[i];
-                if (!r || typeof r !== 'object') continue;
-                const v = r.TODAY || r.Today || r.today;
-                if (v != null && String(v).trim()) return String(v).trim();
-            }
-            return '';
-        }
-
-        async function todayFromNscHub() {
-            try {
-                if (typeof mzoDataHub === 'undefined' || typeof mzoDataHub.get !== 'function') return '';
-                const csv = await mzoDataHub.get('CACHE_NSC_v5');
-                if (typeof csv !== 'string' || !csv) return '';
-                if (typeof Papa === 'undefined') return '';
-                const parsed = Papa.parse(csv, { header: true, preview: 8, skipEmptyLines: true });
-                return firstTodayRaw(parsed.data);
-            } catch (_) {
-                return '';
-            }
-        }
-
-        function sameAsOnDay(a, b) {
-            const da = parseDate(a);
-            const db = parseDate(b);
-            if (da && db) {
-                return da.getFullYear() === db.getFullYear()
-                    && da.getMonth() === db.getMonth()
-                    && da.getDate() === db.getDate();
-            }
-            return String(a || '').trim() === String(b || '').trim();
-        }
-
-        async function resolveAsOnDate(rows) {
-            const candidates = [];
-            candidates.push(parseDate(await todayFromNscHub()));
-            candidates.push(parseDate(firstTodayRaw(rows)));
-            try {
-                const res = await fetch('/api/nsc/meta?ts=' + Date.now(), { credentials: 'same-origin' });
-                if (res.ok) {
-                    const json = await res.json();
-                    const m = (json && json.meta) || {};
-                    const stats = m.stats || {};
-                    candidates.push(parseDate(m.reportDate));
-                    candidates.push(parseDate(stats.today));
-                }
-            } catch (_) {}
-            const ok = candidates.filter((d) => d && !isNaN(d.getTime()));
-            if (!ok.length) return null;
-            return new Date(Math.max.apply(null, ok.map((d) => d.getTime())));
-        }
-
-        function animateCounter(element, start, end) {
-            const duration = 1000;
-            const frameDuration = 1000 / 60;
-            const totalFrames = Math.round(duration / frameDuration);
-            const increment = (end - start) / totalFrames;
-
-            let frame = 0;
-            let currentCount = start;
-
-            const animate = () => {
-                frame++;
-                currentCount += increment;
-                if (frame === totalFrames) {
-                    element.textContent = end;
-                } else {
-                    element.textContent = Math.floor(currentCount);
-                    requestAnimationFrame(animate);
-                }
-            };
-            animate();
-        }
-
-        /**
-         * Populates a select element with options.
-         * Preserves the current selection if it exists in the new items, otherwise resets to the first option.
-         * @param {HTMLSelectElement} selectElement The select element to populate.
-         * @param {string[]} items An array of strings to use as options.
-         */
-        function populateSelect(selectElement, items) {
-            if (selectElement.getAttribute('data-mzo-scope-locked') === '1') {
-                if (window.MzoScope) window.MzoScope.lockFilters();
-                return;
-            }
-            const currentSelection = selectElement.value;
-            const firstOption = selectElement.options[0].cloneNode(true);
-            selectElement.innerHTML = '';
-            selectElement.appendChild(firstOption);
-            items.forEach(item => {
-                const option = document.createElement('option');
-                option.value = item;
-                option.textContent = item;
-                selectElement.appendChild(option);
-            });
-            if (items.includes(currentSelection)) {
-                selectElement.value = currentSelection;
-            } else {
-                selectElement.value = '';
-            }
-        }
-
-        /**
-         * Populates the Region filter dropdown.
-         */
-        function populateRegionFilter() {
-            const regions = [...new Set(rawData.map(item => item['REGION']).filter(Boolean))].sort();
-            populateSelect(regionSelect, regions);
-
-            const classes = [...new Set(rawData.map(item => item['CONN_CLASS']).filter(Boolean))].sort();
-            populateSelect(connClassSelect, classes);
-        }
-
-        /**
-         * Updates the Division and CCC filter dropdowns based on the currently selected Region.
-         * This function is called when the Region filter changes or on initial load.
-         */
-        function updateDivisionAndCccFilters() {
-            const selectedRegion = regionSelect.value;
-            let possibleDivisions = new Set();
-            rawData.forEach(item => {
-                if (!selectedRegion || item['REGION'] === selectedRegion) {
-                    if (item['DIVN_NAME']) possibleDivisions.add(item['DIVN_NAME']);
-                }
-            });
-            const sortedDivisions = [...possibleDivisions].sort();
-            populateSelect(divisionSelect, sortedDivisions);
-
-            // After updating divisions, also update CCCs based on the potentially new division selection
-            updateCccFilters();
-        }
-
-        /**
-         * Updates the CCC filter dropdown based on the currently selected Region and Division.
-         * This function is called when the Division filter changes or when updateDivisionAndCccFilters is called.
-         */
-        function updateCccFilters() {
-            const selectedRegion = regionSelect.value;
-            const selectedDivision = divisionSelect.value; // Use the current value of divisionSelect
-            let possibleSupports = new Set();
-            rawData.forEach(item => {
-                if ((!selectedRegion || item['REGION'] === selectedRegion) &&
-                    (!selectedDivision || item['DIVN_NAME'] === selectedDivision)) {
-                    if (item['SUPP_OFF']) possibleSupports.add(item['SUPP_OFF']);
-                }
-            });
-            populateSelect(supportSelect, [...possibleSupports].sort());
-            if (window.MzoScope) window.MzoScope.lockFilters();
-        }
-
-        function populateReasonPanel() {
-            const reasons = [...new Set(rawData.map(item => item['SCN_WITHELD_REASON'] || 'No Reason'))].sort();
-            const noReasonIndex = reasons.indexOf('No Reason');
-            if (noReasonIndex > -1) {
-                const noReason = reasons.splice(noReasonIndex, 1)[0];
-                reasons.unshift(noReason);
-            }
-
-            let html = '';
-            reasons.forEach(reason => {
-                const isNoReason = reason === 'No Reason';
-                const labelColor = isNoReason ? 'text-red-500 font-bold' : 'text-slate-600 font-medium';
-                
-                html += `
-                <div class="reason-option px-3 py-1.5 hover:bg-slate-50 cursor-pointer flex items-center justify-between" data-reason="${reason}">
-                    <label class="flex items-center space-x-2 cursor-pointer w-full">
-                        <input type="checkbox" name="reason" value="${reason}" checked class="form-checkbox h-3.5 w-3.5 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500 transition-all">
-                        <span class="text-[11px] ${labelColor} truncate">${reason}</span>
-                    </label>
-                    <span class="text-[10px] text-slate-400 font-semibold percentage-span shrink-0" data-reason="${reason}"></span>
-                </div>
-            `;
-            });
-            reasonFilterContainer.innerHTML = html;
-            updateSelectedReasonsCount();
-
-            // Add container click listener for reason options
-            reasonFilterContainer.querySelectorAll('.reason-option').forEach(option => {
-                option.addEventListener('click', (e) => {
-                    if (e.target.tagName !== 'INPUT') {
-                        const cb = option.querySelector('input');
-                        cb.checked = !cb.checked;
-                        updateSelectedReasonsCount();
-                        applyFilters();
-                    }
-                });
-            });
-        }
-
-        function updateSelectedReasonsCount() {
-            const checked = document.querySelectorAll('#reasonFilterContainer input[name="reason"]:checked');
-            const total = document.querySelectorAll('#reasonFilterContainer input[name="reason"]');
-            
-            if (checked.length === 0) {
-                selectedReasonsCount.textContent = 'No Reasons Selected';
-                selectedReasonsCount.classList.add('text-rose-500');
-            } else if (checked.length === total.length) {
-                selectedReasonsCount.textContent = 'All Reasons';
-                selectedReasonsCount.classList.remove('text-rose-500');
-            } else {
-                selectedReasonsCount.textContent = `${checked.length} Selected`;
-                selectedReasonsCount.classList.remove('text-rose-500');
-            }
-        }
-
-        function updateReasonPanelPercentages(data) {
-            const filteredDataTotal = data.length;
-            const reasonSpans = document.querySelectorAll('.percentage-span');
-
-            reasonSpans.forEach(span => {
-                const reason = span.dataset.reason;
-                const reasonCount = data.filter(item => (item['SCN_WITHELD_REASON'] || 'No Reason') === reason).length;
-                const percentage = filteredDataTotal > 0 ? ((reasonCount / filteredDataTotal) * 100).toFixed(1) : 0;
-                span.textContent = `(${percentage}%)`;
-            });
-        }
-
-        // Modal Functions
-        function showModal(title, level, context) {
-            modalTitle.textContent = title;
-            currentModalLevel = level;
-            detailsModal.classList.add('open');
-            currentModalContext = context; // Store the full context
-            updateModalBackButtonVisibility();
-        }
-
-        function closeModal() {
-            detailsModal.classList.remove('open');
-            currentModalLevel = 0;
-            currentModalContext = {}; // Clear context on close
-            // Hide all modal content divs
-            document.querySelectorAll('.modal-tab-content').forEach(content => content.classList.add('hidden'));
-        }
-
-        function showModalLoader() {
-            modalBody.style.opacity = '0.5';
-            modalLoader.classList.remove('hidden');
-        }
-
-        function hideModalLoader() {
-            modalLoader.classList.add('hidden');
-            modalBody.style.opacity = '1';
-        }
-
-        function updateModalBackButtonVisibility() {
-            // The back button should be hidden only if we are at the top-most level of the drill-down (level 1, Region tab)
-            modalBackButton.classList.toggle('hidden', currentModalLevel === 1);
-        }
-
-        function handleModalBack() {
-            if (currentModalContext.parentContext) {
-                currentModalContext = { ...currentModalContext.parentContext }; // Restore previous context
-                currentModalLevel--; // Decrement level
-
-                let targetTabName;
-                if (currentModalLevel === 1) {
-                    targetTabName = 'region';
-                } else if (currentModalLevel === 2) {
-                    targetTabName = 'division';
-                } else if (currentModalLevel === 3) {
-                    targetTabName = 'ccc';
-                }
-                showModalTab(targetTabName); // Show the appropriate tab with restored data
-                updateModalTitleBasedOnContext();
-                updateModalBackButtonVisibility();
-            } else {
-                closeModal(); // If no parent context, close the modal
-            }
-        }
-
-        function handleModalOpen(range, cardTitle, cardCount) {
-            // Filter data based on the clicked card's date range
-            const dataForModal = filteredData.filter(item => {
-                const date = item['SCN_WITHELD_DATE'];
-                if (!(date instanceof Date) || isNaN(date.getTime())) return false;
-                const diff = (maxTodayDate - date) / (1000 * 60 * 60 * 24);
-                return range === 'total' ||
-                    (range === '7' && diff <= 7) ||
-                    (range === '30' && diff <= 30) ||
-                    (range === '90' && diff <= 90);
-            });
-
-            // Initialize modal context for the first level (Region)
-            currentModalContext = {
-                range: range,
-                cardTitle: cardTitle,
-                data: dataForModal,
-                originalModalData: dataForModal, // Keep a reference to the initial data for the modal
-                parentContext: null, // No parent context at the top level
-                selectedRegion: undefined,
-                selectedDivision: undefined,
-                selectedCcc: undefined,
-                currentAppPageIndex: 0 // Initialize pagination for applications
-            };
-
-            showModal(`${cardTitle} (${dataForModal.length})`, 1, currentModalContext);
-            showModalTab('region');
-        }
-
-        function showModalTab(tabName, drillDownData = null, drillDownLevel = null, drillDownSelectedItems = {}) {
-            // Hide all content divs and deactivate all tab buttons
-            document.querySelectorAll('.modal-tab-content').forEach(content => content.classList.add('hidden'));
-            document.querySelectorAll('#modalTabs button').forEach(button => {
-                button.classList.remove('text-indigo-600', 'border-indigo-600');
-                button.classList.add('text-slate-400', 'border-transparent');
-            });
-
-            if (drillDownData !== null && drillDownLevel !== null) {
-                // This is a drill-down action
-                currentModalContext.parentContext = { ...currentModalContext }; // Save current context as parent
-                currentModalContext.data = drillDownData;
-                currentModalContext.selectedRegion = drillDownSelectedItems.selectedRegion;
-                currentModalContext.selectedDivision = drillDownSelectedItems.selectedDivision;
-                currentModalContext.selectedCcc = drillDownSelectedItems.selectedCcc;
-                currentModalLevel = drillDownLevel; // Update level for drill-down
-                currentModalContext.currentAppPageIndex = 0; // Reset pagination on drill down
-            } else {
-                if (tabName === 'region') currentModalLevel = 1;
-                else if (tabName === 'division') currentModalLevel = 2;
-                else if (tabName === 'ccc') currentModalLevel = 3;
-                else if (tabName === 'application-list') currentModalLevel = 4;
-            }
-
-            updateModalTitleBasedOnContext();
-            updateModalBackButtonVisibility();
-
-            showModalLoader(); // Show loader before populating content
-            setTimeout(() => { // Small delay for loader to show
-                if (tabName === 'region') {
-                    modalTabRegionBtn.classList.add('text-indigo-600', 'border-indigo-600');
-                    modalTabRegionBtn.classList.remove('text-slate-400', 'border-transparent');
-                    modalContentRegion.classList.remove('hidden');
-                    populateModalRegionData(currentModalContext.data);
-                } else if (tabName === 'division') {
-                    modalTabDivisionBtn.classList.add('text-indigo-600', 'border-indigo-600');
-                    modalTabDivisionBtn.classList.remove('text-slate-400', 'border-transparent');
-                    modalContentDivision.classList.remove('hidden');
-                    populateModalDivisionData(currentModalContext.data);
-                } else if (tabName === 'ccc') {
-                    modalTabCccBtn.classList.add('text-indigo-600', 'border-indigo-600');
-                    modalTabCccBtn.classList.remove('text-slate-400', 'border-transparent');
-                    modalContentCcc.classList.remove('hidden');
-                    populateModalCccData(currentModalContext.data);
-                } else if (tabName === 'application-list') {
-                    modalContentApplicationList.classList.remove('hidden');
-                    populateModalWithApplicationData(currentModalContext.selectedCcc, currentModalContext.data);
-                }
-                hideModalLoader();
-            }, 50);
-        }
-
-        // Helper function to update the modal title consistently
-        function updateModalTitleBasedOnContext() {
-            let titleSuffix = '';
-            if (currentModalContext.selectedRegion) {
-                titleSuffix += ` > ${currentModalContext.selectedRegion}`;
-            }
-            if (currentModalContext.selectedDivision) {
-                titleSuffix += ` > ${currentModalContext.selectedDivision}`;
-            }
-            if (currentModalContext.selectedCcc) {
-                titleSuffix += ` > ${currentModalContext.selectedCcc}`;
-            }
-            modalTitle.textContent = `${currentModalContext.cardTitle} (${currentModalContext.data.length})${titleSuffix}`;
-        }
-
-        /**
-         * Downloads the current modal's data as a CSV file.
-         */
-        function downloadModalAsCSV() {
-            const data = currentModalContext.data;
-            if (!data || data.length === 0) {
-                alert('No data available to download');
-                return;
-            }
-
-            // Define headers based on the fields we want to export
-            const headers = [
-                'Application No',
-                'Consumer Name',
-                'Phone Number',
-                'Connection Class',
-                'Phase',
-                'Payment Date',
-                'Withheld Reason',
-                'Withheld Date',
-                'Region',
-                'Division',
-                'CCC',
-                'Portal Order'
-            ];
-
-            // Map data to rows
-            const rows = data.map(item => {
-                const date = item['SCN_WITHELD_DATE'];
-                const formattedDate = date instanceof Date && !isNaN(date.getTime()) 
-                    ? date.toLocaleDateString('en-GB') 
-                    : (item['SCN_WITHELD_DATE_RAW'] || '-');
-                const payRaw = item['COLL_DATE'] || '';
-                const payParsed = payRaw ? parseDate(payRaw) : null;
-                const payDate = payParsed && !isNaN(payParsed.getTime())
-                    ? payParsed.toLocaleDateString('en-GB')
-                    : (String(payRaw || '').trim() || '-');
-
-                return [
-                    item['APPL_NO'] || '-',
-                    `"${(item['NAME'] || '').replace(/"/g, '""')}"`, // Escape quotes
-                    item['PHONE_NO'] || '-',
-                    item['CONN_CLASS'] || '-',
-                    item['APPLIED_PHASE'] || '-',
-                    payDate,
-                    `"${(item['SCN_WITHELD_REASON'] || '').replace(/"/g, '""')}"`, // Escape quotes
-                    formattedDate,
-                    item['REGION'] || '-',
-                    item['DIVN_NAME'] || '-',
-                    item['SUPP_OFF'] || '-',
-                    item['IS_PORTAL_APPL'] === 'Y' ? 'Portal' : 'Offline'
-                ];
-            });
-
-            // Combine headers and rows into CSV content
-            const csvContent = [
-                headers.join(','),
-                ...rows.map(row => row.join(','))
-            ].join('\n');
-
-            // Create a blob and trigger download
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            
-            // Format filename: consumer_list_Region_Division_CCC.csv
-            let filenameParts = ['consumer-list'];
-            if (currentModalContext.selectedRegion) filenameParts.push(currentModalContext.selectedRegion);
-            if (currentModalContext.selectedDivision) filenameParts.push(currentModalContext.selectedDivision);
-            if (currentModalContext.selectedCcc) filenameParts.push(currentModalContext.selectedCcc);
-            
-            const filename = filenameParts.join('_').replace(/\s+/g, '_').toLowerCase() + '.csv';
-
-            link.setAttribute('href', url);
-            link.setAttribute('download', filename);
-            link.style.visibility = 'hidden';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            URL.revokeObjectURL(url);
-        }
-
-
-        function populateModalRegionData(data) {
-            modalContentRegion.innerHTML = ''; // Clear previous content
-
-            const regionMap = data.reduce((acc, item) => {
-                const region = item['REGION'] || 'Unknown Region';
-                acc[region] = (acc[region] || []).concat(item);
-                return acc;
-            }, {});
-            const total = data.length;
-            const sortedRegions = Object.entries(regionMap)
-                .map(([region, items]) => ({ region, count: items.length, items }))
-                .sort((a, b) => b.count - a.count);
-
-            let detailsHTML = `
-            <table class="min-w-full divide-y divide-slate-100">
-                <thead class="bg-slate-50">
-                    <tr>
-                        <th class="px-3 py-2 text-left text-[9px] font-bold text-slate-400 uppercase tracking-widest w-10">SL</th>
-                        <th class="px-4 py-2 text-left text-xs font-bold text-slate-600 uppercase tracking-widest">Region</th>
-                        <th class="px-4 py-2 text-right text-xs font-bold text-slate-600 uppercase tracking-widest">Count</th>
-                        <th class="px-4 py-2 text-right text-xs font-bold text-slate-600 uppercase tracking-widest">%</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-50">
-        `;
-            sortedRegions.forEach(({ region, count, items }, idx) => {
-                const percent = ((count / total) * 100).toFixed(1);
-                detailsHTML += `
-                <tr class="hover:bg-slate-50 transition-colors cursor-pointer group" data-region="${region}">
-                    <td class="px-3 py-2 whitespace-nowrap text-[10px] text-slate-400 font-medium">${idx + 1}</td>
-                    <td class="px-4 py-3 whitespace-nowrap text-xs font-bold text-indigo-600 group-hover:text-indigo-800">${region}</td>
-                    <td class="px-4 py-3 whitespace-nowrap text-sm text-right font-medium text-slate-700">${count}</td>
-                    <td class="px-4 py-3 whitespace-nowrap text-sm text-right text-slate-400">${percent}%</td>
-                </tr>
-            `;
-            });
-            detailsHTML += `</tbody></table>`;
-            modalContentRegion.innerHTML = detailsHTML;
-
-            modalContentRegion.querySelectorAll('tr[data-region]').forEach(row => {
-                row.addEventListener('click', (e) => {
-                    const region = e.currentTarget.dataset.region;
-                    const regionData = regionMap[region];
-                    // Drill down to division tab with filtered data
-                    showModalTab('division', regionData, 2, { selectedRegion: region });
-                });
-            });
-        }
-
-        function populateModalDivisionData(data) {
-            modalContentDivision.innerHTML = ''; // Clear previous content
-
-            const divnMap = data.reduce((acc, item) => {
-                const divn = item['DIVN_NAME'] || 'Unknown Division';
-                acc[divn] = (acc[divn] || []).concat(item);
-                return acc;
-            }, {});
-            const total = data.length;
-            const sortedDivns = Object.entries(divnMap)
-                .map(([divn, items]) => ({ divn, count: items.length, items }))
-                .sort((a, b) => b.count - a.count);
-
-            let detailsHTML = `
-            <table class="min-w-full divide-y divide-slate-100">
-                <thead class="bg-slate-50">
-                    <tr>
-                        <th class="px-3 py-2 text-left text-[9px] font-bold text-slate-400 uppercase tracking-widest w-10">SL</th>
-                        <th class="px-4 py-2 text-left text-xs font-bold text-slate-600 uppercase tracking-widest">Division</th>
-                        <th class="px-4 py-2 text-right text-xs font-bold text-slate-600 uppercase tracking-widest">Count</th>
-                        <th class="px-4 py-2 text-right text-xs font-bold text-slate-600 uppercase tracking-widest">%</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-50">
-        `;
-            sortedDivns.forEach(({ divn, count, items }, idx) => {
-                const percent = ((count / total) * 100).toFixed(1);
-                detailsHTML += `
-                <tr class="hover:bg-slate-50 transition-colors cursor-pointer group" data-divn="${divn}">
-                    <td class="px-3 py-2 whitespace-nowrap text-[10px] text-slate-400 font-medium">${idx + 1}</td>
-                    <td class="px-4 py-3 whitespace-nowrap text-xs font-bold text-indigo-600 group-hover:text-indigo-800">${divn}</td>
-                    <td class="px-4 py-3 whitespace-nowrap text-sm text-right font-medium text-slate-700">${count}</td>
-                    <td class="px-4 py-3 whitespace-nowrap text-sm text-right text-slate-400">${percent}%</td>
-                </tr>
-            `;
-            });
-            detailsHTML += `</tbody></table>`;
-            modalContentDivision.innerHTML = detailsHTML;
-
-            modalContentDivision.querySelectorAll('tr[data-divn]').forEach(row => {
-                row.addEventListener('click', (e) => {
-                    const divn = e.currentTarget.dataset.divn;
-                    const divisionData = divnMap[divn];
-                    // Drill down to CCC tab with filtered data
-                    showModalTab('ccc', divisionData, 3, { selectedRegion: currentModalContext.selectedRegion, selectedDivision: divn });
-                });
-            });
-        }
-
-        function populateModalCccData(data) {
-            modalContentCcc.innerHTML = ''; // Clear previous content
-
-            const groupedByCCC = data.reduce((acc, item) => {
-                const ccc = item['SUPP_OFF'] || 'Unknown CCC';
-                acc[ccc] = (acc[ccc] || []).concat(item);
-                return acc;
-            }, {});
-
-            const total = data.length;
-            const sortedCCCs = Object.entries(groupedByCCC)
-                .map(([ccc, items]) => ({ ccc, count: items.length, items }))
-                .sort((a, b) => b.count - a.count);
-
-            let detailsHTML = `
-            <table class="min-w-full divide-y divide-slate-100">
-                <thead class="bg-slate-50">
-                    <tr>
-                        <th class="px-3 py-2 text-left text-[9px] font-bold text-slate-400 uppercase tracking-widest w-10">SL</th>
-                        <th class="px-4 py-2 text-left text-xs font-bold text-slate-600 uppercase tracking-widest">CCC</th>
-                        <th class="px-4 py-2 text-right text-xs font-bold text-slate-600 uppercase tracking-widest">Count</th>
-                        <th class="px-4 py-2 text-right text-xs font-bold text-slate-600 uppercase tracking-widest">%</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-50">
-        `;
-            sortedCCCs.forEach(({ ccc, count, items }, idx) => {
-                const percent = ((count / total) * 100).toFixed(1);
-                detailsHTML += `
-                <tr class="hover:bg-slate-50 transition-colors cursor-pointer group" data-ccc="${ccc}">
-                    <td class="px-3 py-2 whitespace-nowrap text-[10px] text-slate-400 font-medium">${idx + 1}</td>
-                    <td class="px-4 py-3 whitespace-nowrap text-xs font-bold text-indigo-600 group-hover:text-indigo-800">${ccc}</td>
-                    <td class="px-4 py-3 whitespace-nowrap text-sm text-right font-medium text-slate-700">${count}</td>
-                    <td class="px-4 py-3 whitespace-nowrap text-sm text-right text-slate-400">${percent}%</td>
-                </tr>
-            `;
-            });
-            detailsHTML += `</tbody></table>`;
-            modalContentCcc.innerHTML = detailsHTML;
-
-            modalContentCcc.querySelectorAll('tr[data-ccc]').forEach(row => {
-                row.addEventListener('click', (e) => {
-                    const ccc = e.currentTarget.dataset.ccc;
-                    const cccData = groupedByCCC[ccc];
-                    // Drill down to application list with filtered data
-                    showModalTab('application-list', cccData, 4, {
-                        selectedRegion: currentModalContext.selectedRegion,
-                        selectedDivision: currentModalContext.selectedDivision,
-                        selectedCcc: ccc
-                    });
-                });
-            });
-        }
-
-        function populateModalWithApplicationData(cccName, data) {
-            modalContentApplicationList.innerHTML = ''; // Clear previous content
-
-            if (data.length === 0) {
-                modalContentApplicationList.innerHTML = `<div class="p-4 text-center text-gray-500">No applications found for ${cccName}.</div>`;
-                return;
-            }
-
-            // Store the full data for this level in currentModalContext for pagination
-            currentModalContext.fullApplicationData = data;
-            currentModalContext.currentAppPageIndex = 0; // Start at the first page
-
-            // Initial render of the first chunk
-            renderApplicationsChunk(true);
-        }
-
-        function renderApplicationsChunk(isInitialLoad = false) {
-            const data = currentModalContext.fullApplicationData;
-            const startIndex = currentModalContext.currentAppPageIndex * APPLICATION_PAGE_SIZE;
-            const endIndex = startIndex + APPLICATION_PAGE_SIZE;
-            const chunk = data.slice(startIndex, endIndex);
-
-            let html = '';
-            if (isInitialLoad) {
-                html = `
-                <table class="min-w-full divide-y divide-slate-100">
-                    <thead class="bg-slate-50 sticky top-0">
-                        <tr>
-                            <th class="px-4 py-2 text-left text-[9px] font-bold text-slate-400 uppercase tracking-widest">App No.</th>
-                            <th class="px-4 py-2 text-left text-[9px] font-bold text-slate-600 uppercase tracking-widest">Name</th>
-                            <th class="px-4 py-2 text-left text-[9px] font-bold text-slate-600 uppercase tracking-widest">Phone</th>
-                            <th class="px-4 py-2 text-left text-[9px] font-bold text-slate-500 uppercase tracking-widest">Class</th>
-                            <th class="px-4 py-2 text-left text-[9px] font-bold text-slate-500 uppercase tracking-widest">Phase</th>
-                            <th class="px-4 py-2 text-left text-[9px] font-bold text-slate-600 uppercase tracking-widest">Payment Date</th>
-                            <th class="px-4 py-2 text-left text-[9px] font-bold text-slate-600 uppercase tracking-widest">Reason</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-50" id="application-list-tbody">
-            `;
-            } else {
-                html = document.getElementById('application-list-tbody').innerHTML;
-            }
-
-            chunk.forEach(item => {
-                const payRaw = item['COLL_DATE'] || item['PAYMENT_DATE'] || '';
-                let payDate = '-';
-                if (payRaw instanceof Date && !isNaN(payRaw.getTime())) {
-                    payDate = payRaw.toLocaleDateString('en-GB');
-                } else if (String(payRaw).trim()) {
-                    const parsed = parseDate(payRaw);
-                    payDate = parsed && !isNaN(parsed.getTime()) ? parsed.toLocaleDateString('en-GB') : String(payRaw).trim();
-                }
-                html += `
-                <tr class="hover:bg-slate-50 transition-colors border-b border-slate-50">
-                    <td class="px-4 py-3 whitespace-nowrap text-[11px] font-bold text-slate-800">${item['APPL_NO'] || '-'}</td>
-                    <td class="px-4 py-3 whitespace-nowrap text-[11px] text-indigo-600 font-bold uppercase">${item['NAME'] || '-'}</td>
-                    <td class="px-4 py-3 whitespace-nowrap text-[11px] text-slate-600">${item['PHONE_NO'] || '-'}</td>
-                    <td class="px-4 py-3 whitespace-nowrap text-[10px] text-slate-500">${item['CONN_CLASS'] || '-'}</td>
-                    <td class="px-4 py-3 whitespace-nowrap text-[10px] text-slate-500">${item['APPLIED_PHASE'] || '-'}</td>
-                    <td class="px-4 py-3 whitespace-nowrap text-[11px] text-slate-700 font-medium">${payDate}</td>
-                    <td class="px-4 py-3 text-[11px] text-slate-700 italic">${item['SCN_WITHELD_REASON'] || '-'}</td>
-                </tr>
-            `;
-            });
-
-            if (isInitialLoad) {
-                html += `</tbody></table>`;
-                modalContentApplicationList.innerHTML = html;
-            } else {
-                document.getElementById('application-list-tbody').innerHTML = html;
-            }
-
-            // Add/update load more button
-            let loadMoreButton = document.getElementById('load-more-applications');
-            if (!loadMoreButton) {
-                loadMoreButton = document.createElement('button');
-                loadMoreButton.id = 'load-more-applications';
-                loadMoreButton.className = 'mt-4 py-2 px-4 bg-slate-100 text-slate-600 text-xs font-bold rounded-lg hover:bg-slate-200 transition-all border border-slate-200 w-full mb-6';
-                loadMoreButton.textContent = 'Load More Records';
-                loadMoreButton.addEventListener('click', () => {
-                    currentModalContext.currentAppPageIndex++;
-                    showModalLoader();
-                    setTimeout(() => {
-                        renderApplicationsChunk(false);
-                        hideModalLoader();
-                    }, 50);
-                });
-                modalContentApplicationList.appendChild(loadMoreButton);
-            }
-
-            // Hide load more button if all data is loaded
-            if (endIndex >= data.length) {
-                loadMoreButton.classList.add('hidden');
-            } else {
-                loadMoreButton.classList.remove('hidden');
-            }
-        }
-
-        function applyFilters() {
-            const query = (smartSearch.value || "").trim().toLowerCase();
-            
-            // View Switching Logic
-            if (query.length > 2) {
-                dashboardSummary.style.display = 'none';
-                searchResultsView.style.display = 'block';
-                searchQueryDisplay.textContent = query;
-                showSearchResults(query);
-            } else {
-                dashboardSummary.style.display = 'block';
-                searchResultsView.style.display = 'none';
-            }
-
-            const region = regionSelect.value;
-            const division = divisionSelect.value;
-            const support = supportSelect.value;
-            const connClass = connClassSelect.value;
-            const portalChecked = portalCheckbox.checked;
-            const offlineChecked = offlineCheckbox.checked;
-
-            const geoFilteredData = (rawData || []).filter(item => {
-                const matchesRegion = !region || item['REGION'] === region;
-                const matchesDivision = !division || item['DIVN_NAME'] === division;
-                const matchesSupport = !support || item['SUPP_OFF'] === support;
-                const matchesClass = !connClass || item['CONN_CLASS'] === connClass;
-                
-                // Allow search match
-                const matchesQuery = !query || query.length <= 2 || (
-                    (item['NAME'] && item['NAME'].toLowerCase().includes(query)) ||
-                    (item['APPL_NO'] && item['APPL_NO'].toLowerCase().includes(query)) ||
-                    (item['PHONE_NO'] && item['PHONE_NO'].toLowerCase().includes(query))
-                );
-
-                return matchesRegion && matchesDivision && matchesSupport && matchesClass && matchesQuery;
-            });
-
-            // Update Quick Filter Percentage Labels
-            const geoTotal = geoFilteredData.length;
-            const portalCount = geoFilteredData.filter(i => i['IS_PORTAL_APPL'] === 'Y').length;
-            const offlineCount = geoFilteredData.filter(i => i['IS_PORTAL_APPL'] === 'N').length;
-
-            portalPercentEl.textContent = geoTotal > 0 ? `(${((portalCount / geoTotal) * 100).toFixed(1)}%)` : '(0%)';
-            offlinePercentEl.textContent = geoTotal > 0 ? `(${((offlineCount / geoTotal) * 100).toFixed(1)}%)` : '(0%)';
-
-            const tempFilteredData = geoFilteredData.filter(item => {
-                const matchesPortalOffline = (portalChecked && item['IS_PORTAL_APPL'] === 'Y') ||
-                    (offlineChecked && item['IS_PORTAL_APPL'] === 'N') ||
-                    (!portalChecked && !offlineChecked);
-                return matchesPortalOffline;
-            });
-
-            updateReasonPanelPercentages(tempFilteredData);
-
-            const checkedReasons = Array.from(document.querySelectorAll('#reasonFilterContainer input[name="reason"]:checked')).map(cb => cb.value);
-            const allReasonsUnchecked = checkedReasons.length === 0;
-
-            filteredData = tempFilteredData.filter(item => {
-                const itemReason = item['SCN_WITHELD_REASON'] || 'No Reason';
-                return allReasonsUnchecked || checkedReasons.includes(itemReason);
-            });
-
-            updateCards();
-            updateChart();
-            updateDataTable();
-            updateSummaryTables();
-        }
-
-        function showSearchResults(query) {
-            // Re-fetch search results from rawData for the search view
-            searchFullResults = (rawData || []).filter(item => {
-                const q = query.toLowerCase();
-                return (item['NAME'] && item['NAME'].toLowerCase().includes(q)) ||
-                       (item['APPL_NO'] && item['APPL_NO'].toLowerCase().includes(q)) ||
-                       (item['PHONE_NO'] && item['PHONE_NO'].toLowerCase().includes(q)) ||
-                       (item['SUPP_OFF'] && item['SUPP_OFF'].toLowerCase().includes(q));
-            });
-            
-            searchResultCount.textContent = `${searchFullResults.length} Found`;
-            searchCurrentPageIndex = 0;
-            renderSearchResultsChunk(true);
-        }
-
-        function renderSearchResultsChunk(isInitialLoad = false) {
-            const startIndex = searchCurrentPageIndex * SEARCH_PAGE_SIZE;
-            const endIndex = startIndex + SEARCH_PAGE_SIZE;
-            const chunk = searchFullResults.slice(startIndex, endIndex);
-
-            let tableRowsHTML = '';
-            chunk.forEach((item, idx) => {
-                const sl = startIndex + idx + 1;
-                tableRowsHTML += `
-                <tr class="hover:bg-indigo-50/40 transition-colors cursor-pointer border-b border-slate-50" onclick="openConsumerDetails('${item['APPL_NO']}')">
-                    <td class="px-4 py-3 whitespace-nowrap text-[10px] text-slate-400 font-medium">${sl}</td>
-                    <td class="px-4 py-3 whitespace-nowrap text-[11px] font-bold text-slate-800">${item['APPL_NO'] || '-'}</td>
-                    <td class="px-4 py-3 whitespace-nowrap text-[11px] text-indigo-600 font-bold uppercase underline decoration-indigo-200 underline-offset-2">${item['NAME'] || '-'}</td>
-                    <td class="px-4 py-3 whitespace-nowrap text-[11px] text-slate-600 font-medium">${item['PHONE_NO'] || '-'}</td>
-                    <td class="px-4 py-3 whitespace-nowrap text-[10px] text-slate-500 font-bold uppercase">${item['SUPP_OFF'] || '-'}</td>
-                    <td class="px-4 py-3 text-[10px] text-slate-500 leading-tight italic max-w-xs truncate" title="${item['SCN_WITHELD_REASON'] || ''}">
-                        ${item['SCN_WITHELD_REASON'] || 'No Reason'}
-                    </td>
-                </tr>
-                `;
-            });
-
-            if (isInitialLoad) {
-                if (searchFullResults.length === 0) {
-                    searchResultsContent.innerHTML = `<div class="p-16 text-center text-slate-400"><i class="fas fa-search text-3xl mb-3 opacity-20"></i><p class="text-xs font-bold uppercase tracking-widest">No matching consumers found</p></div>`;
-                    searchLoadMoreContainer.style.display = 'none';
-                    return;
-                }
-
-                searchResultsContent.innerHTML = `
-                <table class="min-w-full divide-y divide-slate-100">
-                    <thead class="bg-slate-50 sticky top-0 z-10">
-                        <tr>
-                            <th class="px-4 py-2 text-left text-[9px] font-bold text-slate-400 uppercase tracking-widest w-10">SL</th>
-                            <th class="px-4 py-2 text-left text-[9px] font-bold text-slate-600 uppercase tracking-widest">App No.</th>
-                            <th class="px-4 py-2 text-left text-[9px] font-bold text-slate-600 uppercase tracking-widest">Name</th>
-                            <th class="px-4 py-2 text-left text-[9px] font-bold text-slate-600 uppercase tracking-widest">Phone</th>
-                            <th class="px-4 py-2 text-left text-[9px] font-bold text-slate-500 uppercase tracking-widest">CCC</th>
-                            <th class="px-4 py-2 text-left text-[9px] font-bold text-slate-600 uppercase tracking-widest">Reason</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-50" id="search-results-tbody">
-                        ${tableRowsHTML}
-                    </tbody>
-                </table>`;
-            } else {
-                const tbody = document.getElementById('search-results-tbody');
-                if (tbody) tbody.insertAdjacentHTML('beforeend', tableRowsHTML);
-            }
-
-            searchLoadMoreContainer.style.display = (endIndex >= searchFullResults.length) ? 'none' : 'flex';
-        }
-
-        function openConsumerDetails(applNo) {
-            const item = rawData.find(i => i['APPL_NO'] === applNo);
-            if (!item) return;
-
-            // Prepare single-item drill down
-            const singleData = [item];
-            currentModalContext = {
-                range: 'total',
-                cardTitle: `Consumer: ${item['NAME']}`,
-                data: singleData,
-                originalModalData: singleData,
-                parentContext: null,
-                selectedRegion: item['REGION'],
-                selectedDivision: item['DIVN_NAME'],
-                selectedCcc: item['SUPP_OFF'],
-                currentAppPageIndex: 0
-            };
-
-            showModal(`Consumer: ${item['NAME']}`, 1, currentModalContext);
-            showModalTab('application-list', singleData, 4, {
-                selectedRegion: item['REGION'],
-                selectedDivision: item['DIVN_NAME'],
-                selectedCcc: item['SUPP_OFF']
-            });
-        }
-
-
-
-        function updateCards() {
-            const today = maxTodayDate;
-            let count7 = 0;
-            let count30 = 0;
-            let count90 = 0;
-
-            filteredData.forEach(item => {
-                const date = item['SCN_WITHELD_DATE'];
-                if (date) {
-                    const diff = (today - date) / (1000 * 60 * 60 * 24);
-                    if (diff >= 0 && diff <= 7) count7++;
-                    if (diff >= 0 && diff <= 30) count30++;
-                    if (diff >= 0 && diff <= 90) count90++;
-                }
-            });
-
-            animateCounter(totalCountEl, parseInt(totalCountEl.textContent), filteredData.length);
-            animateCounter(count7El, parseInt(count7El.textContent), count7);
-            animateCounter(count30El, parseInt(count30El.textContent), count30);
-            animateCounter(count90El, parseInt(count90El.textContent), count90);
-        }
-
-        function showTab(tab) {
-            // Deactivate all buttons
-            [chartTabButton, dataTabButton, regionTabButton, divisionTabButton, cccTabButton, reasonTabButton, classTabButton].forEach(btn => {
-                btn.classList.add('text-gray-400', 'border-transparent');
-                btn.classList.remove('text-indigo-400', 'border-indigo-500');
-            });
-
-            // Hide all views
-            [chartView, dataView, regionView, divisionView, cccView, reasonView, classView].forEach(view => {
-                view.classList.add('hidden');
-            });
-
-            // Activate target
-            if (tab === 'chart') {
-                chartTabButton.classList.add('text-indigo-400', 'border-indigo-500');
-                chartTabButton.classList.remove('text-gray-400', 'border-transparent');
-                chartView.classList.remove('hidden');
-                updateChart();
-            } else if (tab === 'data') {
-                dataTabButton.classList.add('text-indigo-400', 'border-indigo-500');
-                dataTabButton.classList.remove('text-gray-400', 'border-transparent');
-                dataView.classList.remove('hidden');
-                updateDataTable();
-            } else if (tab === 'region') {
-                regionTabButton.classList.add('text-indigo-400', 'border-indigo-500');
-                regionTabButton.classList.remove('text-gray-400', 'border-transparent');
-                regionView.classList.remove('hidden');
-            } else if (tab === 'division') {
-                divisionTabButton.classList.add('text-indigo-400', 'border-indigo-500');
-                divisionTabButton.classList.remove('text-gray-400', 'border-transparent');
-                divisionView.classList.remove('hidden');
-            } else if (tab === 'ccc') {
-                cccTabButton.classList.add('text-indigo-400', 'border-indigo-500');
-                cccTabButton.classList.remove('text-gray-400', 'border-transparent');
-                cccView.classList.remove('hidden');
-            } else if (tab === 'reason') {
-                reasonTabButton.classList.add('text-indigo-400', 'border-indigo-500');
-                reasonTabButton.classList.remove('text-gray-400', 'border-transparent');
-                reasonView.classList.remove('hidden');
-            } else if (tab === 'class') {
-                classTabButton.classList.add('text-indigo-400', 'border-indigo-500');
-                classTabButton.classList.remove('text-gray-400', 'border-transparent');
-                classView.classList.remove('hidden');
-            }
-        }
-
-        function updateSummaryTables() {
-            generateSummaryTable(regionSummaryTable, 'REGION', 'Region', 'region');
-            generateSummaryTable(divisionSummaryTable, 'DIVN_NAME', 'Division', 'division');
-            generateSummaryTable(cccSummaryTable, 'SUPP_OFF', 'CCC', 'ccc');
-            generateSummaryTable(reasonSummaryTable, 'SCN_WITHELD_REASON', 'Reason', 'reason');
-            generateSummaryTable(classSummaryTable, 'CONN_CLASS', 'Class', 'class');
-        }
-
-        function handleHeaderSort(tableName, columnKey) {
-            const state = tableSortStates[tableName] || { key: 'count', dir: 'desc' }; // Fallback
-            if (state.key === columnKey) {
-                state.dir = state.dir === 'asc' ? 'desc' : 'asc';
-            } else {
-                state.key = columnKey;
-                // Default to descending for numbers/percentages, ascending for names/years
-                state.dir = (columnKey === 'count' || columnKey === 'percent' || columnKey === 'count30' || columnKey === 'portalPct' || columnKey === 'offlinePct') ? 'desc' : 'asc';
-            }
-
-            // Sync back state
-            tableSortStates[tableName] = state;
-
-            if (tableName === 'trend') {
-                updateDataTable();
-            } else {
-                updateSummaryTables();
-            }
-        }
-
-        function getSortIcon(tableName, columnKey) {
-            const state = tableSortStates[tableName];
-            if (state.key !== columnKey) return '<i class="fas fa-sort ml-1 text-gray-500 opacity-30"></i>';
-            return state.dir === 'asc' ? '<i class="fas fa-sort-up ml-1 text-indigo-400"></i>' : '<i class="fas fa-sort-down ml-1 text-indigo-400"></i>';
-        }
-
-        function generateSummaryTable(container, key, label, tableName) {
-            if (filteredData.length === 0) {
-                container.innerHTML = `<div class="p-4 text-center text-gray-500">No data available for the selected filters.</div>`;
-                return;
-            }
-
-            const today = maxTodayDate;
-            const grouped = filteredData.reduce((acc, item) => {
-                let val = item[key] || 'Not Specified';
-                let isInvalid = tableName === 'reason' && INVALID_REASONS.includes(val);
-                let groupKey = isInvalid ? '__INVALID__' : val;
-
-                if (!acc[groupKey]) {
-                    acc[groupKey] = { count: 0, count30: 0, portal: 0, offline: 0, isGroup: isInvalid, children: [] };
-                }
-                
-                acc[groupKey].count++;
-
-                const date = item['SCN_WITHELD_DATE'];
-                if (date) {
-                    const diff = (today - date) / (1000 * 60 * 60 * 24);
-                    if (diff >= 0 && diff <= 30) {
-                        acc[groupKey].count30++;
-                    }
-                }
-
-                if (item['IS_PORTAL_APPL'] === 'Y') acc[groupKey].portal++;
-                else acc[groupKey].offline++;
-
-                if (isInvalid) {
-                    // Track individual child data
-                    let child = acc[groupKey].children.find(c => c.name === val);
-                    if (!child) {
-                        child = { name: val, count: 0, count30: 0, portal: 0, offline: 0 };
-                        acc[groupKey].children.push(child);
-                    }
-                    child.count++;
-                    if (date) {
-                        const diff = (today - date) / (1000 * 60 * 60 * 24);
-                        if (diff >= 0 && diff <= 30) child.count30++;
-                    }
-                    if (item['IS_PORTAL_APPL'] === 'Y') child.portal++;
-                    else child.offline++;
-                }
-
-                return acc;
-            }, {});
-
-            const total = filteredData.length;
-            let items = Object.entries(grouped).map(([name, data]) => ({
-                name: data.isGroup ? 'Invalid Reasons/No Reason' : name,
-                isGroup: data.isGroup,
-                children: data.children,
-                count: data.count,
-                count30: data.count30,
-                portalPct: data.count > 0 ? parseFloat(((data.portal / data.count) * 100).toFixed(1)) : 0,
-                offlinePct: data.count > 0 ? parseFloat(((data.offline / data.count) * 100).toFixed(1)) : 0,
-                percent: parseFloat(((data.count / total) * 100).toFixed(1))
-            }));
-
-            // Apply Sorting
-            const state = tableSortStates[tableName] || { key: 'count', dir: 'desc' };
-            items.sort((a, b) => {
-                let valA = state.key === 'name' ? a.name : a[state.key];
-                let valB = state.key === 'name' ? b.name : b[state.key];
-
-                if (typeof valA === 'string') {
-                    return state.dir === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
-                }
-                return state.dir === 'asc' ? valA - valB : valB - valA;
-            });
-
-            let tableHTML = `
-                <table class="min-w-full divide-y divide-slate-100">
-                    <thead class="bg-slate-100 sticky top-0 z-10">
-                        <tr>
-                            <th class="px-3 py-2 text-left text-[9px] font-bold text-slate-400 uppercase tracking-widest w-10">SL</th>
-                            <th class="px-3 py-2 text-left text-[9px] font-bold text-slate-600 uppercase tracking-widest cursor-pointer hover:text-indigo-600" onclick="handleHeaderSort('${tableName}', 'name')">
-                                ${label} ${getSortIcon(tableName, 'name')}
-                            </th>
-                            <th class="px-2 py-2 text-right text-[9px] font-bold text-slate-600 uppercase tracking-widest cursor-pointer hover:text-orange-600" onclick="handleHeaderSort('${tableName}', 'count30')">
-                                30D ${getSortIcon(tableName, 'count30')}
-                            </th>
-                            <th class="px-2 py-2 text-right text-[9px] font-bold text-indigo-500 uppercase tracking-widest cursor-pointer hover:text-indigo-700" onclick="handleHeaderSort('${tableName}', 'portalPct')">
-                                Portal(%) ${getSortIcon(tableName, 'portalPct')}
-                            </th>
-                            <th class="px-2 py-2 text-right text-[9px] font-bold text-orange-500 uppercase tracking-widest cursor-pointer hover:text-orange-700" onclick="handleHeaderSort('${tableName}', 'offlinePct')">
-                                Offline(%) ${getSortIcon(tableName, 'offlinePct')}
-                            </th>
-                            <th class="px-2 py-2 text-right text-[9px] font-bold text-slate-600 uppercase tracking-widest cursor-pointer hover:text-slate-900" onclick="handleHeaderSort('${tableName}', 'count')">
-                                Total ${getSortIcon(tableName, 'count')}
-                            </th>
-                            <th class="px-2 py-2 text-right text-[9px] font-bold text-slate-600 uppercase tracking-widest cursor-pointer hover:text-slate-900" onclick="handleHeaderSort('${tableName}', 'percent')">
-                                % ${getSortIcon(tableName, 'percent')}
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-50">
-            `;
-
-            items.forEach((item, index) => {
-                if (item.isGroup) {
-                    tableHTML += `
-                        <tr class="bg-red-50 hover:bg-red-100 cursor-pointer group/row transition-colors" onclick="toggleInvalidReasons()">
-                            <td class="px-3 py-2 whitespace-nowrap text-[10px] text-slate-400 font-medium">${index + 1}</td>
-                            <td class="px-3 py-2 whitespace-nowrap text-xs font-bold text-red-600 flex items-center">
-                                <i class="fas ${isInvalidReasonsExpanded ? 'fa-minus-square' : 'fa-plus-square'} mr-2 text-red-400"></i>
-                                ${item.name}
-                            </td>
-                            <td class="px-2 py-2 whitespace-nowrap text-xs text-right text-red-600 font-bold">${item.count30}</td>
-                            <td class="px-2 py-2 whitespace-nowrap text-xs text-right text-red-500">${item.portalPct}%</td>
-                            <td class="px-2 py-2 whitespace-nowrap text-xs text-right text-red-500">${item.offlinePct}%</td>
-                            <td class="px-2 py-2 whitespace-nowrap text-xs text-right text-red-700 font-bold uppercase">${item.count}</td>
-                            <td class="px-2 py-2 whitespace-nowrap text-xs text-right text-red-400">${item.percent}%</td>
-                        </tr>
-                    `;
-
-                    if (isInvalidReasonsExpanded) {
-                        item.children.sort((a,b) => b.count - a.count).forEach((child, cIdx) => {
-                            const cPortalPct = child.count > 0 ? ((child.portal / child.count) * 100).toFixed(1) : 0;
-                            const cOfflinePct = child.count > 0 ? ((child.offline / child.count) * 100).toFixed(1) : 0;
-                            const cPercent = ((child.count / total) * 100).toFixed(1);
-
-                            tableHTML += `
-                                <tr class="bg-white border-l-4 border-red-100">
-                                    <td class="px-3 py-1.5 whitespace-nowrap text-[9px] text-slate-400 font-medium">${index + 1}.${cIdx + 1}</td>
-                                    <td class="px-3 py-1.5 whitespace-nowrap text-[11px] font-medium text-slate-600 pl-8 italic">${child.name}</td>
-                                    <td class="px-2 py-1.5 whitespace-nowrap text-[11px] text-right text-orange-600/80 font-bold">${child.count30}</td>
-                                    <td class="px-2 py-1.5 whitespace-nowrap text-[11px] text-right text-indigo-500/80">${cPortalPct}%</td>
-                                    <td class="px-2 py-1.5 whitespace-nowrap text-[11px] text-right text-orange-500/80">${cOfflinePct}%</td>
-                                    <td class="px-2 py-1.5 whitespace-nowrap text-[11px] text-right text-slate-700 font-bold uppercase">${child.count}</td>
-                                    <td class="px-2 py-1.5 whitespace-nowrap text-[11px] text-right text-slate-400">${cPercent}%</td>
-                                </tr>
-                            `;
-                        });
-                    }
-                } else {
-                    tableHTML += `
-                        <tr class="hover:bg-slate-50 transition-colors group">
-                            <td class="px-3 py-2 whitespace-nowrap text-[10px] text-slate-400 font-medium">${index + 1}</td>
-                            <td class="px-3 py-2 whitespace-nowrap text-xs font-semibold text-indigo-600 group-hover:text-indigo-800">${item.name}</td>
-                            <td class="px-2 py-2 whitespace-nowrap text-xs text-right text-orange-600 font-bold">${item.count30}</td>
-                            <td class="px-2 py-2 whitespace-nowrap text-xs text-right text-indigo-600/70">${item.portalPct}%</td>
-                            <td class="px-2 py-2 whitespace-nowrap text-xs text-right text-orange-600/70">${item.offlinePct}%</td>
-                            <td class="px-2 py-2 whitespace-nowrap text-xs text-right text-slate-700 font-medium">${item.count}</td>
-                            <td class="px-2 py-2 whitespace-nowrap text-xs text-right text-slate-400">${item.percent}%</td>
-                        </tr>
-                    `;
-                }
-            });
-
-            // Calculate Grand Totals
-            const grandCount30 = items.reduce((sum, i) => sum + i.count30, 0);
-            const totalPortalCount = filteredData.filter(i => i['IS_PORTAL_APPL'] === 'Y').length;
-            const totalOfflineCount = filteredData.filter(i => i['IS_PORTAL_APPL'] === 'N').length;
-            const grandCount = items.reduce((sum, i) => sum + i.count, 0);
-            
-            const grandPortalPct = grandCount > 0 ? ((totalPortalCount / grandCount) * 100).toFixed(1) : '0.0';
-            const grandOfflinePct = grandCount > 0 ? ((totalOfflineCount / grandCount) * 100).toFixed(1) : '0.0';
-
-            tableHTML += `
-                </tbody>
-                <tfoot class="bg-slate-50 sticky bottom-0 border-t-2 border-slate-200">
-                    <tr class="font-bold text-slate-800">
-                        <td class="px-3 py-2 text-[10px] text-slate-400">-</td>
-                        <td class="px-3 py-2 text-xs uppercase tracking-wider text-slate-500">Totals</td>
-                        <td class="px-2 py-2 text-xs text-right text-orange-600">${grandCount30}</td>
-                        <td class="px-2 py-2 text-xs text-right text-indigo-600">${grandPortalPct}%</td>
-                        <td class="px-2 py-2 text-xs text-right text-orange-600">${grandOfflinePct}%</td>
-                        <td class="px-2 py-2 text-xs text-right text-slate-900">${grandCount}</td>
-                        <td class="px-2 py-2 text-xs text-right text-slate-400">100%</td>
-                    </tr>
-                </tfoot>
-            </table>
-            `;
-            container.innerHTML = tableHTML;
-        }
-
-        function updateChart() {
-            const validDates = filteredData
-                .map(item => item['SCN_WITHELD_DATE'])
-                .filter(date => date && date <= maxTodayDate);
-
-            if (validDates.length === 0) {
-                if (chart) chart.destroy();
-                return;
-            }
-
-            const monthCounts = validDates.reduce((acc, date) => {
-                const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-                acc[key] = (acc[key] || 0) + 1;
-                return acc;
-            }, {});
-
-            const minDate = new Date(Math.min(...validDates.map(d => d.getTime())));
-            const maxDateForChart = new Date(Math.max(...validDates.map(d => d.getTime())));
-            let fullRange = [];
-            let current = new Date(minDate.getFullYear(), minDate.getMonth(), 1);
-            const end = new Date(maxDateForChart.getFullYear(), maxDateForChart.getMonth(), 1);
-
-            while (current <= end) {
-                const key = `${current.getFullYear()}-${String(current.getMonth() + 1).padStart(2, '0')}`;
-                fullRange.push(key);
-                current.setMonth(current.getMonth() + 1);
-            }
-
-            const trimmedLabels = fullRange.filter(key => monthCounts[key]);
-            const trimmedData = trimmedLabels.map(key => monthCounts[key] || 0);
-
-            if (chart) chart.destroy();
-
-            const ctx = document.getElementById('timelineChart').getContext('2d');
-            chart = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: trimmedLabels,
-                    datasets: [{
-                        label: 'Withheld Count',
-                        data: trimmedData,
-                        backgroundColor: trimmedLabels.map(label => parseInt(label.split('-')[0]) % 2 === 0 ? 'rgba(99, 102, 241, 0.8)' : 'rgba(239, 68, 68, 0.8)'),
-                        borderColor: trimmedLabels.map(label => parseInt(label.split('-')[0]) % 2 === 0 ? 'rgba(99, 102, 241, 1)' : 'rgba(239, 68, 68, 1)'),
-                        borderWidth: 1,
-                        borderRadius: 6,
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        x: {
-                            grid: { display: false },
-                            ticks: {
-                                callback: function (value, index) {
-                                    const [year, month] = this.getLabelForValue(value).split('-');
-                                    return month === '01' ? year : '';
-                                },
-                                color: '#64748b',
-                                autoSkip: false,
-                                minRotation: 90,
-                                maxRotation: 90,
-                            },
-                        },
-                        y: {
-                            beginAtZero: true,
-                            ticks: { precision: 0, color: '#64748b' }
-                        }
-                    },
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: {
-                            backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                            titleColor: '#1e293b',
-                            bodyColor: '#475569',
-                            borderColor: '#e2e8f0',
-                            borderWidth: 1,
-                            padding: 12,
-                            boxPadding: 4,
-                            usePointStyle: true,
-                            callbacks: {
-                                title: function (context) {
-                                    const [year, month] = context[0].label.split('-');
-                                    const date = new Date(parseInt(year), parseInt(month) - 1, 1);
-                                    return date.toLocaleString('default', { month: 'long', year: 'numeric' });
-                                },
-                                label: function (context) {
-                                    return ` Count: ${context.raw}`;
-                                }
-                            }
-                        }
-                    },
-                    animation: { duration: 1000, easing: 'easeInOutQuad' }
-                }
-            });
-        }
-
-        function updateDataTable() {
-            const total = filteredData.length;
-            const validDates = filteredData
-                .map(item => {
-                    const d = item['SCN_WITHELD_DATE'];
-                    return { date: d, portal: item['IS_PORTAL_APPL'] === 'Y' };
-                })
-                .filter(item => item.date && item.date <= maxTodayDate);
-
-            if (validDates.length === 0) {
-                trendDataTable.innerHTML = `<div class="p-4 text-center text-gray-500">No data available for the selected filters.</div>`;
-                return;
-            }
-
-            // Group by Year for a compact view
-            const yearData = validDates.reduce((acc, item) => {
-                const year = item.date.getFullYear().toString();
-                if (!acc[year]) acc[year] = { count: 0, portal: 0, offline: 0 };
-                acc[year].count++;
-                if (item.portal) acc[year].portal++;
-                else acc[year].offline++;
-                return acc;
-            }, {});
-
-            let items = Object.entries(yearData).map(([year, data]) => ({
-                year,
-                count: data.count,
-                portalPct: data.count > 0 ? parseFloat(((data.portal / data.count) * 100).toFixed(1)) : 0,
-                offlinePct: data.count > 0 ? parseFloat(((data.offline / data.count) * 100).toFixed(1)) : 0,
-                percent: parseFloat(((data.count / total) * 100).toFixed(1))
-            }));
-
-            // Apply Sorting
-            const state = tableSortStates.trend || { key: 'year', dir: 'asc' };
-            items.sort((a, b) => {
-                let valA = a[state.key];
-                let valB = b[state.key];
-
-                if (state.key === 'year') {
-                    return state.dir === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
-                }
-                return state.dir === 'asc' ? valA - valB : valB - valA;
-            });
-
-            let tableHTML = `
-            <table class="min-w-full divide-y divide-slate-100">
-                <thead class="bg-slate-100 sticky top-0 z-10">
-                    <tr>
-                        <th class="px-3 py-2 text-left text-[9px] font-bold text-slate-400 uppercase tracking-widest w-10">SL</th>
-                        <th class="px-3 py-2 text-left text-[9px] font-bold text-slate-600 uppercase tracking-widest cursor-pointer hover:text-indigo-600" onclick="handleHeaderSort('trend', 'year')">
-                            Year ${getSortIcon('trend', 'year')}
-                        </th>
-                        <th class="px-2 py-2 text-right text-[9px] font-bold text-indigo-500 uppercase tracking-widest cursor-pointer hover:text-indigo-700" onclick="handleHeaderSort('trend', 'portalPct')">
-                            Portal(%) ${getSortIcon('trend', 'portalPct')}
-                        </th>
-                        <th class="px-2 py-2 text-right text-[9px] font-bold text-orange-500 uppercase tracking-widest cursor-pointer hover:text-orange-700" onclick="handleHeaderSort('trend', 'offlinePct')">
-                            Offline(%) ${getSortIcon('trend', 'offlinePct')}
-                        </th>
-                        <th class="px-2 py-2 text-right text-[9px] font-bold text-slate-600 uppercase tracking-widest cursor-pointer hover:text-slate-900" onclick="handleHeaderSort('trend', 'count')">
-                            Total ${getSortIcon('trend', 'count')}
-                        </th>
-                        <th class="px-2 py-2 text-right text-[9px] font-bold text-slate-600 uppercase tracking-widest cursor-pointer hover:text-slate-900" onclick="handleHeaderSort('trend', 'percent')">
-                            % ${getSortIcon('trend', 'percent')}
-                        </th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-50">
-        `;
-
-            items.forEach((item, index) => {
-                tableHTML += `
-                <tr class="hover:bg-slate-50 transition-colors group">
-                    <td class="px-3 py-2 whitespace-nowrap text-[10px] text-slate-400 font-medium">${index + 1}</td>
-                    <td class="px-3 py-2 whitespace-nowrap text-xs font-bold text-indigo-600 group-hover:text-indigo-800">${item.year}</td>
-                    <td class="px-2 py-2 whitespace-nowrap text-xs text-right text-indigo-600/70">${item.portalPct}%</td>
-                    <td class="px-2 py-2 whitespace-nowrap text-xs text-right text-orange-600/70">${item.offlinePct}%</td>
-                    <td class="px-2 py-2 whitespace-nowrap text-xs text-right text-slate-700 font-medium">${item.count}</td>
-                    <td class="px-2 py-2 whitespace-nowrap text-xs text-right text-slate-400">${item.percent}%</td>
-                </tr>
-            `;
-            });
-
-            // Calculate Grand Totals
-            const totalPortalCount = filteredData.filter(i => i['IS_PORTAL_APPL'] === 'Y').length;
-            const totalOfflineCount = filteredData.filter(i => i['IS_PORTAL_APPL'] === 'N').length;
-            const grandCount = items.reduce((sum, i) => sum + i.count, 0);
-            
-            const grandPortalPct = grandCount > 0 ? ((totalPortalCount / grandCount) * 100).toFixed(1) : '0.0';
-            const grandOfflinePct = grandCount > 0 ? ((totalOfflineCount / grandCount) * 100).toFixed(1) : '0.0';
-
-            tableHTML += `
-                </tbody>
-                <tfoot class="bg-slate-50 sticky bottom-0 border-t-2 border-slate-200">
-                    <tr class="font-bold text-slate-800">
-                        <td class="px-3 py-2 text-[10px] text-slate-400">-</td>
-                        <td class="px-3 py-2 text-xs uppercase tracking-wider text-slate-500">Totals</td>
-                        <td class="px-2 py-2 text-xs text-right text-indigo-600">${grandPortalPct}%</td>
-                        <td class="px-2 py-2 text-xs text-right text-orange-600">${grandOfflinePct}%</td>
-                        <td class="px-2 py-2 text-xs text-right text-slate-900">${grandCount}</td>
-                        <td class="px-2 py-2 text-xs text-right text-slate-400">100%</td>
-                    </tr>
-                </tfoot>
-            </table>
-            `;
-            trendDataTable.innerHTML = tableHTML;
-        }
-
-        function toggleInvalidReasons() {
-            isInvalidReasonsExpanded = !isInvalidReasonsExpanded;
-            updateSummaryTables();
-        }
-
-        function updateReasonPanelPercentages(data) {
-            const container = document.getElementById('reasonFilterContainer');
-            if (!container) return;
-
-            const counts = data.reduce((acc, item) => {
-                const reason = item['SCN_WITHELD_REASON'] || 'No Reason';
-                acc[reason] = (acc[reason] || 0) + 1;
-                return acc;
-            }, {});
-
-            const total = data.length;
-
-            container.querySelectorAll('.reason-option').forEach(item => {
-                const reason = item.dataset.reason;
-                const count = counts[reason] || 0;
-                const pct = total > 0 ? ((count / total) * 100).toFixed(1) : '0.0';
-                const pctEl = item.querySelector('.percentage-span');
-                if (pctEl) pctEl.textContent = `(${pct}%)`;
-            });
-        }
-    </script>
+        render();
+      });
+    });
+  });
+  </script>
 </body>
 </html>

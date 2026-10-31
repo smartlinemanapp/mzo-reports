@@ -1,1443 +1,173 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="ui">
 <head>
-  <script src="mzo_theme.js?v=1"></script>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Power Sector News Hub | MZO</title>
-  <!-- Google Fonts & FontAwesome -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+Bengali:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <!-- MZO Universal Core Design System -->
-  <link rel="stylesheet" href="css/mzo_ui_core.css">
-  
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Power news · MZO Reports</title>
+  <script src="/mzo_theme.js?v=3"></script>
+  <link rel="stylesheet" href="/mzo_theme.css?v=3" />
+  <script src="/mzo_ui.js?v=2" defer></script>
   <style>
-    /* ──────────────────────────────────────
-       Base Styles & Design Tokens
-    ────────────────────────────────────── */
-    :root {
-      --bg-dark: #0b1120;
-      --bg-light: #f8fafc;
-      --surface-dark: #131d33;
-      --surface-light: #ffffff;
-      --card-bg-dark: rgba(22, 34, 58, 0.72);
-      --card-bg-light: #ffffff;
-      --border-dark: rgba(255, 255, 255, 0.08);
-      --border-light: rgba(226, 232, 240, 0.9);
-      --text-primary-dark: #f8fafc;
-      --text-primary-light: #0f172a;
-      --text-secondary-dark: #94a3b8;
-      --text-secondary-light: #64748b;
-      --accent: #0284c7;
-      --accent-glow: rgba(2, 132, 199, 0.25);
-      --accent-hover: #0369a1;
-      --danger: #ef4444;
-      --danger-bg-dark: rgba(239, 68, 68, 0.12);
-      --danger-bg-light: rgba(239, 68, 68, 0.06);
-      --danger-border: rgba(239, 68, 68, 0.45);
-      --amber: #f59e0b;
-      --shadow-dark: 0 10px 25px -5px rgba(0, 0, 0, 0.4), 0 4px 10px -4px rgba(0, 0, 0, 0.3);
-      --shadow-light: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 4px 10px -4px rgba(0, 0, 0, 0.02);
-      --card-hover-shadow-dark: 0 20px 35px -10px rgba(0, 0, 0, 0.6), 0 0 15px rgba(56, 189, 248, 0.18);
-      --card-hover-shadow-light: 0 20px 35px -10px rgba(15, 23, 42, 0.12), 0 0 15px rgba(2, 132, 199, 0.12);
-    }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    body {
-      font-family: 'Inter', 'Noto Sans Bengali', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      min-height: 100vh;
-      line-height: 1.5;
-      transition: background-color 0.25s ease, color 0.25s ease;
-      -webkit-font-smoothing: antialiased;
-    }
-
-    /* Dark Mode Defaults */
-    body.dark-theme {
-      background-color: var(--bg-dark);
-      color: var(--text-primary-dark);
-    }
-
-    /* Light Mode */
-    body.light-theme {
-      background-color: var(--bg-light);
-      color: var(--text-primary-light);
-    }
-
-    /* Scrollbar */
-    ::-webkit-scrollbar {
-      width: 7px;
-      height: 7px;
-    }
-    ::-webkit-scrollbar-track {
-      background: transparent;
-    }
-    ::-webkit-scrollbar-thumb {
-      background: rgba(148, 163, 184, 0.25);
-      border-radius: 999px;
-    }
-    ::-webkit-scrollbar-thumb:hover {
-      background: rgba(148, 163, 184, 0.45);
-    }
-
-    /* Layout Wrapper */
-    .hub-container {
-      max-width: 1520px;
-      margin: 0 auto;
-      padding: 24px 28px 60px;
-    }
-
-    /* ──────────────────────────────────────
-       Hero Header Bar
-    ────────────────────────────────────── */
-    .hub-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 16px;
-      margin-bottom: 22px;
-      padding-bottom: 18px;
-      border-bottom: 1px solid var(--border-dark);
-    }
-
-    body.light-theme .hub-header {
-      border-bottom-color: var(--border-light);
-    }
-
-    .header-left {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-    }
-
-    .header-brand-icon {
-      width: 44px;
-      height: 44px;
-      border-radius: 12px;
-      background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
-      color: #ffffff;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 20px;
-      box-shadow: 0 4px 14px rgba(2, 132, 199, 0.35);
-      flex-shrink: 0;
-    }
-
-    .header-title-box h1 {
-      font-size: 20px;
-      font-weight: 800;
-      letter-spacing: -0.02em;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .header-title-box p {
-      font-size: 13px;
-      color: var(--text-secondary-dark);
-      margin-top: 2px;
-      font-weight: 450;
-    }
-
-    body.light-theme .header-title-box p {
-      color: var(--text-secondary-light);
-    }
-
-    .header-right {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-
-    .live-pulse-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 7px;
-      padding: 6px 12px;
-      border-radius: 999px;
-      font-size: 12px;
-      font-weight: 600;
-      background: rgba(16, 185, 129, 0.12);
-      color: #10b981;
-      border: 1px solid rgba(16, 185, 129, 0.25);
-    }
-
-    .pulse-dot {
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-      background: #10b981;
-      box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
-      animation: pulse 2s infinite;
-    }
-
-    @keyframes pulse {
-      0% {
-        transform: scale(0.95);
-        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
-      }
-      70% {
-        transform: scale(1);
-        box-shadow: 0 0 0 6px rgba(16, 185, 129, 0);
-      }
-      100% {
-        transform: scale(0.95);
-        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
-      }
-    }
-
-    .btn-sync {
-      display: inline-flex;
-      align-items: center;
-      gap: 7px;
-      padding: 7px 15px;
-      border-radius: 8px;
-      font-size: 13px;
-      font-weight: 600;
-      background: var(--surface-dark);
-      color: var(--text-primary-dark);
-      border: 1px solid var(--border-dark);
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-
-    body.light-theme .btn-sync {
-      background: var(--surface-light);
-      color: var(--text-primary-light);
-      border-color: var(--border-light);
-    }
-
-    .btn-sync:hover {
-      background: var(--accent);
-      color: #ffffff;
-      border-color: var(--accent);
-      box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);
-    }
-
-    .btn-sync.spinning i {
-      animation: spin 0.8s linear infinite;
-    }
-
-    @keyframes spin {
-      100% { transform: rotate(360deg); }
-    }
-
-    /* ──────────────────────────────────────
-       Search & Category Navigation
-    ────────────────────────────────────── */
-    .controls-panel {
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-      margin-bottom: 24px;
-    }
-
-    .search-row {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      position: relative;
-    }
-
-    .search-input-wrap {
-      flex: 1;
-      position: relative;
-      display: flex;
-      align-items: center;
-    }
-
-    .search-input-wrap i.search-icon {
-      position: absolute;
-      left: 14px;
-      color: var(--text-secondary-dark);
-      font-size: 14px;
-      pointer-events: none;
-    }
-
-    body.light-theme .search-input-wrap i.search-icon {
-      color: var(--text-secondary-light);
-    }
-
-    .search-input {
-      width: 100%;
-      padding: 11px 40px 11px 38px;
-      border-radius: 10px;
-      font-size: 14px;
-      font-family: inherit;
-      background: var(--surface-dark);
-      color: var(--text-primary-dark);
-      border: 1px solid var(--border-dark);
-      outline: none;
-      transition: all 0.2s ease;
-    }
-
-    body.light-theme .search-input {
-      background: var(--surface-light);
-      color: var(--text-primary-light);
-      border-color: var(--border-light);
-    }
-
-    .search-input:focus {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px var(--accent-glow);
-    }
-
-    .clear-search-btn {
-      position: absolute;
-      right: 12px;
-      background: transparent;
-      border: none;
-      color: var(--text-secondary-dark);
-      font-size: 14px;
-      cursor: pointer;
-      display: none;
-      padding: 4px;
-      border-radius: 4px;
-    }
-
-    .clear-search-btn:hover {
-      color: var(--text-primary-dark);
-    }
-
-    body.light-theme .clear-search-btn:hover {
-      color: var(--text-primary-light);
-    }
-
-    /* Category Filter Pills */
-    .category-pills {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      overflow-x: auto;
-      padding-bottom: 4px;
-      scrollbar-width: none;
-    }
-
-    .category-pills::-webkit-scrollbar {
-      display: none;
-    }
-
-    .pill-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 7px 14px;
-      border-radius: 999px;
-      font-size: 13px;
-      font-weight: 550;
-      white-space: nowrap;
-      cursor: pointer;
-      border: 1px solid var(--border-dark);
-      background: var(--surface-dark);
-      color: var(--text-secondary-dark);
-      transition: all 0.2s ease;
-      user-select: none;
-    }
-
-    body.light-theme .pill-btn {
-      background: var(--surface-light);
-      border-color: var(--border-light);
-      color: var(--text-secondary-light);
-    }
-
-    .pill-btn:hover {
-      border-color: rgba(2, 132, 199, 0.4);
-      color: var(--text-primary-dark);
-    }
-
-    body.light-theme .pill-btn:hover {
-      color: var(--text-primary-light);
-    }
-
-    .pill-btn.active {
-      background: var(--accent);
-      border-color: var(--accent);
-      color: #ffffff !important;
-      box-shadow: 0 2px 10px rgba(2, 132, 199, 0.35);
-    }
-
-    .pill-btn.danger-pill {
-      border-color: rgba(239, 68, 68, 0.35);
-      color: #f87171;
-    }
-
-    body.light-theme .pill-btn.danger-pill {
-      color: #ef4444;
-    }
-
-    .pill-btn.danger-pill.active {
-      background: #dc2626;
-      border-color: #dc2626;
-      color: #ffffff !important;
-      box-shadow: 0 2px 10px rgba(220, 38, 38, 0.35);
-    }
-
-    .pill-count {
-      padding: 1px 6px;
-      border-radius: 999px;
-      font-size: 11px;
-      font-weight: 700;
-      background: rgba(255, 255, 255, 0.12);
-    }
-
-    .pill-btn.active .pill-count {
-      background: rgba(255, 255, 255, 0.25);
-    }
-
-    /* Result Info Bar */
-    .result-info-bar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 13px;
-      color: var(--text-secondary-dark);
-      margin-bottom: 16px;
-      padding: 0 4px;
-    }
-
-    body.light-theme .result-info-bar {
-      color: var(--text-secondary-light);
-    }
-
-    .result-count-text strong {
-      color: var(--text-primary-dark);
-      font-weight: 600;
-    }
-
-    body.light-theme .result-count-text strong {
-      color: var(--text-primary-light);
-    }
-
-    /* ──────────────────────────────────────
-       News Grid (Desktop & Responsive)
-    ────────────────────────────────────── */
-    .news-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
-      gap: 20px;
-      transition: opacity 0.2s ease;
-    }
-
-    .news-grid.loading {
-      opacity: 0.4;
-      pointer-events: none;
-    }
-
-    /* Modern Card */
-    .news-card {
-      position: relative;
-      background: var(--card-bg-dark);
-      border: 1px solid var(--border-dark);
-      border-radius: 14px;
-      padding: 18px 20px 16px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      box-shadow: var(--shadow-dark);
-      transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.22s ease, border-color 0.22s ease;
-      cursor: pointer;
-      text-decoration: none;
-      color: inherit;
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-    }
-
-    body.light-theme .news-card {
-      background: var(--card-bg-light);
-      border-color: var(--border-light);
-      box-shadow: var(--shadow-light);
-    }
-
-    .news-card:hover {
-      transform: translateY(-4px);
-      border-color: rgba(56, 189, 248, 0.35);
-      box-shadow: var(--card-hover-shadow-dark);
-    }
-
-    body.light-theme .news-card:hover {
-      border-color: rgba(2, 132, 199, 0.3);
-      box-shadow: var(--card-hover-shadow-light);
-    }
-
-    /* Accident Alert Card */
-    .news-card.accident-card {
-      border: 1.5px solid var(--danger-border) !important;
-      background: var(--danger-bg-dark) !important;
-    }
-
-    body.light-theme .news-card.accident-card {
-      background: var(--danger-bg-light) !important;
-    }
-
-    .news-card.accident-card:hover {
-      border-color: #ef4444 !important;
-      box-shadow: 0 16px 30px -8px rgba(239, 68, 68, 0.25) !important;
-    }
-
-    /* Card Header Meta */
-    .card-meta-top {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      margin-bottom: 12px;
-      font-size: 11.5px;
-    }
-
-    .meta-badges-left {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      flex-wrap: wrap;
-    }
-
-    .source-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      padding: 3px 9px;
-      border-radius: 6px;
-      font-weight: 600;
-      background: rgba(2, 132, 199, 0.12);
-      color: #38bdf8;
-      border: 1px solid rgba(2, 132, 199, 0.2);
-      max-width: 170px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    body.light-theme .source-pill {
-      background: rgba(2, 132, 199, 0.08);
-      color: #0284c7;
-      border-color: rgba(2, 132, 199, 0.15);
-    }
-
-    .category-tag {
-      padding: 3px 8px;
-      border-radius: 6px;
-      font-weight: 500;
-      font-size: 11px;
-      background: rgba(255, 255, 255, 0.05);
-      color: var(--text-secondary-dark);
-    }
-
-    body.light-theme .category-tag {
-      background: rgba(0, 0, 0, 0.04);
-      color: var(--text-secondary-light);
-    }
-
-    .hazard-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      padding: 3px 8px;
-      border-radius: 6px;
-      font-size: 11px;
-      font-weight: 700;
-      background: rgba(239, 68, 68, 0.15);
-      color: #f87171;
-      border: 1px solid rgba(239, 68, 68, 0.3);
-    }
-
-    body.light-theme .hazard-pill {
-      background: rgba(239, 68, 68, 0.1);
-      color: #dc2626;
-    }
-
-    .time-stamp {
-      color: var(--text-secondary-dark);
-      white-space: nowrap;
-      font-size: 11.5px;
-      font-weight: 450;
-    }
-
-    body.light-theme .time-stamp {
-      color: var(--text-secondary-light);
-    }
-
-    /* Headline Title */
-    .news-title {
-      font-size: 15.5px;
-      font-weight: 650;
-      line-height: 1.44;
-      margin: 0 0 12px 0;
-      color: var(--text-primary-dark);
-      display: -webkit-box;
-      -webkit-line-clamp: 3;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-      letter-spacing: -0.01em;
-      transition: color 0.15s ease;
-    }
-
-    body.light-theme .news-title {
-      color: var(--text-primary-light);
-    }
-
-    .news-card:hover .news-title {
-      color: #38bdf8;
-    }
-
-    body.light-theme .news-card:hover .news-title {
-      color: #0284c7;
-    }
-
-    /* Smart Keyword Tags */
-    .topic-tags {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      margin-bottom: 14px;
-    }
-
-    .topic-tag {
-      font-size: 11px;
-      font-weight: 500;
-      color: var(--text-secondary-dark);
-      background: rgba(255, 255, 255, 0.04);
-      padding: 2px 7px;
-      border-radius: 4px;
-      border: 1px solid rgba(255, 255, 255, 0.04);
-    }
-
-    body.light-theme .topic-tag {
-      color: var(--text-secondary-light);
-      background: rgba(0, 0, 0, 0.03);
-      border-color: rgba(0, 0, 0, 0.04);
-    }
-
-    /* Optional Genuine Excerpt */
-    .news-snippet {
-      font-size: 12.5px;
-      line-height: 1.45;
-      color: var(--text-secondary-dark);
-      margin-bottom: 12px;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-    }
-
-    body.light-theme .news-snippet {
-      color: var(--text-secondary-light);
-    }
-
-    /* Card Footer & Action Links */
-    .card-footer {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding-top: 12px;
-      border-top: 1px solid rgba(255, 255, 255, 0.05);
-      margin-top: auto;
-    }
-
-    body.light-theme .card-footer {
-      border-top-color: rgba(0, 0, 0, 0.04);
-    }
-
-    .btn-read {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      font-size: 12px;
-      font-weight: 650;
-      color: #38bdf8;
-      text-decoration: none;
-      transition: gap 0.2s ease, color 0.2s ease;
-    }
-
-    body.light-theme .btn-read {
-      color: #0284c7;
-    }
-
-    .news-card:hover .btn-read {
-      gap: 8px;
-      color: #60a5fa;
-    }
-
-    body.light-theme .news-card:hover .btn-read {
-      color: #0369a1;
-    }
-
-    .btn-copy-link {
-      background: transparent;
-      border: none;
-      color: var(--text-secondary-dark);
-      cursor: pointer;
-      font-size: 13px;
-      padding: 6px;
-      border-radius: 6px;
-      transition: all 0.15s ease;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    body.light-theme .btn-copy-link {
-      color: var(--text-secondary-light);
-    }
-
-    .btn-copy-link:hover {
-      background: rgba(255, 255, 255, 0.08);
-      color: var(--text-primary-dark);
-    }
-
-    body.light-theme .btn-copy-link:hover {
-      background: rgba(0, 0, 0, 0.05);
-      color: var(--text-primary-light);
-    }
-
-    /* Toast Notification */
-    .toast-popup {
-      position: fixed;
-      bottom: 24px;
-      right: 24px;
-      background: #0284c7;
-      color: #ffffff;
-      padding: 10px 18px;
-      border-radius: 8px;
-      font-size: 13px;
-      font-weight: 600;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
-      z-index: 9999;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      opacity: 0;
-      transform: translateY(12px);
-      transition: opacity 0.2s ease, transform 0.2s ease;
-      pointer-events: none;
-    }
-
-    .toast-popup.show {
-      opacity: 1;
-      transform: translateY(0);
-    }
-
-    /* Status & Empty States */
-    .state-box {
-      grid-column: 1 / -1;
-      text-align: center;
-      padding: 70px 20px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      background: var(--surface-dark);
-      border: 1px dashed var(--border-dark);
-      border-radius: 14px;
-      margin: 20px 0;
-    }
-
-    body.light-theme .state-box {
-      background: var(--surface-light);
-      border-color: var(--border-light);
-    }
-
-    .state-icon {
-      font-size: 38px;
-      color: var(--text-secondary-dark);
-      margin-bottom: 14px;
-    }
-
-    .state-title {
-      font-size: 16px;
-      font-weight: 700;
-      margin-bottom: 6px;
-    }
-
-    .state-desc {
-      font-size: 13px;
-      color: var(--text-secondary-dark);
-      max-width: 400px;
-    }
-
-    body.light-theme .state-desc {
-      color: var(--text-secondary-light);
-    }
-
-    .state-btn {
-      margin-top: 14px;
-      padding: 8px 18px;
-      border-radius: 8px;
-      background: var(--accent);
-      color: #ffffff;
-      font-size: 13px;
-      font-weight: 600;
-      border: none;
-      cursor: pointer;
-    }
-
-    /* ──────────────────────────────────────
-       Responsive Adjustments
-    ────────────────────────────────────── */
-    @media (max-width: 1024px) {
-      .hub-container {
-        padding: 18px 20px 40px;
-      }
-      .news-grid {
-        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-        gap: 16px;
-      }
-    }
-
-    @media (max-width: 768px) {
-      .hub-container {
-        padding: 14px 14px 30px;
-      }
-      .hub-header {
-        margin-bottom: 16px;
-        padding-bottom: 14px;
-      }
-      .header-title-box h1 {
-        font-size: 18px;
-      }
-      .header-title-box p {
-        font-size: 12px;
-      }
-      .news-grid {
-        grid-template-columns: 1fr;
-        gap: 14px;
-      }
-      .news-card {
-        padding: 15px 16px;
-      }
-      .news-title {
-        font-size: 14.5px;
-      }
-    }
+    .ui-page { max-width: 920px; }
+    .day { padding: 12px 16px 6px; font-size: 12px; font-weight: 500; color: var(--mzo-muted); border-top: 1px solid var(--mzo-border); }
+    .day:first-child { border-top: 0; }
+    .art { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 16px; padding: 10px 12px 12px 16px; }
+    .art + .art { border-top: 1px solid var(--mzo-border); }
+    .art:hover { background: var(--mzo-row-hover); }
+    .art a.t { color: var(--mzo-text); text-decoration: none; font-weight: 500; font-size: 14px; line-height: 1.4; }
+    .art a.t:hover { text-decoration: underline; text-underline-offset: 2px; }
+    .art .m { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 4px; font-size: 12px; color: var(--mzo-muted); }
+    .art .m .sep::before { content: "·"; }
+    .art p { margin: 4px 0 0; font-size: 12.5px; color: var(--mzo-text-2); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .art .acts { display: flex; align-items: flex-start; gap: 2px; }
+    #seg { flex-wrap: wrap; }
+    #seg button span { margin-left: 5px; color: var(--mzo-faint); font-variant-numeric: tabular-nums; }
+    #seg button[aria-pressed="true"] span { color: var(--mzo-muted); }
   </style>
-  <link rel="stylesheet" href="mzo_theme.css?v=1" />
 </head>
-<body class="dark-theme">
-
-  <div class="hub-container">
-    
-    <!-- Top Header -->
-    <header class="hub-header">
-      <div class="header-left">
-        <div class="header-brand-icon">
-          <i class="fas fa-bolt"></i>
-        </div>
-        <div class="header-title-box">
-          <h1>Power Sector News Hub</h1>
-          <p>Curated electricity & energy sector intelligence • Malda Zone, West Bengal & National Grid</p>
-        </div>
+<body>
+  <main class="ui-page">
+    <header class="ui-head">
+      <div>
+        <h1>Power news</h1>
+        <p id="meta">Loading…</p>
       </div>
-      <div class="header-right">
-        <div class="live-pulse-badge" id="liveBadge">
-          <span class="pulse-dot"></span>
-          <span id="liveBadgeText">Live Feed</span>
-        </div>
-        <button class="btn-sync" id="syncNewsBtn" onclick="refreshFeeds(true)" title="Fetch latest updates from Google News">
-          <i class="fas fa-arrows-rotate"></i>
-          <span>Sync News</span>
-        </button>
+      <div class="ui-actions">
+        <button type="button" class="ui-btn" id="syncBtn"><svg class="ui-i"><use href="#ui-refresh"/></svg>Fetch latest</button>
       </div>
     </header>
 
-    <!-- Controls: Search & Category Filters -->
-    <section class="controls-panel">
-      <!-- Search Input -->
-      <div class="search-row">
-        <div class="search-input-wrap">
-          <i class="fas fa-magnifying-glass search-icon"></i>
-          <input 
-            type="text" 
-            id="searchInput" 
-            class="search-input" 
-            placeholder="Search power news by topic, title, source, or keywords (e.g. transformer, solar, outage, WBSEDCL)..." 
-            oninput="handleSearchInput()" 
-            autocomplete="off"
-          />
-          <button id="clearSearchBtn" class="clear-search-btn" onclick="clearSearch()" title="Clear search">
-            <i class="fas fa-times"></i>
-          </button>
-        </div>
-      </div>
-
-      <!-- Category Filter Pills -->
-      <div class="category-pills" id="categoryPills">
-        <button class="pill-btn active" data-category="all" onclick="setCategory('all')">
-          <i class="fas fa-globe"></i>
-          <span>All Feeds</span>
-          <span class="pill-count" id="count-all">0</span>
-        </button>
-        <button class="pill-btn" data-category="state" onclick="setCategory('state')">
-          <i class="fas fa-tower-broadcast"></i>
-          <span>WB State & Malda</span>
-          <span class="pill-count" id="count-state">0</span>
-        </button>
-        <button class="pill-btn" data-category="districts" onclick="setCategory('districts')">
-          <i class="fas fa-newspaper"></i>
-          <span>Anandabazar & Districts</span>
-          <span class="pill-count" id="count-districts">0</span>
-        </button>
-        <button class="pill-btn" data-category="bangla" onclick="setCategory('bangla')">
-          <span>🇧🇩</span>
-          <span>বাংলা সংবাদ</span>
-          <span class="pill-count" id="count-bangla">0</span>
-        </button>
-        <button class="pill-btn" data-category="national" onclick="setCategory('national')">
-          <i class="fas fa-building-columns"></i>
-          <span>National & Policy</span>
-          <span class="pill-count" id="count-national">0</span>
-        </button>
-        <button class="pill-btn danger-pill" data-category="accidents" onclick="setCategory('accidents')">
-          <i class="fas fa-triangle-exclamation"></i>
-          <span>Safety & Accidents</span>
-          <span class="pill-count" id="count-accidents">0</span>
-        </button>
-      </div>
-    </section>
-
-    <!-- Result Info Bar -->
-    <div class="result-info-bar">
-      <div class="result-count-text" id="resultCountText">
-        Showing <strong>0</strong> articles
-      </div>
-      <div id="lastUpdatedText" style="font-size: 12px; opacity: 0.85;">
-        Updated just now
-      </div>
+    <div class="ui-filters">
+      <label class="ui-search" style="max-width:none"><svg class="ui-i"><use href="#ui-search"/></svg><input class="ui-input" id="q" type="search" placeholder="Search headlines, sources or topics" autocomplete="off" /></label>
     </div>
+    <div class="ui-filters"><div class="ui-seg" id="seg" role="group" aria-label="Section"></div></div>
 
-    <!-- News Grid Container -->
-    <main id="newsGrid" class="news-grid"></main>
-
-  </div>
-
-  <!-- Toast Notification -->
-  <div id="toastPopup" class="toast-popup">
-    <i class="fas fa-check-circle"></i>
-    <span id="toastMsg">Link copied to clipboard!</span>
-  </div>
+    <section class="ui-panel">
+      <div id="list"><div class="ui-empty">Loading…</div></div>
+    </section>
+  </main>
 
   <script>
-    // ──────────────────────────────────────
-    //   State & Configuration
-    // ──────────────────────────────────────
-    let allArticles = [];
-    let currentCategory = 'all';
-    let searchQuery = '';
+  document.addEventListener('DOMContentLoaded', function () {
+    'use strict';
+    var $ = function (id) { return document.getElementById(id); };
+    var CACHE = 'mzo_merged_news_v2';
+    var SECTIONS = [['all', 'All'], ['state', 'State & Malda'], ['districts', 'District media'], ['bangla', 'Bangla'], ['national', 'National grid'], ['accidents', 'Safety']];
+    var LABEL = { state: 'State & Malda', districts: 'District media', bangla: 'Bangla', national: 'National grid', general: 'Power sector' };
+    var TOPICS = [
+      [/wbsedcl|wbsetcl/i, 'WBSEDCL'], [/solar|photovoltaic/i, 'Solar'], [/tariff|power cost|electricity bill|billing/i, 'Tariff'],
+      [/substation|transformer/i, 'Substation'], [/smart meter|prepaid meter/i, 'Smart meter'], [/outage|load shedding|blackout|tripping|power cut/i, 'Outage'],
+      [/renewable|wind energy|clean energy|green energy/i, 'Renewables'], [/ntpc|coal|thermal power/i, 'Thermal'], [/transmission|national grid|pgcil/i, 'Transmission'],
+      [/malda|raiganj|balurghat|dinajpur/i, 'Malda Zone']
+    ];
+    var ACCIDENT = ['electrocution', 'electrocuted', 'electrical accident', 'short circuit', 'electric shock', 'transformer blast', 'electric fire', 'power line death', 'high voltage death', 'live wire death',
+      'বিদ্যুৎস্পৃষ্ট', 'শর্ট সার্কিট', 'বিদ্যুৎ দুর্ঘটনা', 'বিদ্যুৎস্পর্শ', 'বিদ্যুৎস্পৃষ্টে মৃত্যু'];
+    var all = [], section = 'all';
 
-    const CATEGORY_LABELS = {
-      state: 'State & Malda',
-      districts: 'District Media',
-      bangla: 'বাংলা সংবাদ',
-      national: 'National Grid',
-      general: 'Power Sector'
-    };
-
-    // ──────────────────────────────────────
-    //   Theme Synchronization with Parent
-    // ──────────────────────────────────────
-    function syncTheme() {
-      try {
-        if (window.parent && window.parent.document && window.parent.document.body) {
-          const isLight = window.parent.document.body.classList.contains('light-theme');
-          if (isLight) {
-            document.body.classList.add('light-theme');
-            document.body.classList.remove('dark-theme');
-          } else {
-            document.body.classList.add('dark-theme');
-            document.body.classList.remove('light-theme');
-          }
-        }
-      } catch (e) {
-        // Fallback: check localStorage or system preference
-        try {
-          const savedTheme = localStorage.getItem('mzo_theme');
-          if (savedTheme === 'light') {
-            document.body.classList.add('light-theme');
-            document.body.classList.remove('dark-theme');
-          }
-        } catch (_) {}
-      }
-    }
-
-    setInterval(syncTheme, 1000);
-    syncTheme();
-
-    // ──────────────────────────────────────
-    //   Relative Time Formatter
-    // ──────────────────────────────────────
-    function formatRelativeTime(dateStr) {
-      if (!dateStr) return '';
-      try {
-        const dt = new Date(dateStr);
-        if (isNaN(dt.getTime())) return dateStr;
-        const now = new Date();
-        const diffMs = now - dt;
-        const diffSecs = Math.floor(diffMs / 1000);
-        const diffMins = Math.floor(diffSecs / 60);
-        const diffHours = Math.floor(diffMins / 60);
-        const diffDays = Math.floor(diffHours / 24);
-
-        if (diffSecs < 60) return 'Just now';
-        if (diffMins < 60) return `${diffMins}m ago`;
-        if (diffHours < 24) return `${diffHours}h ago`;
-        if (diffDays === 1) return 'Yesterday';
-        if (diffDays < 7) return `${diffDays}d ago`;
-
-        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-        return `${dt.getDate()} ${months[dt.getMonth()]}`;
-      } catch (_) {
-        return dateStr;
-      }
-    }
-
-    // ──────────────────────────────────────
-    //   Smart Keyword Topic Tag Extractor
-    // ──────────────────────────────────────
-    function extractTopicTags(title) {
-      const lower = (title || '').toLowerCase();
-      const tags = [];
-
-      const topicRules = [
-        { test: /wbsedcl|wbsetcl/i, tag: '#WBSEDCL' },
-        { test: /solar|photovoltaic|rooftop solar/i, tag: '#Solar' },
-        { test: /tariff|power cost|electricity bill|billing/i, tag: '#Tariff' },
-        { test: /substation|transformer/i, tag: '#Substation' },
-        { test: /smart meter|smart metering|prepaid meter/i, tag: '#SmartMeter' },
-        { test: /outage|load shedding|blackout|tripping|power cut/i, tag: '#Outage' },
-        { test: /green energy|renewable|wind energy|clean energy/i, tag: '#GreenEnergy' },
-        { test: /ntpc|coal|thermal power/i, tag: '#Thermal' },
-        { test: /transmission|national grid|pgcil|interconnection/i, tag: '#Transmission' },
-        { test: /malda|raiganj|balurghat|dinajpur/i, tag: '#MaldaZone' },
-        { test: /electrocution|electrocuted|বিদ্যুৎস্পৃষ্ট/i, tag: '#SafetyAlert' }
-      ];
-
-      for (const rule of topicRules) {
-        if (rule.test.test(lower)) {
-          tags.push(rule.tag);
-          if (tags.length >= 2) break;
-        }
-      }
-
-      return tags;
-    }
-
-    // ──────────────────────────────────────
-    //   Accident Detector
-    // ──────────────────────────────────────
-    function isElectricalAccident(title, desc) {
-      const text = ((title || '') + ' ' + (desc || '')).toLowerCase();
-      const keywords = [
-        'electrocution', 'electrocuted', 'electrical accident', 'short circuit',
-        'electric shock', 'transformer blast', 'electric fire', 'power line death',
-        'high voltage death', 'live wire death',
-        'বিদ্যুৎস্পৃষ্ট', 'শর্ট সার্কিট', 'বিদ্যুৎ দুর্ঘটনা', 'বিদ্যুৎস্পর্শ', 'বিদ্যুৎস্পৃষ্টে মৃত্যু'
-      ];
-      return keywords.some(k => text.includes(k));
-    }
-
-    // ──────────────────────────────────────
-    //   Article Sanitizer
-    // ──────────────────────────────────────
-    function sanitizeArticle(item) {
-      let title = (item.title || '').trim();
-      let source = (item.source || '').trim();
-
-      // Clean redundant source from title if present
-      if (!source && title.includes(' - ')) {
-        const lastIdx = title.lastIndexOf(' - ');
-        source = title.substring(lastIdx + 3).trim();
-        title = title.substring(0, lastIdx).trim();
-      } else if (title.endsWith(' - ' + source)) {
-        title = title.substring(0, title.length - (source.length + 3)).trim();
-      }
-
-      // Detect accident
-      const isAccident = Boolean(item.isAccident) || isElectricalAccident(title, item.description);
-
-      // Clean description: do NOT display raw anchor tags or duplicate headline
-      let desc = (item.description || '').trim();
-      if (desc.includes('<a ') || desc.includes('&lt;a') || desc.toLowerCase() === title.toLowerCase()) {
-        desc = '';
-      }
-
-      let category = item.category || 'general';
-      if (category === 'english') category = 'state';
-
+    function clean(item) {
+      var title = String(item.title || '').trim(), source = String(item.source || '').trim();
+      if (!source && title.indexOf(' - ') !== -1) { var i = title.lastIndexOf(' - '); source = title.slice(i + 3).trim(); title = title.slice(0, i).trim(); }
+      else if (source && title.slice(-(source.length + 3)) === ' - ' + source) title = title.slice(0, -(source.length + 3)).trim();
+      var desc = String(item.description || '').trim();
+      if (desc.indexOf('<a ') !== -1 || desc.indexOf('&lt;a') !== -1 || desc.toLowerCase() === title.toLowerCase()) desc = '';
+      var text = (title + ' ' + desc).toLowerCase();
+      var cat = item.category === 'english' ? 'state' : (item.category || 'general');
       return {
-        title: title || 'Power Sector Update',
-        source: source || 'News Source',
-        link: item.link || '#',
-        pubDate: item.pubDate || '',
-        description: desc,
-        category: category,
-        isAccident: isAccident,
-        tags: extractTopicTags(title)
+        title: title || 'Power sector update', source: source || 'News source', link: item.link || '#', pubDate: item.pubDate || '', description: desc,
+        category: cat, isAccident: !!item.isAccident || ACCIDENT.some(function (k) { return text.indexOf(k) !== -1; }),
+        tags: TOPICS.filter(function (t) { return t[0].test(title); }).slice(0, 2).map(function (t) { return t[1]; })
       };
     }
 
-    // ──────────────────────────────────────
-    //   Data Fetching & Storage
-    // ──────────────────────────────────────
-    async function refreshFeeds(forceRefresh = false) {
-      const syncBtn = document.getElementById('syncNewsBtn');
-      const grid = document.getElementById('newsGrid');
-      const cacheKey = 'mzo_merged_news_v2';
-
-      if (syncBtn) syncBtn.classList.add('spinning');
-      if (grid && (!allArticles.length || forceRefresh)) {
-        grid.classList.add('loading');
-      }
-
-      try {
-        const apiUrl = forceRefresh ? '/api/news?force=1' : '/api/news';
-        const resp = await fetch(apiUrl);
-        if (resp.ok) {
-          const data = await resp.json();
-          if (data && data.status === 'ok' && Array.isArray(data.items)) {
-            processAndRender(data.items, cacheKey);
-            showToast(forceRefresh ? 'Fresh news loaded successfully!' : 'News feed synchronized');
-            return;
-          }
-        }
-      } catch (err) {
-        console.warn('News API fetch failed, trying cached:', err);
-      } finally {
-        if (syncBtn) syncBtn.classList.remove('spinning');
-        if (grid) grid.classList.remove('loading');
-      }
-
-      // If network failed, fall back to localStorage cache
-      const cached = localStorage.getItem(cacheKey) || localStorage.getItem('mzo_merged_news');
-      if (cached) {
-        try {
-          const parsed = JSON.parse(cached);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            processAndRender(parsed, null);
-            return;
-          }
-        } catch (_) {}
-      }
-
-      // Render empty state if nothing exists
-      if (!allArticles.length) {
-        renderEmptyState('Failed to connect to news feeds', 'Please check your connection and tap retry below.', true);
-      }
+    function ingest(items, save) {
+      var seen = {}, out = [];
+      items.forEach(function (raw) { var a = clean(raw), k = (a.link + '::' + a.title).toLowerCase(); if (!seen[k]) { seen[k] = 1; out.push(a); } });
+      out.sort(function (a, b) { return new Date(b.pubDate || 0) - new Date(a.pubDate || 0); });
+      all = out;
+      if (save) { try { localStorage.setItem(CACHE, JSON.stringify(out)); } catch (e) {} }
+      render();
     }
 
-    function processAndRender(items, cacheKeyToSave) {
-      // Sanitize & Deduplicate
-      const seen = new Set();
-      const sanitized = [];
+    function rel(d) {
+      var t = new Date(d); if (isNaN(t)) return '';
+      var m = Math.floor((Date.now() - t) / 6e4);
+      if (m < 1) return 'Just now'; if (m < 60) return m + 'm ago';
+      var h = Math.floor(m / 60); if (h < 24) return h + 'h ago';
+      return t.toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit' });
+    }
+    function dayLabel(d) {
+      var t = new Date(d); if (isNaN(t)) return 'Earlier';
+      var today = new Date(); today.setHours(0, 0, 0, 0);
+      var x = new Date(t); x.setHours(0, 0, 0, 0);
+      var diff = Math.round((today - x) / 864e5);
+      return diff === 0 ? 'Today' : diff === 1 ? 'Yesterday' : UI.fmtDate(t);
+    }
 
-      items.forEach(raw => {
-        const art = sanitizeArticle(raw);
-        const dedupeKey = (art.link + '::' + art.title).toLowerCase();
-        if (!seen.has(dedupeKey)) {
-          seen.add(dedupeKey);
-          sanitized.push(art);
-        }
+    function render() {
+      var q = $('q').value.trim().toLowerCase();
+      var counts = { all: all.length, accidents: 0 };
+      all.forEach(function (a) { counts[a.category] = (counts[a.category] || 0) + 1; if (a.isAccident) counts.accidents++; });
+      $('seg').innerHTML = SECTIONS.filter(function (s) { return s[0] === 'all' || s[0] === 'accidents' || counts[s[0]]; }).map(function (s) {
+        return '<button type="button" data-s="' + s[0] + '" aria-pressed="' + (section === s[0]) + '">' + s[1] + '<span>' + (counts[s[0]] || 0) + '</span></button>';
+      }).join('');
+      var list = all.filter(function (a) {
+        if (section === 'accidents' ? !a.isAccident : (section !== 'all' && a.category !== section)) return false;
+        return !q || (a.title + ' ' + a.source + ' ' + (a.tags || []).join(' ')).toLowerCase().indexOf(q) !== -1;
       });
-
-      // Sort by publication date descending
-      sanitized.sort((a, b) => new Date(b.pubDate || 0) - new Date(a.pubDate || 0));
-
-      allArticles = sanitized;
-
-      if (cacheKeyToSave) {
-        try {
-          localStorage.setItem(cacheKeyToSave, JSON.stringify(sanitized));
-        } catch (_) {}
-      }
-
-      updatePillCounts();
-      renderFilteredView();
-
-      const lastUpdatedEl = document.getElementById('lastUpdatedText');
-      if (lastUpdatedEl) {
-        const now = new Date();
-        const hrs = String(now.getHours()).padStart(2, '0');
-        const mins = String(now.getMinutes()).padStart(2, '0');
-        lastUpdatedEl.textContent = `Updated at ${hrs}:${mins}`;
-      }
-    }
-
-    // ──────────────────────────────────────
-    //   Filter Counts & Rendering
-    // ──────────────────────────────────────
-    function updatePillCounts() {
-      const counts = {
-        all: allArticles.length,
-        state: 0,
-        districts: 0,
-        bangla: 0,
-        national: 0,
-        accidents: 0
-      };
-
-      allArticles.forEach(item => {
-        if (item.category && counts[item.category] !== undefined) {
-          counts[item.category]++;
-        }
-        if (item.isAccident) {
-          counts.accidents++;
-        }
-      });
-
-      document.getElementById('count-all').textContent = counts.all;
-      document.getElementById('count-state').textContent = counts.state;
-      document.getElementById('count-districts').textContent = counts.districts;
-      document.getElementById('count-bangla').textContent = counts.bangla;
-      document.getElementById('count-national').textContent = counts.national;
-      document.getElementById('count-accidents').textContent = counts.accidents;
-
-      const liveBadgeText = document.getElementById('liveBadgeText');
-      if (liveBadgeText) {
-        liveBadgeText.textContent = `${counts.all} Live Stories`;
-      }
-    }
-
-    function setCategory(category) {
-      currentCategory = category;
-      document.querySelectorAll('.pill-btn').forEach(btn => {
-        if (btn.getAttribute('data-category') === category) {
-          btn.classList.add('active');
-        } else {
-          btn.classList.remove('active');
-        }
-      });
-      renderFilteredView();
-    }
-
-    function handleSearchInput() {
-      const input = document.getElementById('searchInput');
-      const clearBtn = document.getElementById('clearSearchBtn');
-      searchQuery = (input.value || '').trim().toLowerCase();
-
-      if (clearBtn) {
-        clearBtn.style.display = searchQuery ? 'block' : 'none';
-      }
-
-      renderFilteredView();
-    }
-
-    function clearSearch() {
-      const input = document.getElementById('searchInput');
-      const clearBtn = document.getElementById('clearSearchBtn');
-      if (input) input.value = '';
-      if (clearBtn) clearBtn.style.display = 'none';
-      searchQuery = '';
-      renderFilteredView();
-    }
-
-    function renderFilteredView() {
-      const grid = document.getElementById('newsGrid');
-      const resultCountText = document.getElementById('resultCountText');
-      if (!grid) return;
-
-      // Filter articles
-      const filtered = allArticles.filter(item => {
-        // Category filter
-        if (currentCategory === 'accidents') {
-          if (!item.isAccident) return false;
-        } else if (currentCategory !== 'all') {
-          if (item.category !== currentCategory) return false;
-        }
-
-        // Search query filter
-        if (searchQuery) {
-          const combined = (item.title + ' ' + item.source + ' ' + (item.tags ? item.tags.join(' ') : '')).toLowerCase();
-          if (!combined.includes(searchQuery)) return false;
-        }
-
-        return true;
-      });
-
-      // Update count text
-      if (resultCountText) {
-        resultCountText.innerHTML = `Showing <strong>${filtered.length}</strong> of ${allArticles.length} articles`;
-      }
-
-      // Check if empty
-      if (filtered.length === 0) {
-        if (searchQuery) {
-          renderEmptyState('No articles match your search', `No news stories matching "${escapeHtml(searchQuery)}". Try searching for general terms like "power", "solar", or "grid".`, false, true);
-        } else if (currentCategory === 'accidents') {
-          renderEmptyState('No recent electrical accidents reported', 'Great news! No severe electrocution or electrical safety incidents detected in current feeds.', false);
-        } else {
-          renderEmptyState('No articles in this section', 'Check back shortly or tap Sync News above.', false);
-        }
+      if (!list.length) {
+        $('list').innerHTML = '<div class="ui-empty">' + (q ? 'No headlines match “' + UI.esc($('q').value.trim()) + '”.' : section === 'accidents' ? 'No electrical accidents in the current feeds.' : 'Nothing in this section yet.') + '</div>';
         return;
       }
-
-      // Render cards
-      grid.innerHTML = '';
-      const fragment = document.createDocumentFragment();
-
-      filtered.forEach(item => {
-        const card = createNewsCard(item);
-        fragment.appendChild(card);
+      var h = '', last = '';
+      list.forEach(function (a) {
+        var d = dayLabel(a.pubDate);
+        if (d !== last) { h += '<div class="day">' + UI.esc(d) + '</div>'; last = d; }
+        var meta = ['<span>' + UI.esc(a.source) + '</span>', a.pubDate ? '<span class="sep"></span><span>' + UI.esc(rel(a.pubDate)) + '</span>' : '', '<span class="sep"></span><span>' + UI.esc(LABEL[a.category] || 'Power sector') + '</span>']
+          .concat((a.tags || []).map(function (t) { return '<span class="sep"></span><span>' + UI.esc(t) + '</span>'; })).join('');
+        h += '<article class="art"><div><a class="t" href="' + UI.esc(a.link) + '" target="_blank" rel="noopener noreferrer">' + UI.esc(a.title) + '</a>' +
+          '<div class="m">' + (a.isAccident ? '<span class="ui-badge bad">Safety</span>' : '') + meta + '</div>' +
+          (a.description ? '<p>' + UI.esc(a.description) + '</p>' : '') + '</div>' +
+          '<div class="acts"><button type="button" class="ui-btn icon sm ghost" data-copy="' + UI.esc(a.link) + '" title="Copy link" aria-label="Copy link"><svg class="ui-i"><use href="#ui-copy"/></svg></button></div></article>';
       });
-
-      grid.appendChild(fragment);
+      $('list').innerHTML = h;
     }
 
-    function createNewsCard(item) {
-      const card = document.createElement('article');
-      card.className = item.isAccident ? 'news-card accident-card' : 'news-card';
-
-      // Clicking anywhere on card opens article
-      card.onclick = (e) => {
-        // Avoid opening if copy button was clicked
-        if (e.target.closest('.btn-copy-link')) return;
-        window.open(item.link, '_blank', 'noopener,noreferrer');
-      };
-
-      const categoryLabel = CATEGORY_LABELS[item.category] || 'Power Sector';
-      const relativeTime = formatRelativeTime(item.pubDate);
-
-      // Smart tags HTML
-      let tagsHtml = '';
-      if (item.tags && item.tags.length > 0) {
-        tagsHtml = `<div class="topic-tags">${item.tags.map(t => `<span class="topic-tag">${escapeHtml(t)}</span>`).join('')}</div>`;
-      }
-
-      // Accident badge
-      const accidentBadgeHtml = item.isAccident
-        ? `<span class="hazard-pill" title="Electrical Accident / Hazard Reported"><i class="fas fa-triangle-exclamation"></i> Safety Alert</span>`
-        : '';
-
-      // Optional excerpt (only if genuine summary text exists)
-      const descHtml = item.description 
-        ? `<p class="news-snippet">${escapeHtml(item.description)}</p>` 
-        : '';
-
-      card.innerHTML = `
-        <div>
-          <div class="card-meta-top">
-            <div class="meta-badges-left">
-              <span class="source-pill" title="${escapeHtml(item.source)}">
-                <i class="fas fa-newspaper" style="font-size: 10px; opacity: 0.8;"></i>
-                ${escapeHtml(item.source)}
-              </span>
-              ${accidentBadgeHtml}
-              <span class="category-tag">${escapeHtml(categoryLabel)}</span>
-            </div>
-            <span class="time-stamp">${escapeHtml(relativeTime)}</span>
-          </div>
-
-          <h2 class="news-title" title="${escapeHtml(item.title)}">${escapeHtml(item.title)}</h2>
-          ${descHtml}
-          ${tagsHtml}
-        </div>
-
-        <div class="card-footer">
-          <span class="btn-read">
-            <span>Read Article</span>
-            <i class="fas fa-arrow-up-right-from-square" style="font-size: 11px;"></i>
-          </span>
-          <button class="btn-copy-link" onclick="copyArticleLink(event, '${escapeJs(item.link)}')" title="Copy article link">
-            <i class="far fa-copy"></i>
-          </button>
-        </div>
-      `;
-
-      return card;
-    }
-
-    function renderEmptyState(title, desc, showRetry = false, showClearSearch = false) {
-      const grid = document.getElementById('newsGrid');
-      if (!grid) return;
-
-      let actionHtml = '';
-      if (showRetry) {
-        actionHtml = `<button class="state-btn" onclick="refreshFeeds(true)"><i class="fas fa-arrows-rotate"></i> Retry Connection</button>`;
-      } else if (showClearSearch) {
-        actionHtml = `<button class="state-btn" onclick="clearSearch()"><i class="fas fa-times"></i> Clear Search Query</button>`;
-      }
-
-      grid.innerHTML = `
-        <div class="state-box">
-          <i class="fas fa-newspaper state-icon"></i>
-          <div class="state-title">${escapeHtml(title)}</div>
-          <div class="state-desc">${escapeHtml(desc)}</div>
-          ${actionHtml}
-        </div>
-      `;
-    }
-
-    // ──────────────────────────────────────
-    //   Toast & Link Copying
-    // ──────────────────────────────────────
-    function copyArticleLink(e, link) {
-      e.stopPropagation();
-      if (!link || link === '#') return;
-
-      navigator.clipboard.writeText(link).then(() => {
-        showToast('Link copied to clipboard!');
-      }).catch(() => {
-        // Fallback
-        const textarea = document.createElement('textarea');
-        textarea.value = link;
-        document.body.appendChild(textarea);
-        textarea.select();
-        document.execCommand('copy');
-        document.body.removeChild(textarea);
-        showToast('Link copied to clipboard!');
-      });
-    }
-
-    function showToast(message) {
-      const toast = document.getElementById('toastPopup');
-      const msg = document.getElementById('toastMsg');
-      if (!toast || !msg) return;
-
-      msg.textContent = message;
-      toast.classList.add('show');
-      setTimeout(() => {
-        toast.classList.remove('show');
-      }, 2500);
-    }
-
-    function escapeHtml(text) {
-      if (!text) return '';
-      return String(text)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;');
-    }
-
-    function escapeJs(text) {
-      if (!text) return '';
-      return String(text).replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"');
-    }
-
-    // ──────────────────────────────────────
-    //   App Initializer
-    // ──────────────────────────────────────
-    window.addEventListener('DOMContentLoaded', () => {
-      // Instant render from cache first so user never sees blank layout
-      const cached = localStorage.getItem('mzo_merged_news_v2') || localStorage.getItem('mzo_merged_news');
-      if (cached) {
-        try {
-          const parsed = JSON.parse(cached);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            processAndRender(parsed, null);
+    function load(force) {
+      var b = $('syncBtn'); b.classList.add('spin'); b.disabled = true;
+      fetch(force ? '/api/news?force=1' : '/api/news')
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (d) {
+          if (d && d.status === 'ok' && Array.isArray(d.items)) {
+            ingest(d.items, true);
+            var t = new Date();
+            $('meta').textContent = UI.n(all.length) + ' stories · Updated ' + t.toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit' });
+            if (force) UI.toast('Feeds refreshed');
+            return;
           }
-        } catch (_) {}
-      }
+          throw new Error('bad');
+        })
+        .catch(function () {
+          var cached = null;
+          try { cached = JSON.parse(localStorage.getItem(CACHE) || localStorage.getItem('mzo_merged_news') || 'null'); } catch (e) {}
+          if (Array.isArray(cached) && cached.length) { ingest(cached, false); $('meta').textContent = UI.n(all.length) + ' stories · Offline copy'; }
+          else if (!all.length) { $('meta').textContent = 'Could not reach the news feeds'; $('list').innerHTML = '<div class="ui-empty">Could not reach the news feeds. <button type="button" class="ui-btn sm" id="retry">Retry</button></div>'; }
+        })
+        .then(function () { b.classList.remove('spin'); b.disabled = false; });
+    }
 
-      // Perform live background sync
-      refreshFeeds(false);
+    $('seg').addEventListener('click', function (e) { var bt = e.target.closest('button'); if (bt) { section = bt.getAttribute('data-s'); render(); } });
+    $('q').addEventListener('input', UI.debounce(render, 120));
+    $('list').addEventListener('click', function (e) {
+      var c = e.target.closest('[data-copy]');
+      if (c) { UI.copy(c.getAttribute('data-copy')).then(function () { UI.toast('Link copied'); }); return; }
+      if (e.target.id === 'retry') load(true);
     });
+    $('syncBtn').addEventListener('click', function () { load(true); });
+
+    // Paint the last copy first, then refresh.
+    try { var c = JSON.parse(localStorage.getItem(CACHE) || 'null'); if (Array.isArray(c) && c.length) { all = c; render(); $('meta').textContent = UI.n(all.length) + ' stories'; } } catch (e) {}
+    load(false);
+  });
   </script>
 </body>
 </html>

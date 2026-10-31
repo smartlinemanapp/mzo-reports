@@ -32,15 +32,23 @@
     overlay.id = 'mzo-app-update-overlay';
     overlay.setAttribute('role', 'dialog');
     overlay.setAttribute('aria-modal', 'true');
+    var dark = false;
+    try { dark = (localStorage.getItem('theme') || localStorage.getItem('mzo_theme')) !== 'light'; } catch (e) {}
+    var c = dark
+      ? { bg: '#09090a', card: '#161617', line: '#27272a', text: '#ececee', muted: '#8e8e96', ink: '#ececee', onInk: '#0f0f10', note: '#1c1c1e' }
+      : { bg: '#f1f1f0', card: '#ffffff', line: '#e7e7e5', text: '#18181b', muted: '#71717a', ink: '#18181b', onInk: '#ffffff', note: '#f5f5f4' };
     overlay.innerHTML =
       '<style>' +
-      '#mzo-app-update-overlay{position:fixed;inset:0;z-index:2147483000;display:flex;align-items:center;justify-content:center;background:#0f172a;padding:24px;font-family:system-ui,-apple-system,sans-serif}' +
-      '#mzo-app-update-card{width:100%;max-width:440px;color:#f8fafc}' +
-      '#mzo-app-update-card h3{margin:0 0 16px;font-size:28px;font-weight:700;letter-spacing:-0.03em}' +
-      '#mzo-app-update-card .mzo-update-note{margin:0 0 22px;padding:14px 16px;border-radius:12px;background:rgba(99,102,241,.2);border:1px solid rgba(129,140,248,.5);color:#e0e7ff;font-size:16px;line-height:1.5;font-weight:600;white-space:pre-line}' +
-      '#mzo-app-update-card button{width:100%;border:0;border-radius:12px;padding:14px 16px;font-size:16px;font-weight:600;background:#4f46e5;color:#fff;cursor:pointer}' +
+      '#mzo-app-update-overlay{position:fixed;inset:0;z-index:2147483000;display:flex;align-items:center;justify-content:center;background:' + c.bg + ';padding:24px;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased}' +
+      '#mzo-app-update-card{width:100%;max-width:400px;background:' + c.card + ';border:1px solid ' + c.line + ';border-radius:12px;padding:24px;color:' + c.text + '}' +
+      '#mzo-app-update-card .mzo-update-k{font-size:12px;font-weight:500;color:' + c.muted + ';margin:0 0 6px}' +
+      '#mzo-app-update-card h3{margin:0 0 14px;font-size:18px;font-weight:600;letter-spacing:-0.01em}' +
+      '#mzo-app-update-card .mzo-update-note{margin:0 0 20px;padding:12px 14px;border-radius:8px;background:' + c.note + ';border:1px solid ' + c.line + ';font-size:13.5px;line-height:1.5;white-space:pre-line}' +
+      '#mzo-app-update-card button{width:100%;border:0;border-radius:8px;padding:10px 14px;font:600 13.5px inherit;font-family:inherit;background:' + c.ink + ';color:' + c.onInk + ';cursor:pointer}' +
+      '#mzo-app-update-card button:hover{opacity:.9}' +
       '</style>' +
       '<div id="mzo-app-update-card">' +
+      '<p class="mzo-update-k">MZO Reports</p>' +
       '<h3>App updated</h3>' +
       '<div class="mzo-update-note"></div>' +
       '<button type="button">Reload</button>' +
