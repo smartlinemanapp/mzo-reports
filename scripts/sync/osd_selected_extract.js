@@ -1,11 +1,11 @@
 /**
  * Names for the OSD follow-up cuts only. The full zone list is not downloaded.
  *
- * Cuts (a consumer is kept once if any cut matches):
- *   REM: OSD above ₹5,000, except Government and Agriculture
+ * Cuts (a consumer is kept once if any cut matches). The amount is included.
+ *   REM: ₹5,000 or more, except Government and Agriculture
  *   Industrial, any amount
- *   Commercial above ₹1,000
- *   Domestic above ₹50,000
+ *   Commercial ₹1,000 or more
+ *   Domestic ₹50,000 or more (domestic from ₹5,000 is already in the REM cut)
  *
  * One division at a time, then merged to data/osd_selected.csv.
  *   npm run sync:osd:selected
@@ -38,10 +38,10 @@ function isDbvisAvailable() {
 function whereCuts() {
   return [
     '(',
-    "  (NOTOSD > 5000 AND UPPER(CLASS_DESC) NOT LIKE 'GOV%' AND UPPER(CLASS_DESC) NOT LIKE 'AGR%')",
+    "  (NOTOSD >= 5000 AND UPPER(CLASS_DESC) NOT LIKE 'GOV%' AND UPPER(CLASS_DESC) NOT LIKE 'AGR%')",
     "  OR UPPER(CLASS_DESC) LIKE 'IND%'",
-    "  OR (UPPER(CLASS_DESC) LIKE 'COM%' AND NOTOSD > 1000)",
-    "  OR (UPPER(CLASS_DESC) LIKE 'DOM%' AND NOTOSD > 50000)",
+    "  OR (UPPER(CLASS_DESC) LIKE 'COM%' AND NOTOSD >= 1000)",
+    "  OR (UPPER(CLASS_DESC) LIKE 'DOM%' AND NOTOSD >= 50000)",
     ')'
   ].join('\n');
 }

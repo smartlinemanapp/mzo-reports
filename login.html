@@ -684,7 +684,8 @@
         cardInstallBtn.addEventListener('click', async function (e) {
           if (e && e.preventDefault) e.preventDefault();
           if (cardInstallLabel) cardInstallLabel.textContent = 'Installing…';
-          if ('serviceWorker' in navigator) {
+          var devHost = location.hostname === 'localhost' || location.hostname === '127.0.0.1' || location.hostname === '[::1]';
+          if (!devHost && 'serviceWorker' in navigator) {
             try {
               await navigator.serviceWorker.register('/sw.js');
               await navigator.serviceWorker.ready;
@@ -700,7 +701,12 @@
           if (cardInstallLabel) cardInstallLabel.textContent = 'Install DISHA app';
         });
       }
-      if ('serviceWorker' in navigator) {
+      var localDev = location.hostname === 'localhost' || location.hostname === '127.0.0.1' || location.hostname === '[::1]';
+      if (localDev && 'serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(function (regs) {
+          regs.forEach(function (reg) { reg.unregister(); });
+        }).catch(function () {});
+      } else if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('/sw.js').catch(function () {});
       }
     })();

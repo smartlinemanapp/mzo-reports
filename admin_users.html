@@ -6039,13 +6039,13 @@
         page: '/disconnection.html',
         icon: 'fa-power-off',
         iconColor: 'red',
-        desc: 'Extract candidate defaulters, notice status, and outstanding balances across all 7 divisions.',
+        desc: 'This extract is the full consumer list. It is no longer published. The disconnection page keeps its current batch.',
         tables: ['ISUDATA.CRM_DISCONN_LIST'],
         endpoint: '/api/disconnection/crm-sync',
         metaEndpoint: '/api/disconnection/meta',
         durationText: 'One extract',
         defaultSchedule: { enabled: false, frequency: 'weekly', day: 'Tue', time: '05:00', interval: '24' },
-        confirmText: 'Directly extract the latest Disconnection Tracker list from IBM DB2 across all 7 divisions?\n\nThis queries DB2 and publishes the updated baseline directly to the Oracle Cloud VM cache.',
+        confirmText: 'This extract would replace the action list with every consumer. It is no longer published.\n\nThe disconnection page keeps its current batch. Sync Payments updates paid status on that batch.',
         extractMeta: (m) => {
           const t = m && (m.updatedAt || m.reportDate || m.cutoffDateFormatted);
           const rows = m && (m.rows || m.totalRows || m.totalCount);
@@ -6085,7 +6085,7 @@
         page: '/rem/osd.html',
         icon: 'fa-scale-balanced',
         iconColor: 'red',
-        desc: 'Refresh the OSD summary from NOTICE_OSD and publish it with the selected-consumer list. REM is outstanding above ₹5,000, except Government and Agriculture.',
+        desc: 'Refresh the OSD summary from NOTICE_OSD and publish it with the selected names. REM is ₹5,000 or more, except Government and Agriculture.',
         tables: ['ISUDATA.NOTICE_OSD'],
         endpoint: '/api/osd/crm-sync',
         metaEndpoint: '/api/osd/meta',

@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Disconnection tracker · DISHA</title>
+  <title>Disconnection · DISHA</title>
   <script src="/mzo_theme.js?v=10"></script>
   <link rel="stylesheet" href="/mzo_theme.css?v=26" />
   <script src="/mzo_ui.js?v=23" defer></script>
@@ -315,6 +315,11 @@
       .dc-status.busy .dc-prog b { animation: none; }
     }
     #table tbody tr { cursor: pointer; transition: background 0.15s; }
+    .osd-modes { margin-top: 8px; }
+    .dc-limits { display: grid; gap: 8px; }
+    .dc-limits label { display: grid; gap: 4px; font-size: 12px; color: var(--mzo-muted); }
+    .dc-limits .ui-input { width: 100%; }
+    .dc-limit-note { margin: 0; font-size: 12px; color: var(--mzo-muted); line-height: 1.4; }
     #table tbody tr:hover { background: var(--mzo-surface-sunken, rgba(0, 0, 0, 0.03)); }
   </style>
 </head>
@@ -323,8 +328,15 @@
   <main class="ui-page">
     <header class="ui-head">
       <div>
-        <h1>Disconnection tracker<span class="ui-badge ui-date" id="asOn">…</span></h1>
+        <h1>Disconnection<span class="ui-badge ui-date" id="asOn">…</span></h1>
+        <div class="ui-seg osd-modes" id="osdModes" role="tablist" aria-label="Outstanding dues">
+          <button type="button" data-mode="snapshot" aria-pressed="false">Snapshot</button>
+          <button type="button" data-mode="trend" aria-pressed="false">Trend</button>
+          <button type="button" data-mode="names" aria-pressed="false">Names</button>
+          <button type="button" data-mode="action" aria-pressed="true">Action</button>
+        </div>
         <p id="headerSub">OSD baseline: <strong id="baseDateVal">3 Nov 2026</strong> &nbsp;·&nbsp; DB2 collections through: <strong id="payUpdateVal">5 Nov 2026</strong></p>
+        <p class="dc-limit-note" id="batchNote">Domestic ₹50,000 or more. Commercial and industrial ₹1,000 or more. Other classes ₹5,000 or more.</p>
       </div>
       <div class="ui-actions">
         <button type="button" class="ui-btn ui-side-toggle" id="sideToggle" aria-controls="side"
@@ -353,6 +365,11 @@
               <use href="#ui-search" />
             </svg><input class="ui-input" id="q" type="search" placeholder="Search" title="Consumer ID, name or address"
               aria-label="Search by consumer ID, name or address" autocomplete="off" /></label>
+        </div>
+        <div class="ui-side-sec dc-limits">
+          <label>Domestic, ₹ or more<input class="ui-input" id="limDom" type="number" min="50000" step="1000" inputmode="numeric" aria-label="Domestic limit" /></label>
+          <label>Other classes, ₹ or more<input class="ui-input" id="limOther" type="number" min="1000" step="500" inputmode="numeric" aria-label="Other class limit" /></label>
+          <p class="dc-limit-note">The limit can only go up. A lower amount was not stored for this batch.</p>
         </div>
         <div class="ui-side-sec">
           <div id="fOsd" aria-label="Outstanding"></div>
@@ -525,6 +542,45 @@
       // Detailed report: Region → Division → CCC → consumers (or their follow-ups)
       var dr = UI.drill({ el: 'drill', root: 'Malda Zone', lists: [{ k: 'list', label: 'Consumers' }, { k: 'followups', label: 'Follow-ups' }], onChange: function () { render(); } });
       var f = { q: '', status: 'all', osd: 0, cls: '' };
+      var LIMIT_KEY = 'mzo_osd_action_limits';
+      var limits = { dom: 50000, other: 1000 };
+      function readLimits() {
+        limits = { dom: 50000, other: 1000 };
+        try {
+          var saved = JSON.parse(localStorage.getItem(LIMIT_KEY) || '{}');
+          var dom = Number(saved.dom), other = Number(saved.other);
+          if (dom >= 50000) limits.dom = dom;
+          if (other >= 1000) limits.other = other;
+        } catch (e) {}
+      }
+      function classKind(desc) {
+        var u = String(desc || '').toUpperCase();
+        if (u.indexOf('DOM') === 0) return 'dom';
+        if (u.indexOf('COM') === 0) return 'com';
+        if (u.indexOf('IND') === 0) return 'ind';
+        if (u.indexOf('GOV') === 0 || u.indexOf('AGR') === 0) return 'skip';
+        return 'other';
+      }
+      function floorFor(c) {
+        var k = classKind(c.classDesc);
+        if (k === 'skip') return Infinity;
+        if (k === 'dom') return limits.dom;
+        if (k === 'other') return Math.max(limits.other, 5000);
+        return limits.other;
+      }
+      function inBatch(c) { return c.osd >= floorFor(c); }
+      function rupee(n) { return '₹' + Math.round(n).toLocaleString('en-IN'); }
+      function paintBatchNote() {
+        var otherFloor = Math.max(limits.other, 5000);
+        var same = limits.other >= 5000;
+        var text = 'Domestic ' + rupee(limits.dom) + ' or more. Commercial and industrial ' + rupee(limits.other) + ' or more.';
+        text += same ? ' Other classes use that same limit.' : ' Other classes ' + rupee(otherFloor) + ' or more.';
+        if ($('batchNote')) $('batchNote').textContent = text;
+      }
+      readLimits();
+      if ($('limDom')) $('limDom').value = String(limits.dom);
+      if ($('limOther')) $('limOther').value = String(limits.other);
+      paintBatchNote();
       var setActive = UI.sidePanel({ side: 'side', toggle: 'sideToggle', label: 'activeLabel', count: 'activeCount', clear: 'clearBtn', onClear: clearAll });
       var followupRecentOnly = false, haveData = false;
 
@@ -662,8 +718,9 @@
         var cls = skip === 'cls' ? '' : f.cls, osd = skip === 'osd' ? 0 : f.osd;
         return all.filter(function (c) {
           if (!dr.match(c)) return false;
+          if (!inBatch(c)) return false;
           if (cls && c.classDesc !== cls) return false;
-          if (osd && !(c.osd > osd)) return false;
+          if (osd && !(c.osd >= osd)) return false;
           if (q && !(c.id.toLowerCase().indexOf(q) !== -1 || c.name.toLowerCase().indexOf(q) !== -1 || c.address.toLowerCase().indexOf(q) !== -1 ||
             c._supp.toLowerCase().indexOf(q) !== -1 || c._divn.toLowerCase().indexOf(q) !== -1 || c._region.toLowerCase().indexOf(q) !== -1 ||
             c.remarks.toLowerCase().indexOf(q) !== -1)) return false;
@@ -757,8 +814,8 @@
       }
 
       function facets() {
-        var bo = base('osd'), sum = function (min) { return bo.filter(function (c) { return c.osd > min; }).length; };
-        UI.facet('fOsd', [{ value: 3000, label: 'OSD above ₹3,000', count: sum(3000) }, { value: 5000, label: 'OSD above ₹5,000', count: sum(5000) }], f.osd, function (v) { f.osd = +v || 0; render(); });
+        var bo = base('osd'), sum = function (min) { return bo.filter(function (c) { return c.osd >= min; }).length; };
+        UI.facet('fOsd', [{ value: 3000, label: '₹3,000 or more', count: sum(3000) }, { value: 5000, label: '₹5,000 or more', count: sum(5000) }], f.osd, function (v) { f.osd = +v || 0; render(); });
         var cls = {}; base('cls').forEach(function (c) { if (c.classDesc) cls[c.classDesc] = (cls[c.classDesc] || 0) + 1; });
         var keys = Object.keys(cls); if (f.cls && keys.indexOf(f.cls) === -1) keys.push(f.cls);
         UI.facet('fClass', keys.sort(function (a, b) { return (cls[b] || 0) - (cls[a] || 0); }).map(function (k) { return { value: k, label: UI.title(k), count: cls[k] || 0 }; }), f.cls, function (v) { f.cls = v; render(); });
@@ -877,7 +934,7 @@
           currentActiveFilters.push({ label: 'Status', value: STATUS[f.status] ? STATUS[f.status].label : f.status, clear: function () { f.status = 'all'; } });
         }
         if (f.osd > 0) {
-          currentActiveFilters.push({ label: 'OSD threshold', value: '> ₹' + UI.n(f.osd), clear: function () { f.osd = 0; } });
+          currentActiveFilters.push({ label: 'OSD threshold', value: '≥ ₹' + UI.n(f.osd), clear: function () { f.osd = 0; } });
         }
         if (f.cls) {
           currentActiveFilters.push({ label: 'Class', value: UI.title(f.cls), clear: function () { f.cls = ''; } });
@@ -1269,6 +1326,33 @@
         f.q = ''; f.status = 'all'; f.osd = 0; f.cls = ''; followupRecentOnly = false; $('q').value = '';
         render();
       }
+      function commitLimit(which, raw) {
+        var n = Number(raw);
+        if (which === 'dom') limits.dom = n >= 50000 ? n : 50000;
+        else limits.other = n >= 1000 ? n : 1000;
+        try { localStorage.setItem(LIMIT_KEY, JSON.stringify(limits)); } catch (e) {}
+        if ($('limDom')) $('limDom').value = String(limits.dom);
+        if ($('limOther')) $('limOther').value = String(limits.other);
+        paintBatchNote();
+        render();
+      }
+      if ($('limDom')) $('limDom').addEventListener('change', function () { commitLimit('dom', this.value); });
+      if ($('limOther')) $('limOther').addEventListener('change', function () { commitLimit('other', this.value); });
+      function goReport(url) {
+        if (window.parent && window.parent !== window && typeof window.parent.openPage === 'function') {
+          window.parent.openPage(url);
+          return;
+        }
+        location.href = '/' + url.replace(/^\//, '');
+      }
+      if ($('osdModes')) $('osdModes').addEventListener('click', function (e) {
+        var btn = e.target.closest('[data-mode]');
+        if (!btn || btn.getAttribute('data-mode') === 'action') return;
+        var mode = btn.getAttribute('data-mode');
+        if (mode === 'trend') goReport('rem/osd.html?view=trend');
+        else if (mode === 'names') goReport('rem/osd_selected.html');
+        else goReport('rem/osd.html');
+      });
       $('rhFiltersBar').addEventListener('click', function (e) {
         var btn = e.target.closest('[data-rh-clear]');
         if (btn) {
@@ -1366,41 +1450,11 @@
       // Direct CRM Extraction & Sync from IBM DB2
       if ($('crmSyncBtn')) {
         $('crmSyncBtn').addEventListener('click', function () {
-          var b = this;
           openSyncDlg({
             title: 'Sync from DB2',
-            body: 'Extract the latest disconnection list from IBM DB2 and update the live page.',
-            bn: 'সরাসরি IBM DB2 থেকে ডিসকানেকশন ট্র্যাকার ডেটা এক্সট্র্যাক্ট করে ক্লাউড ক্যাশে আপডেট করবেন?',
-            ok: 'Sync from DB2',
-            cancel: 'Cancel'
-          }).then(function (yes) {
-            if (!yes) return;
-            b.disabled = true; b.classList.add('spin');
-            var st = $('status'), stText = $('statusText'), stBar = $('statusBar');
-            if (st) {
-              st.hidden = false;
-              stText.textContent = 'Extracting disconnection records from IBM DB2 and uploading to the live page...';
-              stBar.style.width = '35%';
-            }
-            fetch('/api/disconnection/crm-sync', {
-              method: 'POST',
-              credentials: 'same-origin',
-              headers: { 'Content-Type': 'application/json', Accept: 'application/json' }
-            })
-              .then(function (r) {
-                return r.text().then(function (t) {
-                  var d; try { d = JSON.parse(t); } catch (e) { throw new Error(r.status === 401 ? 'Session expired. Please sign in again.' : 'Server returned HTTP ' + r.status); }
-                  if (!r.ok || d.status !== 'success') throw new Error(d.message || 'HTTP ' + r.status);
-                  return d;
-                });
-              })
-              .then(function (res) {
-                MzoRows.reload(ROWS).then(reparse);
-                finishSync(b, st, 'DB2 sync complete', res.message || 'Disconnection data extracted from DB2 and updated.', 'ok');
-              })
-              .catch(function (err) {
-                finishSync(b, st, 'DB2 sync failed', err.message || String(err), 'bad');
-              });
+            body: 'This extract would replace the action list with every consumer. It is no longer published. This page keeps the current batch. Sync Payments updates paid status on that batch.',
+            bn: 'পুরো তালিকা আর আপলোড হয় না। বর্তমান ব্যাচই অ্যাকশন লিস্ট। পেমেন্ট সিঙ্ক শুধু পরিশোধের অবস্থা আপডেট করে।',
+            ok: 'Close'
           });
         });
       }

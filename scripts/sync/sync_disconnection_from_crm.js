@@ -6,8 +6,8 @@
  * Database: IBM DB2 (db2_mig @ 10.251.64.65:60000, user: report)
  * Tool: DbVisualizer CLI (dbviscmd.bat) with connection "ibm db2"
  *
- * Extracts OSD defaulters & disconnection list, updates data/disconnection.csv,
- * computes KPI metrics, updates data/disconnection_meta.json, and pushes to VM.
+ * This extract is the full consumer list. It no longer replaces the action batch
+ * or uploads it. Set MZO_ALLOW_FULL_DISCONNECTION=1 to run the old upload.
  */
 
 const fs = require('fs');
@@ -111,6 +111,9 @@ function runDbvisExtraction() {
 }
 
 async function syncDisconnectionFromCrm(options = {}) {
+  if (process.env.MZO_ALLOW_FULL_DISCONNECTION !== '1') {
+    throw new Error('The full consumer list is not uploaded. The disconnection page keeps its current batch, and Sync Payments updates paid status on that batch.');
+  }
   const isCli = options.isCli ?? false;
   const dryRun = options.dryRun ?? false;
   const skipDb = options.skipDb ?? false;

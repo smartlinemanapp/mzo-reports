@@ -334,6 +334,9 @@ app.get(['/nsc_simple.html', '/nsc_pipeline.html', '/nsc_classic.html'], (req, r
     res.redirect(302, '/nsc.html' + (i === -1 ? '' : req.originalUrl.slice(i)));
 });
 app.get('/performance_index', (req, res) => res.redirect(308, '/performance_index.html'));
+// Retired outstanding-dues URLs open the matching view. The files stay in place.
+app.get('/remosd5000.html', (req, res) => res.redirect(302, '/rem/osd_selected.html?group=rem'));
+app.get('/rem/defaulters.html', (req, res) => res.redirect(302, '/rem/osd.html'));
 // VM user store: a report page outside the signed-in user's modules is refused (docs/users.md).
 app.use((req, res, next) => reportPageGate_(req, res, next));
 // Static files are public, as on Vercel where the CDN serves them before this app; pages gate themselves with auth.js.
@@ -5505,8 +5508,10 @@ app.post('/api/osd/upload', (req, res, next) => {
             const files = req.files || {};
             const saved = [];
             if (files.master && files.master[0]) {
-                writeDataFile_('osd_master.csv', files.master[0].buffer);
-                saved.push('master');
+                return res.status(400).json({
+                    status: 'error',
+                    message: 'The full consumer list is not stored. Upload the summary and the selected names.'
+                });
             }
             if (files.summary && files.summary[0]) {
                 storeOsdSummary_(files.summary[0].buffer);
@@ -5529,8 +5534,10 @@ app.post('/api/osd/upload', (req, res, next) => {
                     storeOsdSummary_(files.file[0].buffer);
                     saved.push('summary');
                 } else {
-                    writeDataFile_('osd_master.csv', files.file[0].buffer);
-                    saved.push('master');
+                    return res.status(400).json({
+                        status: 'error',
+                        message: 'Send the summary or the selected names. A full consumer list is not stored.'
+                    });
                 }
             }
             if (!saved.length) {

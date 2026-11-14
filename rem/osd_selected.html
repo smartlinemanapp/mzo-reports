@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>OSD selected · DISHA</title>
+  <title>Outstanding names · DISHA</title>
   <script src="/mzo_theme.js?v=10"></script>
   <link rel="stylesheet" href="/mzo_theme.css?v=26" />
   <script src="/mzo_ui.js?v=23" defer></script>
@@ -21,6 +21,7 @@
     .osd-pick .k { font-weight: 650; }
     .osd-pick .d, .osd-pick .n { font-size: 12px; font-weight: 400; color: var(--mzo-muted); }
     .osd-pick[aria-pressed="true"] .d, .osd-pick[aria-pressed="true"] .n { color: inherit; opacity: 0.88; }
+    .osd-modes { margin-top: 8px; }
     @media (max-width: 900px) { .osd-picks { grid-template-columns: 1fr 1fr; } }
   </style>
 </head>
@@ -28,20 +29,25 @@
   <main class="ui-page">
     <header class="ui-head">
       <div>
-        <h1>OSD selected<span class="ui-badge ui-date" id="asOn">Current list</span></h1>
+        <h1>Outstanding names<span class="ui-badge ui-date" id="asOn">Current list</span></h1>
+        <div class="ui-seg osd-modes" id="osdModes" role="tablist" aria-label="Outstanding dues">
+          <button type="button" data-mode="snapshot" aria-pressed="false">Snapshot</button>
+          <button type="button" data-mode="trend" aria-pressed="false">Trend</button>
+          <button type="button" data-mode="names" aria-pressed="true">Names</button>
+          <button type="button" data-mode="action" aria-pressed="false">Action</button>
+        </div>
       </div>
       <div class="ui-actions">
         <button type="button" class="ui-btn ui-side-toggle" id="sideToggle" aria-controls="side" aria-expanded="false" title="Toggle filters"><svg class="ui-i"><use href="#ui-filter"/></svg><span>Filters</span><span id="activeCount"></span></button>
         <button type="button" class="ui-btn" id="syncBtn" hidden title="Publish the OSD summary and selected list to the live page"><svg class="ui-i"><use href="#ui-sync"/></svg>Sync to VM</button>
-        <a class="ui-btn" id="openSummary" href="/rem/osd.html">Summary</a>
         <button type="button" class="ui-btn icon" id="refreshBtn" aria-label="Refresh" title="Refresh"><svg class="ui-i"><use href="#ui-refresh"/></svg></button>
       </div>
     </header>
     <div class="osd-picks" id="groups" role="group" aria-label="Report">
-      <button type="button" class="osd-pick" data-g="rem" aria-pressed="true"><span class="k">REM</span><span class="d">Above ₹5,000, except Government and Agriculture</span><span class="n">—</span></button>
+      <button type="button" class="osd-pick" data-g="rem" aria-pressed="true"><span class="k">REM</span><span class="d">₹5,000 or more, except Government and Agriculture</span><span class="n">—</span></button>
       <button type="button" class="osd-pick" data-g="ind" aria-pressed="false"><span class="k">Industrial</span><span class="d">Every industrial consumer</span><span class="n">—</span></button>
-      <button type="button" class="osd-pick" data-g="com" aria-pressed="false"><span class="k">Commercial</span><span class="d">Outstanding above ₹1,000</span><span class="n">—</span></button>
-      <button type="button" class="osd-pick" data-g="dom" aria-pressed="false"><span class="k">Domestic</span><span class="d">Outstanding above ₹50,000</span><span class="n">—</span></button>
+      <button type="button" class="osd-pick" data-g="com" aria-pressed="false"><span class="k">Commercial</span><span class="d">₹1,000 or more</span><span class="n">—</span></button>
+      <button type="button" class="osd-pick" data-g="dom" aria-pressed="false"><span class="k">Domestic</span><span class="d">₹5,000 or more</span><span class="n">—</span></button>
     </div>
     <div class="ui-layout side-collapsed" id="uiLayout">
       <aside class="ui-side" id="side" aria-label="Filters">
@@ -61,10 +67,10 @@
       </aside>
       <div class="ui-main">
         <section class="ui-stats" id="stats" aria-label="Selected cut">
-          <div class="ui-stat"><div class="k" id="statNLabel">REM</div><div class="v" id="statN"><span class="ui-skel"></span></div><div class="s" id="statCut">Above ₹5,000, except Government and Agriculture</div></div>
+          <div class="ui-stat"><div class="k" id="statNLabel">REM</div><div class="v" id="statN"><span class="ui-skel"></span></div><div class="s" id="statCut">₹5,000 or more, except Government and Agriculture</div></div>
           <div class="ui-stat"><div class="k" id="statOsdLabel">REM OSD</div><div class="v" id="statOsd"><span class="ui-skel"></span></div><div class="s" id="statNote">—</div></div>
         </section>
-        <p class="osd-def" id="remDef">REM is outstanding above ₹5,000, except Government and Agriculture.</p>
+        <p class="osd-def" id="remDef">A name is stored for REM at ₹5,000 or more, except Government and Agriculture, for every industrial consumer, for commercial at ₹1,000 or more, and for domestic at ₹5,000 or more. Government and agriculture stay in the snapshot only.</p>
         <section class="ui-panel">
           <div class="report-head">
             <div class="rh-top">
@@ -91,12 +97,17 @@
   document.addEventListener('DOMContentLoaded', function () {
     var $ = function (id) { return document.getElementById(id); };
     var GROUPS = {
-      rem: { label: 'REM', note: 'Above ₹5,000, except Government and Agriculture' },
+      rem: { label: 'REM', note: '₹5,000 or more, except Government and Agriculture' },
       ind: { label: 'Industrial', note: 'Every industrial consumer' },
-      com: { label: 'Commercial', note: 'Outstanding above ₹1,000' },
-      dom: { label: 'Domestic', note: 'Outstanding above ₹50,000' }
+      com: { label: 'Commercial', note: '₹1,000 or more' },
+      dom: { label: 'Domestic', note: '₹5,000 or more' }
     };
-    var state = { rows: [], history: null, group: 'rem', klass: '', q: '', tab: 'trend', region: '', division: '', ccc: '' };
+    var startGroup = 'rem';
+    try {
+      var asked = new URLSearchParams(location.search).get('group');
+      if (GROUPS[asked]) startGroup = asked;
+    } catch (e) {}
+    var state = { rows: [], history: null, group: startGroup, klass: '', q: '', tab: startGroup === 'rem' ? 'trend' : 'region', region: '', division: '', ccc: '' };
     var tableApi = null;
     var renderedTab = '';
 
@@ -149,9 +160,9 @@
         row._osd = amount(row);
         var name = cls(row);
         row._ind = name.indexOf('IND') === 0;
-        row._com = name.indexOf('COM') === 0 && row._osd > 1000;
-        row._dom = name.indexOf('DOM') === 0 && row._osd > 50000;
-        row._rem = row._osd > 5000 && !govOrAgri(name);
+        row._com = name.indexOf('COM') === 0 && row._osd >= 1000;
+        row._dom = name.indexOf('DOM') === 0 && row._osd >= 5000;
+        row._rem = row._osd >= 5000 && !govOrAgri(name);
         row._class = name.indexOf('DOM') === 0 ? 'Domestic' : name.indexOf('COM') === 0 ? 'Commercial' : name.indexOf('IND') === 0 ? 'Industrial' : 'Others';
       });
       return rows;
@@ -503,11 +514,21 @@
       if (btn) { clearFilter(btn.getAttribute('data-rh-clear')); return; }
       if (e.target.closest('#rhClearBtn')) clearFilter('all');
     });
-    $('openSummary').addEventListener('click', function (e) {
-      if (window.parent && window.parent !== window && window.parent.openPage) {
-        e.preventDefault();
-        window.parent.openPage('rem/osd.html', 'OSD summary');
+    function goReport(url) {
+      if (window.parent && window.parent !== window && typeof window.parent.openPage === 'function') {
+        window.parent.openPage(url);
+        return;
       }
+      location.href = '/' + url.replace(/^\//, '');
+    }
+    $('osdModes').addEventListener('click', function (e) {
+      var btn = e.target.closest('[data-mode]');
+      if (!btn) return;
+      var mode = btn.getAttribute('data-mode');
+      if (mode === 'names') return;
+      if (mode === 'trend') goReport('rem/osd.html?view=trend');
+      else if (mode === 'action') goReport('disconnection.html');
+      else goReport('rem/osd.html');
     });
     var setActive = UI.sidePanel({
       side: $('side'),

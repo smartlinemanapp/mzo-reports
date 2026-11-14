@@ -26,7 +26,12 @@
         document.head.appendChild(update);
     }
 
-    if ('serviceWorker' in navigator) {
+    var devHost = location.hostname === 'localhost' || location.hostname === '127.0.0.1' || location.hostname === '[::1]';
+    if (devHost && 'serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(function (regs) {
+            regs.forEach(function (reg) { reg.unregister(); });
+        }).catch(function () {});
+    } else if ('serviceWorker' in navigator) {
         window.addEventListener('load', function () {
             navigator.serviceWorker.register('/sw.js')
                 .then(function (reg) { try { reg.update(); } catch (e) {} })

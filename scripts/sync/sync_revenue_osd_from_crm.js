@@ -2,8 +2,9 @@
  * sync_revenue_osd_from_crm.js
  *
  * Common Revenue OSD pipeline from IBM DB2:
- *   ISUDATA.CON_WBSEDCL_OSD_CUR  →  osd_master.csv + osd_summary.json
- *                                →  disconnection.csv (tracker-compatible)
+ *   ISUDATA.CON_WBSEDCL_OSD_CUR  →  osd_summary.json
+ *   A local osd_master.csv may be written on this PC. It is not uploaded.
+ *   The disconnection action list is not replaced unless alsoDisconnection is passed.
  *
  * Tool: DbVisualizer CLI (dbviscmd.bat), connection "ibm db2"
  * Needs office network. Without it, use --fixture --dry-run.
@@ -370,9 +371,6 @@ async function uploadToVm(files, token) {
 
   console.log(`[${LABEL}] Uploading OSD datasets to VM (${VM_BASE_URL})...`);
   const fd = new FormData();
-  if (files.master && fs.existsSync(files.master)) {
-    fd.append('master', new Blob([fs.readFileSync(files.master)]), 'osd_master.csv');
-  }
   if (files.summary && fs.existsSync(files.summary)) {
     fd.append('summary', new Blob([fs.readFileSync(files.summary)]), 'osd_summary.json');
   }
@@ -404,10 +402,8 @@ async function syncRevenueOsdFromCrm(options = {}) {
   const useFixture = options.fixture ?? false;
   const fresh = options.fresh ?? true;
   const userToken = options.userToken || '';
-  // Fixture runs must not clobber a real disconnection.csv unless explicitly asked.
-  const alsoDisconnection = options.alsoDisconnection != null
-    ? !!options.alsoDisconnection
-    : !useFixture;
+  // The full consumer file is not the action list. Pass alsoDisconnection only to replace it.
+  const alsoDisconnection = options.alsoDisconnection === true;
 
   const skipUpload = !!options.skipUpload;
   if (!dryRun && !skipUpload) vmUploadHeaders(SYNC_KEY_ENV, userToken);
@@ -470,7 +466,6 @@ async function syncRevenueOsdFromCrm(options = {}) {
 
   if (storageConfigured() && !dryRun) {
     try {
-      await upload('osd/master.csv', masterCsv, 'text/csv');
       await upload('osd/summary.json', JSON.stringify(summary), 'application/json');
       if (alsoDisconnection) {
         await upload('disconnection/snapshot.csv', rowsToCsv(DISCON_HEADERS, masterRows), 'text/csv');

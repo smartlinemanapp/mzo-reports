@@ -157,6 +157,20 @@
       }
     },
     {
+      "src": "^/remosd5000\\.html$",
+      "status": 302,
+      "headers": {
+        "Location": "/rem/osd_selected.html?group=rem"
+      }
+    },
+    {
+      "src": "^/rem/defaulters\\.html$",
+      "status": 302,
+      "headers": {
+        "Location": "/rem/osd.html"
+      }
+    },
+    {
       "src": "/api/(.*)",
       "dest": "server.js"
     },

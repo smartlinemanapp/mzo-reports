@@ -2218,11 +2218,11 @@
             ['performance_index', 'Performance index', 'performance_index.html', 'ranking score'],
             ['loss', 'Losses', 'loss.html', 'at&c t&d loss'],
             ['collection', 'Collection', 'collection.html', 'revenue payment'],
-            ['osd_summary', 'OSD summary', 'rem/osd.html', 'outstanding dues rem share class supply trend'],
-            ['osd_selected', 'OSD selected', 'rem/osd_selected.html', 'outstanding follow-up industrial commercial domestic'],
-            ['remosd5000', 'REM OSD > ₹5,000', 'remosd5000.html', 'outstanding 5000'],
-            ['rem_defaulters', 'REM defaulters', 'rem/defaulters.html', 'outstanding'],
-            ['disconnection', 'Disconnection tracker', 'disconnection.html', 'osd defaulter follow-up'],
+            ['osd_summary', 'Outstanding dues', 'rem/osd.html', 'snapshot trend names rem outstanding'],
+            ['disconnection', 'Disconnection', 'disconnection.html', 'action list osd defaulter follow-up'],
+            ['osd_selected', 'Outstanding names', 'rem/osd_selected.html', 'names industrial commercial domestic', 'hide'],
+            ['remosd5000', 'REM names', 'rem/osd_selected.html?group=rem', 'rem names', 'hide'],
+            ['rem_defaulters', 'Outstanding dues', 'rem/osd.html', 'rem', 'hide'],
             ['upcoming_dd', 'Upcoming DD', 'dd/upcomingDD.html', 'visit schedule'],
             ['dd_visit_page', 'DD visit', 'dd/dd_visit.html', 'visit'],
             ['theft_assessment', 'Theft assessment', 'theft_assessment.html', 'pilferage']
@@ -2347,6 +2347,7 @@
             if (profile && Array.isArray(profile.modules) && !isAdmin(profile) && profile.modules.map(canon).indexOf(it[0]) === -1) return;
             if (!g.visible) return;
             var m = { k: it[0], n: it[1], u: it[2], kw: it[3] || '', g: g.label, gid: g.id, icon: g.icon, hue: g.hue };
+            if (it[4] === 'hide') { MODS[m.k] = m; return; }
             add(m);
             g.mods.push(m);
           });
@@ -3471,7 +3472,12 @@
       document.addEventListener('visibilitychange', function () { if (!document.hidden) pollCollect(); });
 
       // Signed-in users open the shell, not the login page, so the shell registers the service worker too.
-      if ('serviceWorker' in navigator) {
+      var devHost = location.hostname === 'localhost' || location.hostname === '127.0.0.1' || location.hostname === '[::1]';
+      if (devHost && 'serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(function (regs) {
+          regs.forEach(function (reg) { reg.unregister(); });
+        }).catch(function () {});
+      } else if ('serviceWorker' in navigator) {
         window.addEventListener('load', function () { navigator.serviceWorker.register('/sw.js').catch(function () { }); });
       }
 

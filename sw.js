@@ -13,7 +13,7 @@
 //   Same-origin copies are keyed by path plus the ?v= version, so a bumped ?v= is never answered
 //   with the previous version's copy; only an offline fallback takes any version of the path.
 //   - HTML responses get /mzo_present.js (desktop presentation zoom) injected after <head>.
-const CACHE_NAME = 'mzo-reports-cache-v454';
+const CACHE_NAME = 'mzo-reports-cache-v455';
 
 // Precached on install (not the data hub: it changes with dataset keys)
 const PRECACHE_ASSETS = [
@@ -240,9 +240,28 @@ function withPresentZoom(response, request, url) {
   }
 }
 
+// Local dev is a different server on every machine. A worker left from an earlier visit
+// treats a restart, or a browser that thinks it is offline, as "You're offline" and
+// replaces the login page. Sign-in then has no Google button. Production hosts keep the worker.
+function isLocalDevHost() {
+  const host = self.location.hostname;
+  return host === 'localhost' || host === '127.0.0.1' || host === '[::1]';
+}
+
+function dropLocalDevWorker() {
+  return caches.keys().then((names) => Promise.all(names.map((name) => caches.delete(name))))
+    .then(() => self.registration.unregister())
+    .then(() => self.clients.matchAll({ type: 'window' }))
+    .then((clients) => Promise.all(clients.map((client) => client.navigate(client.url))));
+}
+
 // Install: precache the shell. Each asset is cached on its own, so one missing file
 // cannot block the whole install (cache.addAll fails on any 404).
 self.addEventListener('install', (event) => {
+  if (isLocalDevHost()) {
+    event.waitUntil(self.skipWaiting());
+    return;
+  }
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => Promise.all(PRECACHE_ASSETS.map((asset) => cache.add(asset).catch((err) => {
@@ -254,6 +273,10 @@ self.addEventListener('install', (event) => {
 
 // Activate Event: clean up old caches
 self.addEventListener('activate', (event) => {
+  if (isLocalDevHost()) {
+    event.waitUntil(dropLocalDevWorker());
+    return;
+  }
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
@@ -274,6 +297,7 @@ function offlinePage() {
 }
 
 self.addEventListener('fetch', (event) => {
+  if (isLocalDevHost()) return;
   const request = event.request;
   // Only GET over http(s); chrome-extension: and friends would make Cache.put throw.
   if (request.method !== 'GET' || !canCacheRequest(request)) return;
@@ -287,8 +311,9 @@ self.addEventListener('fetch', (event) => {
 
   const isApi = url.pathname.startsWith('/api/');
 
-  // Network first (always on localhost, so local edits show at once)
-  if (self.location.hostname === 'localhost' || self.location.hostname === '127.0.0.1' || isNetworkFirstPath(url.pathname)) {
+  // Network first for the shell, report pages and shared scripts. Localhost never reaches
+  // this: isLocalDevHost() leaves those requests to the browser.
+  if (isNetworkFirstPath(url.pathname)) {
     event.respondWith(
       fetch(request).then((res) => {
         if (!isApi) writeAppCache(request, res.clone());

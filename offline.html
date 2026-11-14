@@ -30,12 +30,25 @@
     <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
       <path d="M2 2l20 20M8.5 16.5a5 5 0 0 1 7 0M5 13a10 10 0 0 1 5.2-2.8M19 13a10 10 0 0 0-2.3-1.7M2 8.8a15 15 0 0 1 4.2-2.7M22 8.8A15 15 0 0 0 10.7 5M12 20h.01"/>
     </svg>
-    <h1>You're offline</h1>
-    <p>This page hasn't been saved on this device yet. Connect to the internet to open it, or go back to the reports you've already opened.</p>
+    <h1 id="offTitle">You're offline</h1>
+    <p id="offText">This page hasn't been saved on this device yet. Connect to the internet to open it, or go back to the reports you've already opened.</p>
     <div class="row">
       <button type="button" onclick="location.reload()">Try again</button>
       <a href="/app.html">Home</a>
     </div>
+    <script>
+      if (location.hostname === 'localhost' || location.hostname === '127.0.0.1' || location.hostname === '[::1]') {
+        var title = document.getElementById('offTitle');
+        var text = document.getElementById('offText');
+        if (title) title.textContent = 'Local server is not running';
+        if (text) text.textContent = 'This browser kept an offline copy from another visit. Start the app on this machine and try again. Sign-in, including Google, is on the login page once the server answers.';
+        if (navigator.serviceWorker) {
+          navigator.serviceWorker.getRegistrations().then(function (regs) {
+            return Promise.all(regs.map(function (reg) { return reg.unregister(); }));
+          }).catch(function () {});
+        }
+      }
+    </script>
   </main>
 </body>
 </html>

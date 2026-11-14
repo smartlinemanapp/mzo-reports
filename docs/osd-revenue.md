@@ -1,6 +1,6 @@
 # OSD revenue: one dump, many views
 
-**Current path (13 Nov 2026).** The readable table is `ISUDATA.NOTICE_OSD`, not `CON_WBSEDCL_OSD_CUR` (that table is empty and has only `CCC_CODE, BASE_CLASS, CON_ID, AMT`). The zone summary is grouped on the office PC and uploaded as `osd_summary.json`. Each as-on date is also kept in `osd_summary_history.json` so the summary page can show a trend. `node scripts/sync/osd_sheet_history.js` folds the REM OSD notice sheet into that file: one REM snapshot per notice date, split by class, division and CCC. Those points have no total OSD. A date that already has an office-extract total is left as it is. Names are a separate current file, `osd_selected.csv`, for REM (outstanding above ₹5,000, except Government and Agriculture), all Industrial, Commercial above ₹1,000, and Domestic above ₹50,000 (`rem/osd_selected.html`). A new upload replaces that file. Payment follow-up stays on the Disconnection tracker. The full consumer master below is not what Sync Now publishes.
+**Current path (14 Nov 2026).** Outstanding dues is one report with four jobs: Snapshot and Trend on `rem/osd.html`, Names on `rem/osd_selected.html`, and the action batch on `disconnection.html`. The readable table is `ISUDATA.NOTICE_OSD`, not `CON_WBSEDCL_OSD_CUR` (that table is empty and has only `CCC_CODE, BASE_CLASS, CON_ID, AMT`). The zone summary is grouped on the office PC and uploaded as `osd_summary.json`. Each as-on date is also kept in `osd_summary_history.json`. `node scripts/sync/osd_sheet_history.js` folds the REM OSD notice sheet into that file: one REM snapshot per notice date, split by class, division and CCC. Those points have no total OSD. A date that already has an office-extract total is left as it is. Names are `osd_selected.csv`. A name is stored for REM at ₹5,000 or more except Government and Agriculture, for every industrial consumer, for commercial at ₹1,000 or more, and for domestic at ₹5,000 or more. The amount is included. Government and agriculture stay in the summary only. A new upload replaces the name file. The action batch starts at domestic ₹50,000 or more and commercial or industrial ₹1,000 or more. `POST /api/osd/upload` refuses a full consumer master. `scripts/sync/sync_revenue_osd_from_crm.js` no longer uploads one, and `scripts/sync/sync_disconnection_from_crm.js` no longer replaces the action list unless `MZO_ALLOW_FULL_DISCONNECTION=1`.
 
 Clean target for outstanding dues (OSD) across Disconnection, REM OSD, REM defaulters, and the **OSD summary** hub. DB2 is only reachable on the office network.
 
@@ -14,17 +14,16 @@ Clean target for outstanding dues (OSD) across Disconnection, REM OSD, REM defau
 IBM DB2  ISUDATA.CON_WBSEDCL_OSD_CUR  (+ supply-status column, confirm on 13th)
         │
         ▼  npm run sync:osd:crm   (office PC, DbVisualizer)
- data/osd_master.csv                 ← full Malda-zone OSD (66%)
  data/osd_summary.json               ← hub aggregates (small)
- data/disconnection.csv              ← same rows, tracker-compatible columns
+ data/osd_selected.csv               ← stored names only
+ data/disconnection.csv              ← the current action batch
         │
         ▼  x-sync-key upload
  VM /api/osd/*  +  /api/disconnection/*
         │
-        ├── rem/osd.html              OSD summary hub (this target)
-        ├── disconnection.html        action / follow-up list
-        ├── remosd5000.html           REM slice (OSD ≥ ₹5,000)
-        └── rem/defaulters.html       class / aging REM lists
+        ├── rem/osd.html              Snapshot and trend
+        ├── rem/osd_selected.html     Stored names
+        └── disconnection.html        Action batch
 ```
 
 ### Hub page (`rem/osd.html`) — what officers see first
@@ -32,7 +31,7 @@ IBM DB2  ISUDATA.CON_WBSEDCL_OSD_CUR  (+ supply-status column, confirm on 13th)
 | Block | Meaning |
 |--------|---------|
 | **Total OSD** | Sum of `NOTOSD` in scope |
-| **REM** | Outstanding above ₹5,000, except Government and Agriculture (amount + consumers + **share of total**) |
+| **REM** | ₹5,000 or more, except Government and Agriculture (amount + consumers + **share of total**) |
 | **By class** | DOM / COM / IND / Others |
 | **By supply status** | Live · Deemed disconnection · Temporary disconnection · Other |
 | **By high-value band** | &lt;₹5k · ₹5–10k · ₹10–25k · ₹25–50k · ₹50k–1L · ≥₹1L |
