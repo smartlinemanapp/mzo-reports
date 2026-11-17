@@ -2440,12 +2440,18 @@
     }
 
     .btn-puja {
+      display: none !important;
       background: linear-gradient(135deg, #881337 0%, #be123c 50%, #9a3412 100%);
       box-shadow: 0 4px 18px rgba(190, 18, 60, 0.5), 0 0 14px rgba(245, 158, 11, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.25);
       border: 1.5px solid rgba(254, 240, 138, 0.9);
       position: relative;
       overflow: visible !important;
       color: #ffffff;
+    }
+
+    .puja-animated-icon,
+    .puja-diya-svg {
+      display: none !important;
     }
 
     .puja-animated-icon {
@@ -4301,7 +4307,7 @@
     }
 
     .puja-devi-cutting {
-      display: flex;
+      display: none !important;
       align-items: center;
       justify-content: center;
       flex-shrink: 0;
@@ -4400,7 +4406,7 @@
 
 </head>
 
-<body class="puja-theme">
+<body class="dark-theme">
   <!-- Sync Overlay -->
   <div id="syncOverlay" style="display: none;">
     <div class="sync-card">
@@ -4438,7 +4444,7 @@
             <div class="header-content">
               <div class="header-row">
                 <div class="header-brand-corner">
-                  <div class="puja-devi-cutting" title="Maa Durga">
+                  <div class="puja-devi-cutting" title="Maa Durga" hidden style="display: none !important;">
                     <img src="icons/maa-durga-eyes.gif" alt="Maa Durga" class="puja-devi-gif" height="40" style="height: 40px; width: auto; max-height: 40px; max-width: 86px; object-fit: contain; display: block;" />
                   </div>
                   <div class="mzo-text-logo" title="MZO Reports">
@@ -4492,8 +4498,8 @@
             </div>
           </div>
           <div class="action-btn-container">
-            <!-- Durga Puja 2026 Report Button -->
-            <button class="btn btn-puja" data-page="puja.html" data-title="Puja Reports 2026">
+            <!-- Durga Puja 2026 Report Button (hidden after Puja) -->
+            <button class="btn btn-puja" data-page="puja.html" data-title="Puja Reports 2026" hidden style="display: none !important;">
               <span class="puja-animated-icon">
                 <img src="icons/diya-cropped.svg" alt="Diya" class="puja-diya-svg" />
               </span>
@@ -5083,29 +5089,19 @@
 
     function applyTheme(theme) {
       const ticker = document.getElementById('pujaFestiveTicker');
-      if (theme !== 'dark' && theme !== 'light') {
-        theme = 'puja';
+      if (theme !== 'light') {
+        theme = 'dark';
       }
 
       body.classList.remove('puja-theme', 'light-theme', 'dark-theme');
 
-      if (theme === 'puja') {
-        body.classList.add('puja-theme');
-        if (themeIcon) {
-          themeIcon.className = 'fas fa-newspaper';
-        }
-        if (themeToggleButton) {
-          themeToggleButton.title = 'Theme: Puja Newspaper (Click for Dark Mode)';
-        }
-        if (ticker) ticker.style.display = 'flex';
-        localStorage.setItem('theme', 'puja');
-      } else if (theme === 'light') {
+      if (theme === 'light') {
         body.classList.add('light-theme');
         if (themeIcon) {
           themeIcon.className = 'fas fa-moon';
         }
         if (themeToggleButton) {
-          themeToggleButton.title = 'Theme: Neumorphic Light (Click for Puja Newspaper)';
+          themeToggleButton.title = 'Theme: Neumorphic Light (Click for Dark Mode)';
         }
         if (ticker) ticker.style.display = 'none';
         localStorage.setItem('theme', 'light');
@@ -5123,15 +5119,8 @@
     }
 
     function toggleTheme() {
-      const currentTheme = localStorage.getItem('theme') || 'puja';
-      let newTheme = 'dark';
-      if (currentTheme === 'puja') {
-        newTheme = 'dark';
-      } else if (currentTheme === 'dark') {
-        newTheme = 'light';
-      } else {
-        newTheme = 'puja';
-      }
+      const currentTheme = localStorage.getItem('theme') === 'light' ? 'light' : 'dark';
+      const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
       applyTheme(newTheme);
       
       // Refresh chart if it exists to apply new theme colors
@@ -5142,14 +5131,8 @@
       }
     }
 
-    // Ensure the new Puja Newspaper theme is applied as default on existing installations
-    if (localStorage.getItem('puja_theme_applied') !== 'v1') {
-      localStorage.setItem('theme', 'puja');
-      localStorage.setItem('puja_theme_applied', 'v1');
-    }
-
-    // Apply saved theme on initial load (defaults to Puja Newspaper theme)
-    const savedTheme = localStorage.getItem('theme') || 'puja';
+    // Apply saved theme on initial load (Puja theme hidden; defaults to Dark theme)
+    const savedTheme = localStorage.getItem('theme') === 'light' ? 'light' : 'dark';
     applyTheme(savedTheme);
   </script>
   <script>
@@ -5716,7 +5699,7 @@
       // --- End Refactored Event Listeners ---
 
       // Re-apply theme to ensure correct icon state after all scripts load
-      applyTheme(localStorage.getItem('theme') || 'puja');
+      applyTheme(localStorage.getItem('theme') === 'light' ? 'light' : 'dark');
 
       // Connectivity checks
       checkConnectivity();
